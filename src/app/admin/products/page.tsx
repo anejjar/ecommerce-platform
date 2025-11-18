@@ -2,25 +2,24 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ProductActions } from '@/components/admin/ProductActions';
+import { ProductsList } from '@/components/admin/ProductsList';
 
 export default async function ProductsPage() {
   const products = await prisma.product.findMany({
     include: {
       category: true,
+      images: {
+        orderBy: { position: 'asc' },
+        take: 1,
+      },
     },
     orderBy: {
       createdAt: 'desc',
     },
+  });
+
+  const categories = await prisma.category.findMany({
+    orderBy: { name: 'asc' },
   });
 
   return (
@@ -30,9 +29,14 @@ export default async function ProductsPage() {
           <h1 className="text-3xl font-bold">Products</h1>
           <p className="text-gray-600 mt-2">Manage your product catalog</p>
         </div>
-        <Link href="/admin/products/new">
-          <Button>Add Product</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/products/import">
+            <Button variant="outline">Import CSV</Button>
+          </Link>
+          <Link href="/admin/products/new">
+            <Button>Add Product</Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -48,36 +52,7 @@ export default async function ProductsPage() {
               </Link>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.category?.name || 'N/A'}</TableCell>
-                    <TableCell>${product.price.toString()}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell>
-                      <Badge variant={product.published ? 'default' : 'secondary'}>
-                        {product.published ? 'Published' : 'Draft'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <ProductActions productId={product.id} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ProductsList products={products} categories={categories} />
           )}
         </CardContent>
       </Card>

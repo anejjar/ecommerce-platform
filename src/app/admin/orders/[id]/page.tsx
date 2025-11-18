@@ -13,9 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { OrderNotes } from '@/components/admin/OrderNotes';
 
 const statusOptions = [
-  const { id } = use(params);
   'PENDING',
   'PROCESSING',
   'SHIPPED',
@@ -32,6 +32,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,9 +100,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             Placed on {new Date(order.createdAt).toLocaleDateString()}
           </p>
         </div>
-        <Button variant="outline" onClick={() => router.back()}>
-          Back
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => window.open(`/admin/orders/${id}/invoice`, '_blank')}
+          >
+            Print Invoice
+          </Button>
+          <Button variant="outline" onClick={() => router.back()}>
+            Back
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -205,6 +214,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </CardContent>
       </Card>
+
+      {/* Order Notes */}
+      <OrderNotes orderId={id} />
     </div>
   );
 }

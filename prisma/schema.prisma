@@ -38,14 +38,16 @@ model User {
   image         String?
   password      String?
   role          UserRole  @default(CUSTOMER)
+  adminNotes    String?   @db.Text
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts  Account[]
-  orders    Order[]
-  reviews   Review[]
-  cart      Cart?
-  addresses Address[]
+  accounts   Account[]
+  orders     Order[]
+  reviews    Review[]
+  cart       Cart?
+  addresses  Address[]
+  orderNotes OrderNote[]
 }
 
 model Account {
@@ -168,6 +170,7 @@ model Order {
   user   User   @relation(fields: [userId], references: [id])
 
   items             OrderItem[]
+  orderNotes        OrderNote[]
   shippingAddressId String?     @unique
   shippingAddress   Address?    @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
   billingAddressId  String?     @unique
@@ -224,4 +227,18 @@ model Review {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+}
+
+model OrderNote {
+  id        String   @id @default(cuid())
+  note      String   @db.Text
+  isInternal Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }

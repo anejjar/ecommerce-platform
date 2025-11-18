@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ImageUpload } from '@/components/admin/ImageUpload';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -13,15 +14,18 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
+  const [images, setImages] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
     description: '',
     price: '',
+    comparePrice: '',
     stock: '',
     sku: '',
     categoryId: '',
     published: true,
+    featured: false,
   });
 
   useEffect(() => {
@@ -51,11 +55,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           slug: product.slug,
           description: product.description || '',
           price: product.price.toString(),
+          comparePrice: product.comparePrice ? product.comparePrice.toString() : '',
           stock: product.stock.toString(),
           sku: product.sku || '',
           categoryId: product.categoryId || '',
           published: product.published,
+          featured: product.featured || false,
         });
+
+        // Fetch product images
+        const imagesResponse = await fetch(`/api/product-images?productId=${id}`);
+        if (imagesResponse.ok) {
+          const productImages = await imagesResponse.json();
+          setImages(productImages);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch product');
@@ -77,12 +90,30 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
+          comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
           stock: parseInt(formData.stock),
           categoryId: formData.categoryId || null,
         }),
       });
 
       if (response.ok) {
+        // Handle image uploads for new images
+        const newImages = images.filter((img: any) => img.file);
+        if (newImages.length > 0) {
+          for (const image of newImages) {
+            const imageFormData = new FormData();
+            imageFormData.append('file', image.file);
+            imageFormData.append('productId', id);
+            imageFormData.append('alt', image.alt || '');
+            imageFormData.append('isPrimary', image.isPrimary ? 'true' : 'false');
+
+            await fetch('/api/product-images', {
+              method: 'POST',
+              body: imageFormData,
+            });
+          }
+        }
+
         router.push('/admin/products');
         router.refresh();
       } else {
@@ -168,6 +199,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               />
             </div>
 
+            <div className="space-y-2">
+              <Label>Product Images</Label>
+              <ImageUpload productId={id} initialImages={images} onImagesChange={setImages} />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="price">Price *</Label>
@@ -183,6 +219,24 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="comparePrice">Compare at Price</Label>
+                <Input
+                  id="comparePrice"
+                  name="comparePrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.comparePrice}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                />
+                <p className="text-sm text-gray-500">
+                  Original price (for showing discounts)
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="stock">Stock *</Label>
                 <Input
                   id="stock"
@@ -193,29 +247,45 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   required
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sku">SKU</Label>
+                <Input
+                  id="sku"
+                  name="sku"
+                  value={formData.sku}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="sku">SKU</Label>
-              <Input
-                id="sku"
-                name="sku"
-                value={formData.sku}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="published"
-                checked={formData.published}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, published: e.target.checked }))
-                }
-                className="rounded"
-              />
-              <Label htmlFor="published">Publish product</Label>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Product Options</h3>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="published"
+                  checked={formData.published}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, published: e.target.checked }))
+                  }
+                  className="rounded"
+                />
+                <Label htmlFor="published">Publish product</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="featured"
+                  checked={formData.featured}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, featured: e.target.checked }))
+                  }
+                  className="rounded"
+                />
+                <Label htmlFor="featured">Featured</Label>
+                <span className="text-sm text-gray-500">(Highlight in storefront)</span>
+              </div>
             </div>
 
             <div className="flex gap-4 pt-4">

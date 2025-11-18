@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -35,9 +36,18 @@ export default async function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Customers</h1>
-        <p className="text-gray-600 mt-2">Manage your customer base</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Customers</h1>
+          <p className="text-gray-600 mt-2">Manage your customer base</p>
+        </div>
+        <a
+          href="/api/customers/export"
+          download
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Export CSV
+        </a>
       </div>
 
       <Card>
@@ -58,6 +68,7 @@ export default async function CustomersPage() {
                   <TableHead>Total Orders</TableHead>
                   <TableHead>Total Spent</TableHead>
                   <TableHead>Joined</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -77,6 +88,14 @@ export default async function CustomersPage() {
                       <TableCell>${totalSpent.toFixed(2)}</TableCell>
                       <TableCell>
                         {new Date(customer.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/admin/customers/${customer.id}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          View
+                        </Link>
                       </TableCell>
                     </TableRow>
                   );
