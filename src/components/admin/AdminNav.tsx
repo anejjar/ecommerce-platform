@@ -17,6 +17,7 @@ const navigation = [
   { name: 'Orders', href: '/admin/orders' },
   { name: 'Customers', href: '/admin/customers' },
   { name: 'Categories', href: '/admin/categories' },
+  { name: 'Stock Alerts', href: '/admin/stock-alerts' },
 ];
 
 export function AdminNav() {

@@ -51,7 +51,7 @@ export default async function ShopPage({
   }
 
   // Fetch products
-  const products = await prisma.product.findMany({
+  const productsData = await prisma.product.findMany({
     where,
     include: {
       images: {
@@ -62,6 +62,13 @@ export default async function ShopPage({
     },
     orderBy,
   });
+
+  // Convert Decimal fields to strings for client components
+  const products = productsData.map(product => ({
+    ...product,
+    price: product.price.toString(),
+    comparePrice: product.comparePrice ? product.comparePrice.toString() : null,
+  }));
 
   // Fetch categories for filter
   const categories = await prisma.category.findMany({

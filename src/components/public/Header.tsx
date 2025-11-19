@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { ShoppingCart, User, Search, Menu } from 'lucide-react';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
+import { openCart } from '@/lib/redux/features/cartSlice';
 import { Button } from '@/components/ui/button';
+import { CartDrawer } from '@/components/public/CartDrawer';
 import { useState } from 'react';
 
 export function Header() {
   const { data: session } = useSession();
+  const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 

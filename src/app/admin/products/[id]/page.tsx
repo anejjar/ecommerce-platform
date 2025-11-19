@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageUpload } from '@/components/admin/ImageUpload';
+import { ProductVariants } from '@/components/admin/ProductVariants';
+import { StockAlertConfig } from '@/components/admin/StockAlertConfig';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -304,6 +306,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           </form>
         </CardContent>
       </Card>
+
+      {/* Stock Alert Configuration */}
+      <StockAlertConfig productId={id} currentStock={parseInt(formData.stock) || 0} />
+
+      {/* Product Variants Section */}
+      <ProductVariants productId={id} basePrice={parseFloat(formData.price) || 0} />
     </div>
   );
 }

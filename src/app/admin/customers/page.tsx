@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 
 export default async function CustomersPage() {
-  const customers = await prisma.user.findMany({
+  const customersData = await prisma.user.findMany({
     where: {
       role: 'CUSTOMER',
     },
@@ -33,6 +33,15 @@ export default async function CustomersPage() {
       createdAt: 'desc',
     },
   });
+
+  // Convert Decimal fields to strings for client components
+  const customers = customersData.map(customer => ({
+    ...customer,
+    orders: customer.orders.map(order => ({
+      ...order,
+      total: order.total.toString(),
+    })),
+  }));
 
   return (
     <div className="space-y-6">

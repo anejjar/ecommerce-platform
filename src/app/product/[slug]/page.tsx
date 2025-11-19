@@ -11,7 +11,7 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  const product = await prisma.product.findUnique({
+  const productData = await prisma.product.findUnique({
     where: { slug },
     include: {
       images: {
@@ -21,12 +21,19 @@ export default async function ProductPage({
     },
   });
 
-  if (!product || !product.published) {
+  if (!productData || !productData.published) {
     notFound();
   }
 
+  // Convert Decimal fields to strings
+  const product = {
+    ...productData,
+    price: productData.price.toString(),
+    comparePrice: productData.comparePrice ? productData.comparePrice.toString() : null,
+  };
+
   // Fetch related products from same category
-  const relatedProducts = await prisma.product.findMany({
+  const relatedProductsData = await prisma.product.findMany({
     where: {
       published: true,
       categoryId: product.categoryId,
@@ -41,6 +48,13 @@ export default async function ProductPage({
     },
     take: 4,
   });
+
+  // Convert Decimal fields for related products
+  const relatedProducts = relatedProductsData.map(p => ({
+    ...p,
+    price: p.price.toString(),
+    comparePrice: p.comparePrice ? p.comparePrice.toString() : null,
+  }));
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -113,7 +113,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         {/* Order Status */}
         <Card>
           <CardHeader>
@@ -124,6 +124,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <label className="text-sm font-medium">Current Status</label>
               <Badge className={`ml-2 ${statusColors[order.status]}`}>
                 {order.status}
+              </Badge>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Payment Status</label>
+              <Badge className={`ml-2 ${
+                order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+                order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
+                order.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>
+                {order.paymentStatus}
               </Badge>
             </div>
             <div className="space-y-2">
@@ -164,6 +175,27 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <p className="text-sm text-gray-600">Email</p>
               <p className="font-medium">{order.user.email}</p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Shipping Address */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Shipping Address</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {order.shippingAddress ? (
+              <div className="text-sm space-y-1">
+                <p className="font-medium">{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
+                <p>{order.shippingAddress.address1}</p>
+                {order.shippingAddress.address2 && <p>{order.shippingAddress.address2}</p>}
+                <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
+                <p>{order.shippingAddress.country}</p>
+                {order.shippingAddress.phone && <p className="mt-2">Phone: {order.shippingAddress.phone}</p>}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No shipping address</p>
+            )}
           </CardContent>
         </Card>
       </div>

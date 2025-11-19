@@ -8,6 +8,7 @@ import { Star, ShoppingCart, Minus, Plus, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch } from '@/lib/redux/hooks';
 import { addToCart } from '@/lib/redux/features/cartSlice';
+import { ProductReviews } from '@/components/public/ProductReviews';
 
 interface Product {
   id: string;
@@ -288,6 +289,11 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Product Reviews */}
+        <div className="mb-8">
+          <ProductReviews productId={product.id} />
         </div>
 
         {/* Related Products */}

@@ -2,14 +2,17 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email';
+import { orderShippedEmail, orderDeliveredEmail } from '@/lib/email-templates';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const order = await prisma.order.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -46,9 +49,10 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== 'ADMIN') {
@@ -56,9 +60,16 @@ export async function PATCH(
     }
 
     const json = await request.json();
+    const { status, trackingNumber } = json;
+
+    // Get the current order to check status change
+    const currentOrder = await prisma.order.findUnique({
+      where: { id },
+      select: { status: true },
+    });
 
     const order = await prisma.order.update({
-      where: { id: params.id },
+      where: { id },
       data: json,
       include: {
         user: {
@@ -76,8 +87,49 @@ export async function PATCH(
             },
           },
         },
+        shippingAddress: true,
       },
     });
+
+    // Send email notifications on status changes
+    try {
+      if (status && currentOrder && currentOrder.status !== status) {
+        const emailData = {
+          orderNumber: order.orderNumber,
+          total: order.total.toString(),
+          subtotal: order.subtotal.toString(),
+          tax: order.tax.toString(),
+          shipping: order.shipping.toString(),
+          status: order.status,
+          items: order.items.map(item => ({
+            product: { name: item.product.name },
+            quantity: item.quantity,
+            price: item.price.toString(),
+            total: item.total.toString(),
+          })),
+          shippingAddress: order.shippingAddress || undefined,
+        };
+
+        const customerName = order.user.name || order.user.email;
+
+        if (status === 'SHIPPED') {
+          await sendEmail({
+            to: order.user.email,
+            subject: `Your Order Has Shipped - ${order.orderNumber}`,
+            html: orderShippedEmail(emailData, customerName, trackingNumber),
+          });
+        } else if (status === 'DELIVERED') {
+          await sendEmail({
+            to: order.user.email,
+            subject: `Your Order Has Been Delivered - ${order.orderNumber}`,
+            html: orderDeliveredEmail(emailData, customerName),
+          });
+        }
+      }
+    } catch (emailError) {
+      console.error('Failed to send order status email:', emailError);
+      // Don't fail the update if email fails
+    }
 
     return NextResponse.json(order);
   } catch (error) {

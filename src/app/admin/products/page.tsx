@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductsList } from '@/components/admin/ProductsList';
 
 export default async function ProductsPage() {
-  const products = await prisma.product.findMany({
+  const productsData = await prisma.product.findMany({
     include: {
       category: true,
       images: {
@@ -17,6 +17,13 @@ export default async function ProductsPage() {
       createdAt: 'desc',
     },
   });
+
+  // Convert Decimal fields to strings for client components
+  const products = productsData.map(product => ({
+    ...product,
+    price: product.price.toString(),
+    comparePrice: product.comparePrice ? product.comparePrice.toString() : null,
+  }));
 
   const categories = await prisma.category.findMany({
     orderBy: { name: 'asc' },

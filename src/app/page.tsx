@@ -8,7 +8,7 @@ import { Star } from 'lucide-react';
 
 export default async function HomePage() {
   // Fetch featured products
-  const featuredProducts = await prisma.product.findMany({
+  const featuredProductsData = await prisma.product.findMany({
     where: {
       published: true,
       featured: true,
@@ -24,7 +24,7 @@ export default async function HomePage() {
   });
 
   // Fetch latest products if no featured
-  const latestProducts = await prisma.product.findMany({
+  const latestProductsData = await prisma.product.findMany({
     where: {
       published: true,
     },
@@ -40,6 +40,19 @@ export default async function HomePage() {
     },
     take: 8,
   });
+
+  // Convert Decimal fields to strings
+  const featuredProducts = featuredProductsData.map(product => ({
+    ...product,
+    price: product.price.toString(),
+    comparePrice: product.comparePrice ? product.comparePrice.toString() : null,
+  }));
+
+  const latestProducts = latestProductsData.map(product => ({
+    ...product,
+    price: product.price.toString(),
+    comparePrice: product.comparePrice ? product.comparePrice.toString() : null,
+  }));
 
   const displayProducts = featuredProducts.length > 0 ? featuredProducts : latestProducts;
 
