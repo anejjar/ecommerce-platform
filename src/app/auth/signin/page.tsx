@@ -124,6 +124,11 @@ export default function SignInPage() {
 
             <div className="mt-6 text-center text-sm space-y-2">
               <p className="text-gray-600">
+                <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
+                  Forgot your password?
+                </Link>
+              </p>
+              <p className="text-gray-600">
                 Don't have an account?{' '}
                 <Link href="/auth/signup" className="text-blue-600 hover:underline">
                   Sign Up

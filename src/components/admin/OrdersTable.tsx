@@ -197,8 +197,19 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               <TableCell className="font-medium">{order.orderNumber}</TableCell>
               <TableCell>
                 <div>
-                  <p className="font-medium">{order.user.name || 'N/A'}</p>
-                  <p className="text-sm text-gray-600">{order.user.email}</p>
+                  <p className="font-medium">
+                    {order.user?.name || order.shippingAddress?.firstName
+                      ? `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim()
+                      : 'Guest'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {order.user?.email || order.guestEmail || 'N/A'}
+                  </p>
+                  {order.isGuest && (
+                    <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                      Guest Order
+                    </span>
+                  )}
                 </div>
               </TableCell>
               <TableCell>

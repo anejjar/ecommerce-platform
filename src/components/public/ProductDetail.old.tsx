@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -9,30 +9,6 @@ import { Button } from '@/components/ui/button';
 import { useAppDispatch } from '@/lib/redux/hooks';
 import { addToCart, openCart } from '@/lib/redux/features/cartSlice';
 import { ProductReviews } from '@/components/public/ProductReviews';
-import toast from 'react-hot-toast';
-
-interface VariantOptionValue {
-  id: string;
-  value: string;
-  position: number;
-}
-
-interface VariantOption {
-  id: string;
-  name: string;
-  position: number;
-  values: VariantOptionValue[];
-}
-
-interface ProductVariant {
-  id: string;
-  sku: string | null;
-  price: string | null;
-  comparePrice: string | null;
-  stock: number;
-  image: string | null;
-  optionValues: string; // JSON array
-}
 
 interface Product {
   id: string;
@@ -46,8 +22,6 @@ interface Product {
   sku: string | null;
   images: { id: string; url: string; alt: string | null }[];
   category: { name: string; slug: string } | null;
-  variantOptions: VariantOption[];
-  variants: ProductVariant[];
 }
 
 interface ProductDetailProps {
@@ -62,107 +36,17 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   const [selectedImage, setSelectedImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  // Track selected option values for each variant option
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
-
-  // Check if product has variants
-  const hasVariants = product.variantOptions.length > 0 && product.variants.length > 0;
-
-  // Find the selected variant based on selected options
-  const selectedVariant = useMemo(() => {
-    if (!hasVariants) return null;
-
-    // If not all options are selected, return null
-    const allOptionsSelected = product.variantOptions.every(
-      (option) => selectedOptions[option.id]
-    );
-    if (!allOptionsSelected) return null;
-
-    // Find matching variant
-    return product.variants.find((variant) => {
-      const variantValues = JSON.parse(variant.optionValues);
-      return product.variantOptions.every((option, index) => {
-        return variantValues[index] === selectedOptions[option.id];
-      });
-    });
-  }, [selectedOptions, product.variantOptions, product.variants, hasVariants]);
-
-  // Get current price and stock (from variant or base product)
-  const currentPrice = selectedVariant
-    ? Number(selectedVariant.price || product.price)
-    : Number(product.price);
-
-  const currentComparePrice = selectedVariant
-    ? selectedVariant.comparePrice
-      ? Number(selectedVariant.comparePrice)
-      : null
-    : product.comparePrice
-      ? Number(product.comparePrice)
-      : null;
-
-  // Calculate available stock
-  // If has variants: sum of all variant stocks (or selected variant if chosen)
-  // If no variants: use product stock
-  const currentStock = useMemo(() => {
-    if (hasVariants) {
-      if (selectedVariant) {
-        return selectedVariant.stock;
-      }
-      // Sum all variant stocks to show total availability
-      return product.variants.reduce((sum, v) => sum + v.stock, 0);
-    }
-    return product.stock;
-  }, [selectedVariant, product.variants, product.stock, hasVariants]);
-
-  const currentImage = selectedVariant?.image || product.images[selectedImage]?.url;
-
-  const discount =
-    currentComparePrice && currentComparePrice > currentPrice
-      ? Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)
-      : null;
-
-  const handleOptionChange = (optionId: string, value: string) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [optionId]: value,
-    }));
-  };
-
   const handleAddToCart = () => {
-    // Check if all variant options are selected
-    if (hasVariants && !selectedVariant) {
-      toast.error('Please select all product options', {
-        duration: 3000,
-      });
-      return;
-    }
-
-    // Build variant name for display
-    let variantName = '';
-    if (hasVariants && selectedVariant) {
-      const variantValues = JSON.parse(selectedVariant.optionValues);
-      variantName = product.variantOptions
-        .map((option, index) => `${option.name}: ${variantValues[index]}`)
-        .join(', ');
-    }
-
     dispatch(
       addToCart({
         id: Date.now().toString(),
         productId: product.id,
         name: product.name,
-        price: currentPrice,
+        price: Number(product.price),
         quantity,
-        image: currentImage,
-        variantId: selectedVariant?.id,
-        variantName,
+        image: product.images[0]?.url,
       })
     );
-
-    toast.success(`Added ${product.name} to cart!`, {
-      duration: 2000,
-    });
-
     dispatch(openCart());
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
@@ -173,8 +57,14 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
     router.push('/cart');
   };
 
+  const price = Number(product.price);
+  const comparePrice = product.comparePrice ? Number(product.comparePrice) : null;
+  const discount = comparePrice && comparePrice > price
+    ? Math.round(((comparePrice - price) / comparePrice) * 100)
+    : null;
+
   const incrementQuantity = () => {
-    if (quantity < currentStock) {
+    if (quantity < product.stock) {
       setQuantity(quantity + 1);
     }
   };
@@ -191,17 +81,9 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
         {/* Breadcrumb */}
         <nav className="mb-6 text-sm">
           <ol className="flex items-center gap-2 text-gray-600">
-            <li>
-              <Link href="/" className="hover:text-blue-600">
-                Home
-              </Link>
-            </li>
+            <li><Link href="/" className="hover:text-blue-600">Home</Link></li>
             <li>/</li>
-            <li>
-              <Link href="/shop" className="hover:text-blue-600">
-                Shop
-              </Link>
-            </li>
+            <li><Link href="/shop" className="hover:text-blue-600">Shop</Link></li>
             {product.category && (
               <>
                 <li>/</li>
@@ -227,14 +109,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
             <div>
               {/* Main Image */}
               <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-                {currentImage ? (
-                  <Image
-                    src={currentImage}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : product.images.length > 0 ? (
+                {product.images.length > 0 ? (
                   <Image
                     src={product.images[selectedImage].url}
                     alt={product.name}
@@ -286,7 +161,9 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
 
             {/* Product Info */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {product.name}
+              </h1>
 
               {product.category && (
                 <Link
@@ -301,15 +178,15 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               <div className="mb-6">
                 <div className="flex items-baseline gap-3">
                   <span className="text-4xl font-bold text-gray-900">
-                    ${currentPrice.toFixed(2)}
+                    ${price.toFixed(2)}
                   </span>
-                  {currentComparePrice && currentComparePrice > currentPrice && (
+                  {comparePrice && comparePrice > price && (
                     <>
                       <span className="text-2xl text-gray-500 line-through">
-                        ${currentComparePrice.toFixed(2)}
+                        ${comparePrice.toFixed(2)}
                       </span>
                       <span className="text-green-600 font-semibold">
-                        Save ${(currentComparePrice - currentPrice).toFixed(2)}
+                        Save ${(comparePrice - price).toFixed(2)}
                       </span>
                     </>
                   )}
@@ -318,12 +195,14 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
 
               {/* Stock Status */}
               <div className="mb-6">
-                {currentStock > 0 ? (
+                {product.stock > 0 ? (
                   <p className="text-green-600 font-medium">
-                    ✓ In Stock ({currentStock} available)
+                    ✓ In Stock ({product.stock} available)
                   </p>
                 ) : (
-                  <p className="text-red-600 font-medium">✗ Out of Stock</p>
+                  <p className="text-red-600 font-medium">
+                    ✗ Out of Stock
+                  </p>
                 )}
               </div>
 
@@ -344,48 +223,6 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 </p>
               )}
 
-              {/* Variant Options */}
-              {hasVariants && (
-                <div className="mb-6 space-y-4">
-                  {product.variantOptions.map((option) => (
-                    <div key={option.id}>
-                      <label className="block font-semibold mb-2">{option.name}</label>
-                      <div className="flex flex-wrap gap-2">
-                        {option.values.map((value) => {
-                          const isSelected = selectedOptions[option.id] === value.value;
-
-                          // Check if this option value is available in any variant
-                          const isAvailable = product.variants.some((variant) => {
-                            const variantValues = JSON.parse(variant.optionValues);
-                            const optionIndex = product.variantOptions.findIndex(
-                              (o) => o.id === option.id
-                            );
-                            return variantValues[optionIndex] === value.value && variant.stock > 0;
-                          });
-
-                          return (
-                            <button
-                              key={value.id}
-                              onClick={() => handleOptionChange(option.id, value.value)}
-                              disabled={!isAvailable}
-                              className={`px-4 py-2 border rounded-lg transition-colors ${
-                                isSelected
-                                  ? 'border-blue-600 bg-blue-50 text-blue-600 font-medium'
-                                  : isAvailable
-                                    ? 'border-gray-300 hover:border-blue-600'
-                                    : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through'
-                              }`}
-                            >
-                              {value.value}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Quantity Selector */}
               <div className="mb-6">
                 <label className="block font-semibold mb-2">Quantity</label>
@@ -398,18 +235,19 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="px-6 py-2 font-semibold border-x">{quantity}</span>
+                    <span className="px-6 py-2 font-semibold border-x">
+                      {quantity}
+                    </span>
                     <button
                       onClick={incrementQuantity}
-                      disabled={quantity >= currentStock}
+                      disabled={quantity >= product.stock}
                       className="px-4 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
                   <span className="text-sm text-gray-600">
-                    Total:{' '}
-                    <span className="font-bold">${(currentPrice * quantity).toFixed(2)}</span>
+                    Total: <span className="font-bold">${(price * quantity).toFixed(2)}</span>
                   </span>
                 </div>
               </div>
@@ -418,7 +256,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               <div className="flex gap-3 mb-6">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={currentStock === 0}
+                  disabled={product.stock === 0}
                   className="flex-1"
                   size="lg"
                 >
@@ -436,7 +274,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 </Button>
                 <Button
                   onClick={handleBuyNow}
-                  disabled={currentStock === 0}
+                  disabled={product.stock === 0}
                   variant="secondary"
                   size="lg"
                 >
@@ -494,8 +332,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                           ${Number(relatedProduct.price).toFixed(2)}
                         </span>
                         {relatedProduct.comparePrice &&
-                          Number(relatedProduct.comparePrice) >
-                            Number(relatedProduct.price) && (
+                          Number(relatedProduct.comparePrice) > Number(relatedProduct.price) && (
                             <span className="text-sm text-gray-500 line-through">
                               ${Number(relatedProduct.comparePrice).toFixed(2)}
                             </span>

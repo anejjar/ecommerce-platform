@@ -20,17 +20,17 @@ export function CartContent() {
   const shipping = subtotal > 50 ? 0 : 10; // Free shipping over $50
   const total = subtotal + tax + shipping;
 
-  const handleRemove = (productId: string) => {
+  const handleRemove = (itemId: string) => {
     if (confirm('Remove this item from cart?')) {
-      dispatch(removeFromCart(productId));
+      dispatch(removeFromCart(itemId));
     }
   };
 
-  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) {
-      handleRemove(productId);
+      handleRemove(itemId);
     } else {
-      dispatch(updateQuantity({ productId, quantity: newQuantity }));
+      dispatch(updateQuantity({ id: itemId, quantity: newQuantity }));
     }
   };
 
@@ -85,6 +85,9 @@ export function CartContent() {
                 {/* Product Info */}
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">{item.name}</h3>
+                  {item.variantName && (
+                    <p className="text-sm text-gray-500 mb-1">{item.variantName}</p>
+                  )}
                   <p className="text-gray-600 mb-3">
                     ${item.price.toFixed(2)} each
                   </p>
@@ -94,7 +97,7 @@ export function CartContent() {
                     <div className="flex items-center border rounded-lg">
                       <button
                         onClick={() =>
-                          handleUpdateQuantity(item.productId, item.quantity - 1)
+                          handleUpdateQuantity(item.id, item.quantity - 1)
                         }
                         className="px-3 py-1 hover:bg-gray-100"
                       >
@@ -105,7 +108,7 @@ export function CartContent() {
                       </span>
                       <button
                         onClick={() =>
-                          handleUpdateQuantity(item.productId, item.quantity + 1)
+                          handleUpdateQuantity(item.id, item.quantity + 1)
                         }
                         className="px-3 py-1 hover:bg-gray-100"
                       >
@@ -114,7 +117,7 @@ export function CartContent() {
                     </div>
 
                     <button
-                      onClick={() => handleRemove(item.productId)}
+                      onClick={() => handleRemove(item.id)}
                       className="text-red-600 hover:text-red-800 flex items-center gap-1"
                     >
                       <Trash2 className="w-4 h-4" />

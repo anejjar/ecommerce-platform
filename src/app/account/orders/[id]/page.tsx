@@ -42,7 +42,14 @@ export default async function OrderDetailPage({
     },
   });
 
-  if (!order || order.userId !== session.user.id) {
+  // Check if user owns this order (handle guest orders)
+  if (!order) {
+    notFound();
+  }
+
+  // For guest orders, redirect to sign in (they can't access /account anyway)
+  // For user orders, ensure they own the order
+  if (order.userId !== session.user.id) {
     notFound();
   }
 
@@ -134,6 +141,9 @@ export default async function OrderDetailPage({
                   >
                     <div className="flex-1">
                       <p className="font-medium">{item.product.name}</p>
+                      {item.variantName && (
+                        <p className="text-sm text-gray-500">{item.variantName}</p>
+                      )}
                       <p className="text-sm text-gray-600">
                         ${Number(item.price).toFixed(2)} × {item.quantity}
                       </p>

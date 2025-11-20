@@ -313,7 +313,7 @@ export function DashboardContent() {
                         {order.orderNumber}
                       </Link>
                       <p className="text-sm text-gray-600">
-                        {order.user.name || order.user.email}
+                        {order.user?.name || order.user?.email || order.guestEmail || 'Guest'}
                       </p>
                       <p className="text-xs text-gray-500">
                         {new Date(order.createdAt).toLocaleDateString()}

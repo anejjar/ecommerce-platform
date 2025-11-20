@@ -46,8 +46,9 @@ export function OrdersList({ orders }: OrdersListProps) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
           order.orderNumber.toLowerCase().includes(searchLower) ||
-          order.user.name?.toLowerCase().includes(searchLower) ||
-          order.user.email.toLowerCase().includes(searchLower);
+          order.user?.name?.toLowerCase().includes(searchLower) ||
+          order.user?.email.toLowerCase().includes(searchLower) ||
+          order.guestEmail?.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
       }
 

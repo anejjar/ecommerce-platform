@@ -7,6 +7,8 @@ export interface CartItem {
   price: number;
   quantity: number;
   image?: string;
+  variantId?: string;
+  variantName?: string; // e.g., "Size: Large, Color: Red"
 }
 
 interface CartState {
@@ -24,8 +26,11 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action: PayloadAction<CartItem>) => {
+      // Find existing item: same product AND same variant (or both null)
       const existing = state.items.find(
-        (item) => item.productId === action.payload.productId
+        (item) =>
+          item.productId === action.payload.productId &&
+          item.variantId === action.payload.variantId
       );
 
       if (existing) {
@@ -35,17 +40,15 @@ const cartSlice = createSlice({
       }
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(
-        (item) => item.productId !== action.payload
-      );
+      // Remove by unique cart item ID
+      state.items = state.items.filter((item) => item.id !== action.payload);
     },
     updateQuantity: (
       state,
-      action: PayloadAction<{ productId: string; quantity: number }>
+      action: PayloadAction<{ id: string; quantity: number }>
     ) => {
-      const item = state.items.find(
-        (item) => item.productId === action.payload.productId
-      );
+      // Update by unique cart item ID
+      const item = state.items.find((item) => item.id === action.payload.id);
       if (item) {
         item.quantity = action.payload.quantity;
       }

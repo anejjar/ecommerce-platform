@@ -18,6 +18,17 @@ export default async function ProductPage({
         orderBy: { position: 'asc' },
       },
       category: true,
+      variantOptions: {
+        include: {
+          values: {
+            orderBy: { position: 'asc' },
+          },
+        },
+        orderBy: { position: 'asc' },
+      },
+      variants: {
+        orderBy: { createdAt: 'asc' },
+      },
     },
   });
 
@@ -30,6 +41,11 @@ export default async function ProductPage({
     ...productData,
     price: productData.price.toString(),
     comparePrice: productData.comparePrice ? productData.comparePrice.toString() : null,
+    variants: productData.variants.map((v) => ({
+      ...v,
+      price: v.price ? v.price.toString() : null,
+      comparePrice: v.comparePrice ? v.comparePrice.toString() : null,
+    })),
   };
 
   // Fetch related products from same category

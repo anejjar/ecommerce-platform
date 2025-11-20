@@ -110,20 +110,23 @@ export async function PATCH(
           shippingAddress: order.shippingAddress || undefined,
         };
 
-        const customerName = order.user.name || order.user.email;
+        const customerEmail = order.user?.email || order.guestEmail;
+        const customerName = order.user?.name || customerEmail || 'Customer';
 
-        if (status === 'SHIPPED') {
-          await sendEmail({
-            to: order.user.email,
-            subject: `Your Order Has Shipped - ${order.orderNumber}`,
-            html: orderShippedEmail(emailData, customerName, trackingNumber),
-          });
-        } else if (status === 'DELIVERED') {
-          await sendEmail({
-            to: order.user.email,
-            subject: `Your Order Has Been Delivered - ${order.orderNumber}`,
-            html: orderDeliveredEmail(emailData, customerName),
-          });
+        if (customerEmail) {
+          if (status === 'SHIPPED') {
+            await sendEmail({
+              to: customerEmail,
+              subject: `Your Order Has Shipped - ${order.orderNumber}`,
+              html: orderShippedEmail(emailData, customerName, trackingNumber),
+            });
+          } else if (status === 'DELIVERED') {
+            await sendEmail({
+              to: customerEmail,
+              subject: `Your Order Has Been Delivered - ${order.orderNumber}`,
+              html: orderDeliveredEmail(emailData, customerName),
+            });
+          }
         }
       }
     } catch (emailError) {

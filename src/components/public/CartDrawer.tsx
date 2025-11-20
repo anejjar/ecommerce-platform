@@ -25,11 +25,11 @@ export function CartDrawer() {
     router.push('/cart');
   };
 
-  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      dispatch(removeFromCart(productId));
+      dispatch(removeFromCart(itemId));
     } else {
-      dispatch(updateQuantity({ productId, quantity: newQuantity }));
+      dispatch(updateQuantity({ id: itemId, quantity: newQuantity }));
     }
   };
 
@@ -72,7 +72,7 @@ export function CartDrawer() {
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.productId} className="flex gap-3 pb-4 border-b last:border-0">
+                  <div key={item.id} className="flex gap-3 pb-4 border-b last:border-0">
                     {/* Product Image */}
                     <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       {item.image ? (
@@ -92,6 +92,9 @@ export function CartDrawer() {
                     {/* Product Details */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm line-clamp-2 mb-1">{item.name}</h3>
+                      {item.variantName && (
+                        <p className="text-xs text-gray-500 mb-1">{item.variantName}</p>
+                      )}
                       <p className="text-sm font-semibold text-gray-900 mb-2">
                         ${item.price.toFixed(2)}
                       </p>
@@ -99,20 +102,20 @@ export function CartDrawer() {
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                           className="p-1 hover:bg-gray-100 rounded transition-colors"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                         <span className="w-8 text-center font-medium">{item.quantity}</span>
                         <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                           className="p-1 hover:bg-gray-100 rounded transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => dispatch(removeFromCart(item.productId))}
+                          onClick={() => dispatch(removeFromCart(item.id))}
                           className="ml-auto text-red-600 hover:text-red-700 text-sm"
                         >
                           Remove

@@ -89,14 +89,17 @@ export function Header() {
             </div>
 
             {/* Cart */}
-            <Link href="/cart" className="relative hover:text-blue-600">
+            <button
+              onClick={() => dispatch(openCart())}
+              className="relative hover:text-blue-600"
+            >
               <ShoppingCart className="w-6 h-6" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                   {cartItemCount}
                 </span>
               )}
-            </Link>
+            </button>
 
             {/* Mobile menu toggle */}
             <button
@@ -171,6 +174,9 @@ export function Header() {
           </div>
         )}
       </div>
+
+      {/* Cart Drawer */}
+      <CartDrawer />
     </header>
   );
 }

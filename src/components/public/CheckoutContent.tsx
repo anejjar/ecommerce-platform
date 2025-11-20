@@ -31,6 +31,9 @@ export function CheckoutContent() {
     phone: '',
   });
 
+  const [createAccount, setCreateAccount] = useState(false);
+  const [password, setPassword] = useState('');
+
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -49,9 +52,15 @@ export function CheckoutContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!session) {
-      alert('Please sign in to continue with checkout');
-      router.push('/auth/signin?callbackUrl=/checkout');
+    // Validate email for guest checkout
+    if (!session && !formData.email) {
+      alert('Please enter your email address');
+      return;
+    }
+
+    // Validate password if creating account
+    if (!session && createAccount && password.length < 6) {
+      alert('Password must be at least 6 characters');
       return;
     }
 
@@ -67,6 +76,7 @@ export function CheckoutContent() {
           items: cartItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
+            variantId: item.variantId || null,
           })),
           shippingAddress: {
             address1: formData.address,
@@ -81,6 +91,9 @@ export function CheckoutContent() {
             email: formData.email,
             phone: formData.phone,
           },
+          isGuest: !session,
+          createAccount: !session && createAccount,
+          password: !session && createAccount ? password : undefined,
         }),
       });
 
@@ -126,31 +139,6 @@ export function CheckoutContent() {
     );
   }
 
-  if (!session) {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-md mx-auto text-center">
-          <div className="bg-white rounded-lg shadow-sm p-12">
-            <Lock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
-            <p className="text-gray-600 mb-6">
-              Please sign in to continue with your purchase
-            </p>
-            <Link href="/auth/signin?callbackUrl=/checkout">
-              <Button size="lg">Sign In</Button>
-            </Link>
-            <p className="mt-4 text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link href="/auth/signup" className="text-blue-600 hover:underline">
-                Sign up here
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
@@ -162,6 +150,18 @@ export function CheckoutContent() {
             {/* Contact Information */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
               <h2 className="text-xl font-bold mb-4">Contact Information</h2>
+
+              {!session && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                  <p className="text-blue-800">
+                    Already have an account?{' '}
+                    <Link href="/auth/signin?callbackUrl=/checkout" className="font-semibold underline">
+                      Sign in
+                    </Link>
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="email">Email Address *</Label>
@@ -172,9 +172,39 @@ export function CheckoutContent() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    readOnly={!!session.user.email}
+                    readOnly={!!session?.user?.email}
                   />
                 </div>
+
+                {!session && createAccount && (
+                  <div>
+                    <Label htmlFor="password">Password * (min 6 characters)</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required={createAccount}
+                      minLength={6}
+                    />
+                  </div>
+                )}
+
+                {!session && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="createAccount"
+                      checked={createAccount}
+                      onChange={(e) => setCreateAccount(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                    />
+                    <Label htmlFor="createAccount" className="font-normal cursor-pointer">
+                      Create an account for faster checkout next time
+                    </Label>
+                  </div>
+                )}
               </div>
             </div>
 

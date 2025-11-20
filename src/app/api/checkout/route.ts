@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
-import { orderConfirmationEmail } from '@/lib/email-templates';
+import { orderConfirmationEmail, welcomeEmail } from '@/lib/email-templates';
+import bcrypt from 'bcryptjs';
 
 async function generateOrderNumber(): Promise<string> {
   const date = new Date();
@@ -30,77 +31,159 @@ async function generateOrderNumber(): Promise<string> {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Find user by email (more reliable than ID from JWT token)
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found. Please sign in again.' },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-    const { items, shippingAddress, customerInfo } = body;
+    const { items, shippingAddress, customerInfo, isGuest, createAccount, password } = body;
 
     // Validation
     if (!items || items.length === 0) {
-      return NextResponse.json(
-        { error: 'Cart is empty' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
     }
 
-    if (!shippingAddress || !shippingAddress.address1 || !shippingAddress.city || !shippingAddress.postalCode) {
+    if (
+      !shippingAddress ||
+      !shippingAddress.address1 ||
+      !shippingAddress.city ||
+      !shippingAddress.postalCode
+    ) {
       return NextResponse.json(
         { error: 'Complete shipping address is required' },
         { status: 400 }
       );
     }
 
-    // Calculate totals
+    if (!customerInfo?.email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    // Find or create user
+    let user;
+
+    if (session && session.user) {
+      // Logged in user
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found. Please sign in again.' },
+          { status: 401 }
+        );
+      }
+    } else if (isGuest) {
+      // Guest checkout
+      if (createAccount) {
+        // Guest wants to create account
+        if (!password || password.length < 6) {
+          return NextResponse.json(
+            { error: 'Password must be at least 6 characters' },
+            { status: 400 }
+          );
+        }
+
+        // Check if email already exists
+        const existingUser = await prisma.user.findUnique({
+          where: { email: customerInfo.email },
+        });
+
+        if (existingUser) {
+          return NextResponse.json(
+            { error: 'Email already exists. Please sign in.' },
+            { status: 400 }
+          );
+        }
+
+        // Create new user
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user = await prisma.user.create({
+          data: {
+            email: customerInfo.email,
+            password: hashedPassword,
+            name: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
+            role: 'CUSTOMER',
+          },
+        });
+
+        // Send welcome email
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: 'Welcome to Our Store!',
+            html: welcomeEmail(user.name || user.email),
+          });
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+        }
+      } else {
+        // Pure guest checkout - no user account
+        user = null;
+      }
+    } else {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Calculate totals and validate stock
     let subtotal = 0;
     const orderItems = [];
 
     for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-      });
+      let price;
+      let stock;
 
-      if (!product) {
-        return NextResponse.json(
-          { error: `Product not found: ${item.productId}` },
-          { status: 400 }
-        );
+      if (item.variantId) {
+        // Get variant price and stock
+        const variant = await prisma.productVariant.findUnique({
+          where: { id: item.variantId },
+          include: { product: true },
+        });
+
+        if (!variant || !variant.product.published) {
+          return NextResponse.json(
+            { error: `Product variant not available` },
+            { status: 400 }
+          );
+        }
+
+        price = variant.price ? Number(variant.price) : Number(variant.product.price);
+        stock = variant.stock;
+
+        if (stock < item.quantity) {
+          return NextResponse.json(
+            { error: `Insufficient stock for variant` },
+            { status: 400 }
+          );
+        }
+      } else {
+        // Get base product price and stock
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product || !product.published) {
+          return NextResponse.json(
+            { error: `Product not available` },
+            { status: 400 }
+          );
+        }
+
+        price = Number(product.price);
+        stock = product.stock;
+
+        if (stock < item.quantity) {
+          return NextResponse.json(
+            { error: `Insufficient stock for ${product.name}` },
+            { status: 400 }
+          );
+        }
       }
 
-      if (!product.published) {
-        return NextResponse.json(
-          { error: `Product is no longer available: ${product.name}` },
-          { status: 400 }
-        );
-      }
-
-      if (product.stock < item.quantity) {
-        return NextResponse.json(
-          { error: `Insufficient stock for ${product.name}` },
-          { status: 400 }
-        );
-      }
-
-      const itemTotal = Number(product.price) * item.quantity;
+      const itemTotal = price * item.quantity;
       subtotal += itemTotal;
 
       orderItems.push({
-        productId: product.id,
-        price: product.price,
+        productId: item.productId,
+        variantId: item.variantId || null,
+        price,
         quantity: item.quantity,
         total: itemTotal,
       });
@@ -122,7 +205,7 @@ export async function POST(request: NextRequest) {
         postalCode: shippingAddress.postalCode,
         country: shippingAddress.country || 'USA',
         phone: customerInfo.phone || null,
-        userId: user.id,
+        userId: user?.id || null,
       },
     });
 
@@ -134,12 +217,14 @@ export async function POST(request: NextRequest) {
       data: {
         orderNumber,
         status: 'PENDING',
-        paymentStatus: 'PENDING', // Payment not implemented yet
+        paymentStatus: 'PENDING',
         subtotal,
         tax,
         shipping,
         total,
-        userId: user.id,
+        userId: user?.id || null,
+        isGuest: !user || isGuest,
+        guestEmail: !user ? customerInfo.email : null,
         shippingAddressId: address.id,
         items: {
           create: orderItems,
@@ -149,6 +234,7 @@ export async function POST(request: NextRequest) {
         items: {
           include: {
             product: true,
+            variant: true,
           },
         },
         user: true,
@@ -156,22 +242,48 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update product stock
+    // Update stock (product AND variant if applicable)
     for (const item of items) {
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: {
-          stock: {
-            decrement: item.quantity,
+      if (item.variantId) {
+        // Update variant stock AND product stock
+        await prisma.$transaction([
+          prisma.productVariant.update({
+            where: { id: item.variantId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          }),
+          prisma.product.update({
+            where: { id: item.productId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          }),
+        ]);
+      } else {
+        // Update product stock only (no variants)
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
           },
-        },
-      });
+        });
+      }
     }
 
     // Send order confirmation email
+    const emailTo = user?.email || customerInfo.email;
+    const customerName = user?.name || `${customerInfo.firstName} ${customerInfo.lastName}`.trim();
+
     try {
       await sendEmail({
-        to: user.email,
+        to: emailTo,
         subject: `Order Confirmation - ${orderNumber}`,
         html: orderConfirmationEmail(
           {
@@ -181,7 +293,7 @@ export async function POST(request: NextRequest) {
             tax: order.tax.toString(),
             shipping: order.shipping.toString(),
             status: order.status,
-            items: order.items.map(item => ({
+            items: order.items.map((item) => ({
               product: { name: item.product.name },
               quantity: item.quantity,
               price: item.price.toString(),
@@ -189,7 +301,7 @@ export async function POST(request: NextRequest) {
             })),
             shippingAddress: order.shippingAddress || undefined,
           },
-          user.name || user.email
+          customerName || emailTo
         ),
       });
     } catch (emailError) {

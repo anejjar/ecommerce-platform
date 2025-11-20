@@ -169,12 +169,20 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <CardContent className="space-y-2">
             <div>
               <p className="text-sm text-gray-600">Name</p>
-              <p className="font-medium">{order.user.name || 'N/A'}</p>
+              <p className="font-medium">
+                {order.user?.name ||
+                 (order.shippingAddress ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}` : 'Guest')}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Email</p>
-              <p className="font-medium">{order.user.email}</p>
+              <p className="font-medium">{order.user?.email || order.guestEmail || 'N/A'}</p>
             </div>
+            {order.isGuest && (
+              <div>
+                <Badge className="bg-gray-100 text-gray-600">Guest Order</Badge>
+              </div>
+            )}
           </CardContent>
         </Card>
 

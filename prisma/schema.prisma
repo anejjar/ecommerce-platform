@@ -42,12 +42,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts   Account[]
-  orders     Order[]
-  reviews    Review[]
-  cart       Cart?
-  addresses  Address[]
-  orderNotes OrderNote[]
+  accounts       Account[]
+  orders         Order[]
+  reviews        Review[]
+  cart           Cart?
+  addresses      Address[]
+  orderNotes     OrderNote[]
+  passwordResets PasswordReset[]
 }
 
 model Account {
@@ -194,11 +195,13 @@ model Order {
   shipping      Decimal       @default(0) @db.Decimal(10, 2)
   total         Decimal       @db.Decimal(10, 2)
   notes         String?       @db.Text
+  isGuest       Boolean       @default(false)
+  guestEmail    String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
 
   items             OrderItem[]
   orderNotes        OrderNote[]
@@ -284,4 +287,14 @@ model StockAlert {
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

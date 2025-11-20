@@ -92,8 +92,14 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
         <div className="grid grid-cols-2 gap-8 mb-8">
           <div>
             <h3 className="font-bold text-gray-900 mb-2">Bill To:</h3>
-            <p className="text-sm text-gray-700">{order.user.name || 'N/A'}</p>
-            <p className="text-sm text-gray-700">{order.user.email}</p>
+            <p className="text-sm text-gray-700">
+              {order.user?.name ||
+               (order.shippingAddress ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}` : 'Guest')}
+            </p>
+            <p className="text-sm text-gray-700">{order.user?.email || order.guestEmail || 'N/A'}</p>
+            {order.isGuest && (
+              <p className="text-xs text-gray-500 mt-1">(Guest Order)</p>
+            )}
           </div>
           {order.shippingAddress && (
             <div>
