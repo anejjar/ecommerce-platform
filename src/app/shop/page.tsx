@@ -1,8 +1,19 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { ShopContent } from '@/components/public/ShopContent';
 import { prisma } from '@/lib/prisma';
+
+export const metadata: Metadata = {
+  title: 'Shop - Browse All Products | E-Commerce Platform',
+  description: 'Browse our wide selection of quality products. Shop electronics, clothing, books and more with great prices and free shipping on orders over $50.',
+  openGraph: {
+    title: 'Shop All Products - E-Commerce Platform',
+    description: 'Browse our wide selection of quality products at great prices.',
+    type: 'website',
+  },
+};
 
 export default async function ShopPage({
   searchParams,

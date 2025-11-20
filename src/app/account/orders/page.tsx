@@ -23,11 +23,6 @@ export default async function OrderHistoryPage() {
     redirect('/auth/signin?callbackUrl=/account/orders');
   }
 
-  // Debug: Log session user ID
-  console.log('Session user ID:', session.user.id);
-  console.log('Session user email:', session.user.email);
-
-  // Find all orders for this user
   const orders = await prisma.order.findMany({
     where: {
       userId: session.user.id,
@@ -43,16 +38,6 @@ export default async function OrderHistoryPage() {
       createdAt: 'desc',
     },
   });
-
-  // Debug: Log orders found
-  console.log('Orders found:', orders.length);
-  if (orders.length > 0) {
-    console.log('First order:', orders[0].orderNumber);
-  }
-
-  // Also check total orders in database for debugging
-  const totalOrders = await prisma.order.count();
-  console.log('Total orders in database:', totalOrders);
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import toast from 'react-hot-toast';
 import { OrderNotes } from '@/components/admin/OrderNotes';
 
 const statusOptions = [
@@ -72,12 +73,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       if (response.ok) {
         const updated = await response.json();
         setOrder(updated);
-        alert('Order status updated successfully');
+        toast.success('Order status updated successfully');
       } else {
-        alert('Failed to update order');
+        toast.error('Failed to update order');
       }
     } catch (error) {
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsUpdating(false);
     }

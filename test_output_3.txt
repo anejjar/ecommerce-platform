@@ -1,0 +1,23 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.12 [39m[90mC:/laragon/www/claude/ecommerce-platform[39m
+
+stderr | src/components/admin/DashboardContent.test.tsx > DashboardContent > handles fetch error
+Failed to fetch dashboard data: Error: API Error
+    at C:/laragon/www/claude/ecommerce-platform/src/components/admin/DashboardContent.test.tsx:100:50
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:912:26
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1237:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1203:10)
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1647:37
+    at Traces.$ (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/vitest/dist/chunks/test.DqQZzsWf.js:234:21)
+    at runTest (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1647:12)
+
+ [32mΓ£ô[39m src/components/admin/DashboardContent.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 148[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 19:44:26
+[2m   Duration [22m 2.81s[2m (transform 186ms, setup 195ms, collect 1.09s, tests 148ms, environment 1.10s, prepare 19ms)[22m
+

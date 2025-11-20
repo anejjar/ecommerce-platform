@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { syncProductStockWithVariants } from '@/lib/stock-sync';
 
 // Get all variants for a product
 export async function GET(
@@ -52,6 +53,9 @@ export async function POST(
         optionValues: JSON.stringify(optionValues),
       },
     });
+
+    // Sync product stock with variants
+    await syncProductStockWithVariants(id);
 
     return NextResponse.json(variant);
   } catch (error) {

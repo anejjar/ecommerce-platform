@@ -39,10 +39,11 @@ interface DashboardData {
     total: string;
     status: string;
     createdAt: string;
+    guestEmail?: string | null;
     user: {
       name: string | null;
       email: string;
-    };
+    } | null;
   }>;
   topProducts: Array<{
     name: string;
@@ -105,28 +106,28 @@ export function DashboardContent() {
   const stats = [
     {
       name: 'Total Revenue',
-      value: `$${Number(data.summary.totalRevenue).toLocaleString()}`,
-      change: `$${Number(data.summary.monthRevenue).toLocaleString()} this month`,
+      value: `$${Number(data.summary.totalRevenue).toLocaleString('en-US')}`,
+      change: `$${Number(data.summary.monthRevenue).toLocaleString('en-US')} this month`,
       icon: DollarSign,
       color: 'bg-green-500',
     },
     {
       name: 'Total Orders',
-      value: data.summary.totalOrders.toLocaleString(),
+      value: data.summary.totalOrders.toLocaleString('en-US'),
       change: `${data.summary.monthOrders} this month`,
       icon: ShoppingCart,
       color: 'bg-blue-500',
     },
     {
       name: 'Total Customers',
-      value: data.summary.totalCustomers.toLocaleString(),
+      value: data.summary.totalCustomers.toLocaleString('en-US'),
       change: `${data.summary.newCustomers} new this month`,
       icon: Users,
       color: 'bg-purple-500',
     },
     {
       name: 'Total Products',
-      value: data.summary.totalProducts.toLocaleString(),
+      value: data.summary.totalProducts.toLocaleString('en-US'),
       change: data.summary.lowStockProducts > 0
         ? `${data.summary.lowStockProducts} low stock`
         : 'All stocked',
@@ -262,11 +263,10 @@ export function DashboardContent() {
                 {data.topProducts.map((product, index) => (
                   <div key={product.slug} className="flex items-center justify-between border-b pb-3 last:border-0">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        index === 0 ? 'bg-yellow-500' :
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? 'bg-yellow-500' :
                         index === 1 ? 'bg-gray-400' :
-                        index === 2 ? 'bg-orange-600' : 'bg-blue-500'
-                      } text-white font-bold text-sm`}>
+                          index === 2 ? 'bg-orange-600' : 'bg-blue-500'
+                        } text-white font-bold text-sm`}>
                         {index + 1}
                       </div>
                       <div>

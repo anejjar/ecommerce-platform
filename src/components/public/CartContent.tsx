@@ -6,6 +6,7 @@ import { Trash2, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
 import { removeFromCart, updateQuantity } from '@/lib/redux/features/cartSlice';
+import toast from 'react-hot-toast';
 
 export function CartContent() {
   const dispatch = useAppDispatch();
@@ -21,9 +22,8 @@ export function CartContent() {
   const total = subtotal + tax + shipping;
 
   const handleRemove = (itemId: string) => {
-    if (confirm('Remove this item from cart?')) {
-      dispatch(removeFromCart(itemId));
-    }
+    dispatch(removeFromCart(itemId));
+    toast.success('Item removed from cart', { duration: 2000 });
   };
 
   const handleUpdateQuantity = (itemId: string, newQuantity: number) => {

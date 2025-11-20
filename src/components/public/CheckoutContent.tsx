@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
 import { clearCart } from '@/lib/redux/features/cartSlice';
+import toast from 'react-hot-toast';
 
 export function CheckoutContent() {
   const router = useRouter();
@@ -54,13 +55,13 @@ export function CheckoutContent() {
 
     // Validate email for guest checkout
     if (!session && !formData.email) {
-      alert('Please enter your email address');
+      toast.error('Please enter your email address');
       return;
     }
 
     // Validate password if creating account
     if (!session && createAccount && password.length < 6) {
-      alert('Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
@@ -100,13 +101,14 @@ export function CheckoutContent() {
       if (response.ok) {
         const order = await response.json();
         dispatch(clearCart());
+        toast.success('Order placed successfully!');
         router.push(`/order-confirmation/${order.orderNumber}`);
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to place order');
+        toast.error(error.error || 'Failed to place order');
       }
     } catch (error) {
-      alert('An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

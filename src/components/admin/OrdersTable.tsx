@@ -28,11 +28,15 @@ interface Order {
     state: string | null;
     postalCode: string;
     country: string;
+    firstName?: string | null;
+    lastName?: string | null;
   } | null;
   user: {
     name: string | null;
     email: string;
-  };
+  } | null;
+  guestEmail?: string | null;
+  isGuest?: boolean;
   items: any[];
 }
 

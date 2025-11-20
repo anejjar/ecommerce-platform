@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import toast from 'react-hot-toast';
 
 interface Review {
   id: string;
@@ -68,13 +69,13 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
         await fetchReviews();
         setShowForm(false);
         setFormData({ rating: '5', title: '', comment: '' });
-        alert('Review submitted successfully!');
+        toast.success('Review submitted successfully!');
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to submit review');
+        toast.error(error.error || 'Failed to submit review');
       }
     } catch (error) {
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsSubmitting(false);
     }

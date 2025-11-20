@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { syncProductStockWithVariants } from '@/lib/stock-sync';
 
 // Update a variant
 export async function PATCH(
@@ -9,7 +10,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; variantId: string }> }
 ) {
   try {
-    const { variantId } = await params;
+    const { id, variantId } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== 'ADMIN') {
@@ -31,6 +32,9 @@ export async function PATCH(
       },
     });
 
+    // Sync product stock with variants
+    await syncProductStockWithVariants(id);
+
     return NextResponse.json(variant);
   } catch (error) {
     return NextResponse.json(
@@ -46,7 +50,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; variantId: string }> }
 ) {
   try {
-    const { variantId } = await params;
+    const { id, variantId } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== 'ADMIN') {
@@ -56,6 +60,9 @@ export async function DELETE(
     await prisma.productVariant.delete({
       where: { id: variantId },
     });
+
+    // Sync product stock with remaining variants
+    await syncProductStockWithVariants(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
