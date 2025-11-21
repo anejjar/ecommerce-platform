@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useAppDispatch } from '@/lib/redux/hooks';
 import { addToCart, openCart } from '@/lib/redux/features/cartSlice';
 import { ProductReviews } from '@/components/public/ProductReviews';
+import { WishlistButton } from '@/components/public/WishlistButton';
 import toast from 'react-hot-toast';
 
 interface VariantOptionValue {
@@ -442,6 +443,9 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 >
                   Buy Now
                 </Button>
+                <div className="border rounded-lg flex items-center justify-center px-4 hover:bg-gray-50">
+                  <WishlistButton productId={product.id} showText={false} />
+                </div>
               </div>
 
               {/* Additional Info */}

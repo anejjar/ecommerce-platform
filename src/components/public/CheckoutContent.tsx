@@ -34,6 +34,16 @@ export function CheckoutContent() {
 
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    id: string;
+    code: string;
+    type: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    value: number;
+    discountAmount: number;
+  } | null>(null);
+  const [discountError, setDiscountError] = useState('');
+  const [isCheckingDiscount, setIsCheckingDiscount] = useState(false);
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -41,13 +51,54 @@ export function CheckoutContent() {
   );
   const tax = subtotal * 0.1;
   const shipping = subtotal > 50 ? 0 : 10;
-  const total = subtotal + tax + shipping;
+  const totalBeforeDiscount = subtotal + tax + shipping;
+  const total = appliedDiscount
+    ? Math.max(0, totalBeforeDiscount - appliedDiscount.discountAmount)
+    : totalBeforeDiscount;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return;
+
+    setIsCheckingDiscount(true);
+    setDiscountError('');
+
+    try {
+      const response = await fetch('/api/discounts/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: discountCode,
+          cartTotal: subtotal,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAppliedDiscount(data);
+        toast.success('Discount applied!');
+      } else {
+        setDiscountError(data.error || 'Invalid discount code');
+        setAppliedDiscount(null);
+      }
+    } catch (error) {
+      setDiscountError('Failed to apply discount');
+    } finally {
+      setIsCheckingDiscount(false);
+    }
+  };
+
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode('');
+    setDiscountError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,6 +146,7 @@ export function CheckoutContent() {
           isGuest: !session,
           createAccount: !session && createAccount,
           password: !session && createAccount ? password : undefined,
+          discountCodeId: appliedDiscount?.id,
         }),
       });
 
@@ -343,6 +395,50 @@ export function CheckoutContent() {
                 ))}
               </div>
 
+              {/* Discount Code */}
+              <div className="mb-4 border-b pb-4">
+                <Label htmlFor="discountCode" className="mb-2 block">
+                  Discount Code
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="discountCode"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    placeholder="Enter code"
+                    disabled={!!appliedDiscount}
+                  />
+                  {appliedDiscount ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={removeDiscount}
+                      className="shrink-0"
+                    >
+                      Remove
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleApplyDiscount}
+                      disabled={isCheckingDiscount || !discountCode}
+                      className="shrink-0"
+                    >
+                      Apply
+                    </Button>
+                  )}
+                </div>
+                {discountError && (
+                  <p className="text-sm text-red-500 mt-1">{discountError}</p>
+                )}
+                {appliedDiscount && (
+                  <p className="text-sm text-green-600 mt-1">
+                    Discount applied: {appliedDiscount.code}
+                  </p>
+                )}
+              </div>
+
               {/* Totals */}
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
@@ -363,6 +459,12 @@ export function CheckoutContent() {
                     )}
                   </span>
                 </div>
+                {appliedDiscount && (
+                  <div className="flex justify-between text-sm text-green-600 font-medium">
+                    <span>Discount</span>
+                    <span>-${appliedDiscount.discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="border-t pt-4 mb-6">

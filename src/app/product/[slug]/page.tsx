@@ -54,7 +54,7 @@ export async function generateMetadata({
           alt: product.name,
         },
       ],
-      type: 'product',
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
@@ -122,6 +122,17 @@ export default async function ProductPage({
         take: 1,
       },
       category: true,
+      variantOptions: {
+        include: {
+          values: {
+            orderBy: { position: 'asc' },
+          },
+        },
+        orderBy: { position: 'asc' },
+      },
+      variants: {
+        orderBy: { createdAt: 'asc' },
+      },
     },
     take: 4,
   });
@@ -131,6 +142,11 @@ export default async function ProductPage({
     ...p,
     price: p.price.toString(),
     comparePrice: p.comparePrice ? p.comparePrice.toString() : null,
+    variants: p.variants.map((v) => ({
+      ...v,
+      price: v.price ? v.price.toString() : null,
+      comparePrice: v.comparePrice ? v.comparePrice.toString() : null,
+    })),
   }));
 
   // Generate JSON-LD structured data for SEO

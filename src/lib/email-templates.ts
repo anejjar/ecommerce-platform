@@ -11,6 +11,7 @@ interface Order {
   subtotal: string;
   tax: string;
   shipping: string;
+  discountAmount?: string;
   status: string;
   items: OrderItem[];
   shippingAddress?: {
@@ -221,3 +222,46 @@ export function welcomeEmail(customerName: string) {
     <p>If you have any questions, our support team is always here to help!</p>
   `;
 }
+
+export function newsletterWelcomeEmail(name?: string) {
+  return `
+    <h2>Welcome to Our Newsletter! 📧</h2>
+    <p>Hi ${name || 'there'},</p>
+    <p>Thank you for subscribing to our newsletter! You'll now receive:</p>
+
+    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin: 20px 0;">
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Exclusive deals and discount codes</li>
+        <li>New product announcements</li>
+        <li>Tips and recommendations</li>
+        <li>Special subscriber-only offers</li>
+        <li>Early access to sales</li>
+      </ul>
+    </div>
+
+    <p>You can unsubscribe at any time by clicking the link at the bottom of our emails.</p>
+
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="button">
+      Browse Our Products
+    </a>
+  `;
+}
+
+export function newsletterCampaignEmail(
+  content: string,
+  subscriberEmail: string
+) {
+  return `
+    ${content}
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      You're receiving this email because you subscribed to our newsletter.<br>
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color: #6b7280;">
+        Unsubscribe
+      </a>
+    </p>
+  `;
+}
+

@@ -36,6 +36,7 @@ export default async function OrderDetailPage({
       items: {
         include: {
           product: true,
+          variant: true,
         },
       },
       shippingAddress: true,
@@ -141,8 +142,8 @@ export default async function OrderDetailPage({
                   >
                     <div className="flex-1">
                       <p className="font-medium">{item.product.name}</p>
-                      {item.variantName && (
-                        <p className="text-sm text-gray-500">{item.variantName}</p>
+                      {item.variant && (
+                        <p className="text-sm text-gray-500">Variant: {item.variant.optionValues}</p>
                       )}
                       <p className="text-sm text-gray-600">
                         ${Number(item.price).toFixed(2)} × {item.quantity}

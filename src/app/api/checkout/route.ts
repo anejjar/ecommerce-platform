@@ -191,7 +191,48 @@ export async function POST(request: NextRequest) {
 
     const tax = subtotal * 0.1; // 10% tax
     const shipping = subtotal > 50 ? 0 : 10; // Free shipping over $50
-    const total = subtotal + tax + shipping;
+    let total = subtotal + tax + shipping;
+
+    // Handle Discount Code
+    let discountAmount = 0;
+    let discountCodeId = null;
+
+    if (body.discountCodeId) {
+      const discount = await prisma.discountCode.findUnique({
+        where: { id: body.discountCodeId },
+      });
+
+      if (discount && discount.isActive) {
+        const now = new Date();
+        const isValidDate =
+          discount.startDate <= now &&
+          (!discount.endDate || discount.endDate >= now);
+        const isValidUsage =
+          !discount.maxUses || discount.usedCount < discount.maxUses;
+        const isValidMinOrder =
+          !discount.minOrderAmount ||
+          subtotal >= Number(discount.minOrderAmount);
+
+        if (isValidDate && isValidUsage && isValidMinOrder) {
+          if (discount.type === 'PERCENTAGE') {
+            discountAmount = (subtotal * Number(discount.value)) / 100;
+          } else {
+            discountAmount = Number(discount.value);
+          }
+
+          // Ensure discount doesn't exceed total
+          discountAmount = Math.min(discountAmount, total);
+          total -= discountAmount;
+          discountCodeId = discount.id;
+
+          // Increment usage count
+          await prisma.discountCode.update({
+            where: { id: discount.id },
+            data: { usedCount: { increment: 1 } },
+          });
+        }
+      }
+    }
 
     // Create shipping address
     const address = await prisma.address.create({
@@ -222,6 +263,8 @@ export async function POST(request: NextRequest) {
         tax,
         shipping,
         total,
+        discountCodeId,
+        discountAmount,
         userId: user?.id || null,
         isGuest: !user || isGuest,
         guestEmail: !user ? customerInfo.email : null,
@@ -292,6 +335,7 @@ export async function POST(request: NextRequest) {
             subtotal: order.subtotal.toString(),
             tax: order.tax.toString(),
             shipping: order.shipping.toString(),
+            discountAmount: order.discountAmount.toString(),
             status: order.status,
             items: order.items.map((item) => ({
               product: { name: item.product.name },

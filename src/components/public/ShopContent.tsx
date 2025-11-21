@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Search, Filter, X, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { WishlistButton } from '@/components/public/WishlistButton';
 
 interface Product {
   id: string;
@@ -263,67 +264,72 @@ export function ShopContent({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.slug}`}
-                  className="group"
-                >
+                <div key={product.id} className="group">
                   <div className="bg-white rounded-lg overflow-hidden border hover:shadow-lg transition-shadow">
                     {/* Product Image */}
-                    <div className="relative aspect-square bg-gray-100">
-                      {product.images[0] ? (
-                        <Image
-                          src={product.images[0].url}
-                          alt={product.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <span className="text-4xl">📦</span>
-                        </div>
-                      )}
-                      {product.featured && (
-                        <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-current" />
-                          Featured
-                        </div>
-                      )}
-                      {product.comparePrice &&
-                        Number(product.comparePrice) > Number(product.price) && (
-                          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                            Sale
+                    <Link href={`/product/${product.slug}`}>
+                      <div className="relative aspect-square bg-gray-100">
+                        {product.images[0] ? (
+                          <Image
+                            src={product.images[0].url}
+                            alt={product.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <span className="text-4xl">📦</span>
                           </div>
                         )}
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="p-4">
-                      {product.category && (
-                        <p className="text-xs text-gray-500 mb-1">
-                          {product.category.name}
-                        </p>
-                      )}
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600">
-                        {product.name}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-gray-900">
-                          ${Number(product.price).toFixed(2)}
-                        </span>
+                        {product.featured && (
+                          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-current" />
+                            Featured
+                          </div>
+                        )}
                         {product.comparePrice &&
                           Number(product.comparePrice) > Number(product.price) && (
-                            <span className="text-sm text-gray-500 line-through">
-                              ${Number(product.comparePrice).toFixed(2)}
-                            </span>
+                            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                              Sale
+                            </div>
                           )}
+                        <div className="absolute bottom-2 right-2">
+                          <div className="bg-white rounded-full p-2 shadow-md">
+                            <WishlistButton productId={product.id} />
+                          </div>
+                        </div>
                       </div>
-                      {product.stock === 0 && (
-                        <p className="text-xs text-red-600 mt-2">Out of Stock</p>
-                      )}
-                    </div>
+                    </Link>
+
+                    {/* Product Info */}
+                    <Link href={`/product/${product.slug}`}>
+                      <div className="p-4">
+                        {product.category && (
+                          <p className="text-xs text-gray-500 mb-1">
+                            {product.category.name}
+                          </p>
+                        )}
+                        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600">
+                          {product.name}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-gray-900">
+                            ${Number(product.price).toFixed(2)}
+                          </span>
+                          {product.comparePrice &&
+                            Number(product.comparePrice) > Number(product.price) && (
+                              <span className="text-sm text-gray-500 line-through">
+                                ${Number(product.comparePrice).toFixed(2)}
+                              </span>
+                            )}
+                        </div>
+                        {product.stock === 0 && (
+                          <p className="text-xs text-red-600 mt-2">Out of Stock</p>
+                        )}
+                      </div>
+                    </Link>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

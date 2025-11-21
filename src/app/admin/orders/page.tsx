@@ -28,6 +28,8 @@ export default async function OrdersPage() {
     subtotal: order.subtotal.toString(),
     tax: order.tax.toString(),
     shipping: order.shipping.toString(),
+    discountAmount: order.discountAmount.toString(),
+    user: order.user || { name: 'Guest', email: order.guestEmail || 'N/A' },
     items: order.items.map(item => ({
       ...item,
       price: item.price.toString(),
