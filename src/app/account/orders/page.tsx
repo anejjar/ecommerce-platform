@@ -7,6 +7,7 @@ import { Footer } from '@/components/public/Footer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { prisma } from '@/lib/prisma';
+import { getTranslations } from 'next-intl/server';
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
@@ -16,8 +17,18 @@ const statusColors: Record<string, string> = {
   CANCELLED: 'bg-red-100 text-red-800',
 };
 
+export async function generateMetadata() {
+  const t = await getTranslations('metadata.account.orders');
+
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
+
 export default async function OrderHistoryPage() {
   const session = await getServerSession(authOptions);
+  const t = await getTranslations();
 
   if (!session) {
     redirect('/auth/signin?callbackUrl=/account/orders');
@@ -46,17 +57,17 @@ export default async function OrderHistoryPage() {
       <main className="flex-1 bg-gray-50 py-8">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold">Order History</h1>
+            <h1 className="text-3xl font-bold">{t('account.orderHistory')}</h1>
             <Link href="/account">
-              <Button variant="outline">← Back to Account</Button>
+              <Button variant="outline">← {t('account.backToAccount')}</Button>
             </Link>
           </div>
 
           {orders.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <p className="text-gray-500 text-lg mb-4">No orders yet</p>
+              <p className="text-gray-500 text-lg mb-4">{t('account.noOrders')}</p>
               <Link href="/shop">
-                <Button>Start Shopping</Button>
+                <Button>{t('account.startShopping')}</Button>
               </Link>
             </div>
           ) : (
@@ -69,21 +80,21 @@ export default async function OrderHistoryPage() {
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b">
                     <div>
                       <h2 className="font-bold text-lg">
-                        Order #{order.orderNumber}
+                        {t('account.orderNumber')} #{order.orderNumber}
                       </h2>
                       <p className="text-sm text-gray-600">
-                        Placed on {new Date(order.createdAt).toLocaleDateString()}
+                        {t('account.orderDate')} {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <div>
-                        <p className="text-sm text-gray-600">Status</p>
+                        <p className="text-sm text-gray-600">{t('account.status')}</p>
                         <Badge className={statusColors[order.status]}>
                           {order.status}
                         </Badge>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Payment</p>
+                        <p className="text-sm text-gray-600">{t('account.paymentStatus')}</p>
                         <Badge
                           className={
                             order.paymentStatus === 'PAID'
@@ -109,7 +120,7 @@ export default async function OrderHistoryPage() {
                             <p className="text-sm text-gray-500">Variant: {item.variant.optionValues}</p>
                           )}
                           <p className="text-sm text-gray-600">
-                            Quantity: {item.quantity} × ${Number(item.price).toFixed(2)}
+                            {t('checkout.qty')} {item.quantity} × ${Number(item.price).toFixed(2)}
                           </p>
                         </div>
                         <p className="font-bold">
@@ -121,13 +132,13 @@ export default async function OrderHistoryPage() {
 
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div>
-                      <p className="text-sm text-gray-600">Total Amount</p>
+                      <p className="text-sm text-gray-600">{t('cart.total')}</p>
                       <p className="text-2xl font-bold">
                         ${Number(order.total).toFixed(2)}
                       </p>
                     </div>
                     <Link href={`/account/orders/${order.id}`}>
-                      <Button variant="outline">View Details</Button>
+                      <Button variant="outline">{t('account.viewDetails')}</Button>
                     </Link>
                   </div>
                 </div>

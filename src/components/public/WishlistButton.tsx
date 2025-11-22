@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
 import {
   addToWishlist,
@@ -29,8 +30,9 @@ export function WishlistButton({
   const dispatch = useAppDispatch();
   const wishlist = useAppSelector((state) => state.wishlist);
   const [isProcessing, setIsProcessing] = useState(false);
+  const t = useTranslations();
 
-  const isInWishlist = wishlist.productIds.has(productId);
+  const isInWishlist = wishlist.productIds.includes(productId);
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ export function WishlistButton({
 
     // Check if user is logged in
     if (status === 'unauthenticated') {
-      toast.error('Please sign in to use the wishlist');
+      toast.error(t('wishlist.signInRequired'));
       router.push('/auth/signin?callbackUrl=' + window.location.pathname);
       return;
     }
@@ -62,10 +64,10 @@ export function WishlistButton({
 
         if (response.ok) {
           dispatch(removeFromWishlist(productId));
-          toast.success('Removed from wishlist');
+          toast.success(t('wishlist.removed'));
         } else {
           const error = await response.json();
-          toast.error(error.error || 'Failed to remove from wishlist');
+          toast.error(error.error || t('wishlist.removeFailed'));
         }
       } else {
         // Add to wishlist
@@ -78,14 +80,14 @@ export function WishlistButton({
         if (response.ok) {
           const item = await response.json();
           dispatch(addToWishlist(item));
-          toast.success('Added to wishlist');
+          toast.success(t('wishlist.added'));
         } else {
           const error = await response.json();
-          toast.error(error.error || 'Failed to add to wishlist');
+          toast.error(error.error || t('wishlist.addFailed'));
         }
       }
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      toast.error(t('common.error'));
     } finally {
       setIsProcessing(false);
       dispatch(setLoading(false));
@@ -104,7 +106,7 @@ export function WishlistButton({
         isProcessing && 'opacity-50 cursor-not-allowed',
         className
       )}
-      aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+      aria-label={isInWishlist ? t('wishlist.removeFromWishlist') : t('wishlist.addToWishlist')}
     >
       <Heart
         className={cn(
@@ -114,7 +116,7 @@ export function WishlistButton({
       />
       {showText && (
         <span className="text-sm font-medium">
-          {isInWishlist ? 'Saved' : 'Save'}
+          {isInWishlist ? t('wishlist.saved') : t('wishlist.save')}
         </span>
       )}
     </button>

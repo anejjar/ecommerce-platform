@@ -5,21 +5,25 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   PieChart,
   Pie,
   Cell,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { DollarSign, ShoppingCart, Users, Package, TrendingUp, AlertCircle } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, Package, TrendingUp, AlertCircle, Clock, Star, User } from 'lucide-react';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart"
+import Image from 'next/image';
 
 interface DashboardData {
   summary: {
@@ -32,6 +36,9 @@ interface DashboardData {
     newCustomers: number;
     totalProducts: number;
     lowStockProducts: number;
+    pendingOrders: number;
+    outOfStockProducts: number;
+    averageOrderValue: number;
   };
   recentOrders: Array<{
     id: string;
@@ -61,16 +68,37 @@ interface DashboardData {
     status: string;
     _count: { id: number };
   }>;
+  recentReviews: Array<{
+    id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    user: {
+      name: string | null;
+      image: string | null;
+    };
+    product: {
+      name: string;
+      slug: string;
+      images: Array<{ url: string }>;
+    };
+  }>;
+  topCustomers: Array<{
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+    totalSpend: number;
+    totalOrders: number;
+  }>;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-
 const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  PROCESSING: 'bg-blue-100 text-blue-800',
-  SHIPPED: 'bg-purple-100 text-purple-800',
-  DELIVERED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
+  PENDING: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+  PROCESSING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  SHIPPED: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  DELIVERED: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  CANCELLED: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
 };
 
 export function DashboardContent() {
@@ -96,11 +124,11 @@ export function DashboardContent() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-12">Loading dashboard...</div>;
+    return <div className="text-center py-12 text-muted-foreground">Loading dashboard...</div>;
   }
 
   if (!data) {
-    return <div className="text-center py-12 text-red-600">Failed to load dashboard data</div>;
+    return <div className="text-center py-12 text-destructive">Failed to load dashboard data</div>;
   }
 
   const stats = [
@@ -109,21 +137,35 @@ export function DashboardContent() {
       value: `$${Number(data.summary.totalRevenue).toLocaleString('en-US')}`,
       change: `$${Number(data.summary.monthRevenue).toLocaleString('en-US')} this month`,
       icon: DollarSign,
-      color: 'bg-green-500',
+      className: 'text-green-500 dark:text-green-400',
     },
     {
       name: 'Total Orders',
       value: data.summary.totalOrders.toLocaleString('en-US'),
       change: `${data.summary.monthOrders} this month`,
       icon: ShoppingCart,
-      color: 'bg-blue-500',
+      className: 'text-blue-500 dark:text-blue-400',
+    },
+    {
+      name: 'Avg. Order Value',
+      value: `$${Number(data.summary.averageOrderValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: 'Per order',
+      icon: TrendingUp,
+      className: 'text-indigo-500 dark:text-indigo-400',
     },
     {
       name: 'Total Customers',
       value: data.summary.totalCustomers.toLocaleString('en-US'),
       change: `${data.summary.newCustomers} new this month`,
       icon: Users,
-      color: 'bg-purple-500',
+      className: 'text-purple-500 dark:text-purple-400',
+    },
+    {
+      name: 'Pending Orders',
+      value: data.summary.pendingOrders.toLocaleString('en-US'),
+      change: 'Needs processing',
+      icon: Clock,
+      className: 'text-yellow-500 dark:text-yellow-400',
     },
     {
       name: 'Total Products',
@@ -132,7 +174,14 @@ export function DashboardContent() {
         ? `${data.summary.lowStockProducts} low stock`
         : 'All stocked',
       icon: Package,
-      color: data.summary.lowStockProducts > 0 ? 'bg-orange-500' : 'bg-indigo-500',
+      className: data.summary.lowStockProducts > 0 ? 'text-orange-500 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400',
+    },
+    {
+      name: 'Out of Stock',
+      value: data.summary.outOfStockProducts.toLocaleString('en-US'),
+      change: 'Not available',
+      icon: AlertCircle,
+      className: data.summary.outOfStockProducts > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400',
     },
   ];
 
@@ -149,11 +198,21 @@ export function DashboardContent() {
     value: item._count.id,
   }));
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'DELIVERED': return 'default';
+      case 'PROCESSING': return 'secondary';
+      case 'PENDING': return 'outline';
+      case 'CANCELLED': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Overview of your store performance</p>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Overview of your store performance</p>
       </div>
 
       {/* Stats Grid */}
@@ -162,17 +221,15 @@ export function DashboardContent() {
           const Icon = stat.icon;
           return (
             <Card key={stat.name}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
                   {stat.name}
                 </CardTitle>
-                <div className={`p-2 rounded-lg ${stat.color}`}>
-                  <Icon className="w-4 h-4 text-white" />
-                </div>
+                <Icon className={`h-4 w-4 ${stat.className}`} />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-gray-600 mt-1">{stat.change}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
               </CardContent>
             </Card>
           );
@@ -187,32 +244,75 @@ export function DashboardContent() {
             <CardTitle>Sales Trend (Last 30 Days)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salesChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Line
+            <ChartContainer
+              config={{
+                revenue: {
+                  label: "Revenue",
+                  color: "hsl(var(--chart-1))",
+                },
+                orders: {
+                  label: "Orders",
+                  color: "hsl(var(--chart-2))",
+                },
+              }}
+              className="h-[300px]"
+            >
+              <AreaChart data={salesChartData}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-orders)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--color-orders)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis
+                  yAxisId="left"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) => `$${value}`}
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area
                   yAxisId="left"
                   type="monotone"
                   dataKey="revenue"
-                  stroke="#3b82f6"
+                  stroke="var(--color-revenue)"
+                  fillOpacity={1}
+                  fill="url(#colorRevenue)"
                   strokeWidth={2}
-                  name="Revenue ($)"
                 />
-                <Line
+                <Area
                   yAxisId="right"
                   type="monotone"
                   dataKey="orders"
-                  stroke="#10b981"
+                  stroke="var(--color-orders)"
+                  fillOpacity={1}
+                  fill="url(#colorOrders)"
                   strokeWidth={2}
-                  name="Orders"
                 />
-              </LineChart>
-            </ResponsiveContainer>
+              </AreaChart>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -222,25 +322,121 @@ export function DashboardContent() {
             <CardTitle>Order Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartContainer
+              config={{
+                PENDING: { label: "Pending", color: "hsl(var(--chart-3))" },
+                PROCESSING: { label: "Processing", color: "hsl(var(--chart-4))" },
+                SHIPPED: { label: "Shipped", color: "hsl(var(--chart-5))" },
+                DELIVERED: { label: "Delivered", color: "hsl(var(--chart-1))" },
+                CANCELLED: { label: "Cancelled", color: "hsl(var(--destructive))" },
+              }}
+              className="h-[300px]"
+            >
               <PieChart>
                 <Pie
                   data={statusChartData}
+                  dataKey="value"
+                  nameKey="name"
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={(entry) => `${entry.name}: ${entry.value}`}
+                  innerRadius={60}
                   outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
+                  paddingAngle={2}
                 >
                   {statusChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={`var(--color-${entry.name})`} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Reviews & Top Customers */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Recent Reviews */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Reviews</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.recentReviews.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No reviews yet</p>
+            ) : (
+              <div className="space-y-4">
+                {data.recentReviews.map((review) => (
+                  <div key={review.id} className="border-b pb-3 last:border-0 border-border">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                          {review.user.image ? (
+                            <Image src={review.user.image} alt={review.user.name || 'User'} width={32} height={32} />
+                          ) : (
+                            <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{review.user.name || 'Anonymous'}</p>
+                          <div className="flex items-center">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-1">"{review.comment}"</p>
+                    <Link href={`/admin/products/${review.product.slug}`} className="text-xs text-primary hover:underline">
+                      On {review.product.name}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Customers */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Customers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.topCustomers.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No customer data yet</p>
+            ) : (
+              <div className="space-y-4">
+                {data.topCustomers.map((customer, index) => (
+                  <div key={customer.id} className="flex items-center justify-between border-b pb-3 last:border-0 border-border">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? 'bg-yellow-500' :
+                        index === 1 ? 'bg-gray-400' :
+                          index === 2 ? 'bg-orange-600' : 'bg-blue-500'
+                        } text-white font-bold text-sm`}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium">{customer.name || 'Unknown'}</p>
+                        <p className="text-sm text-muted-foreground">{customer.email}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">${Number(customer.totalSpend).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                      <p className="text-xs text-muted-foreground">{customer.totalOrders} orders</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -257,11 +453,11 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent>
             {data.topProducts.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No sales data yet</p>
+              <p className="text-muted-foreground text-center py-4">No sales data yet</p>
             ) : (
               <div className="space-y-4">
                 {data.topProducts.map((product, index) => (
-                  <div key={product.slug} className="flex items-center justify-between border-b pb-3 last:border-0">
+                  <div key={product.slug} className="flex items-center justify-between border-b pb-3 last:border-0 border-border">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? 'bg-yellow-500' :
                         index === 1 ? 'bg-gray-400' :
@@ -272,16 +468,16 @@ export function DashboardContent() {
                       <div>
                         <Link
                           href={`/admin/products/${product.slug}`}
-                          className="font-medium hover:text-blue-600"
+                          className="font-medium hover:text-primary hover:underline"
                         >
                           {product.name}
                         </Link>
-                        <p className="text-sm text-gray-600">${product.price}</p>
+                        <p className="text-sm text-muted-foreground">${product.price}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">{product.totalSold} sold</p>
-                      <p className="text-sm text-gray-600">${Number(product.revenue).toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground">${Number(product.revenue).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
@@ -297,31 +493,31 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent>
             {data.recentOrders.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No orders yet</p>
+              <p className="text-muted-foreground text-center py-4">No orders yet</p>
             ) : (
               <div className="space-y-4">
                 {data.recentOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="flex items-center justify-between border-b pb-3 last:border-0"
+                    className="flex items-center justify-between border-b pb-3 last:border-0 border-border"
                   >
                     <div>
                       <Link
                         href={`/admin/orders/${order.id}`}
-                        className="font-medium hover:text-blue-600"
+                        className="font-medium hover:text-primary hover:underline"
                       >
                         {order.orderNumber}
                       </Link>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {order.user?.name || order.user?.email || order.guestEmail || 'Guest'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">${order.total}</p>
-                      <Badge className={`${statusColors[order.status]} mt-1`}>
+                      <Badge variant={getStatusBadgeVariant(order.status) as any} className="mt-1">
                         {order.status}
                       </Badge>
                     </div>
@@ -335,20 +531,20 @@ export function DashboardContent() {
 
       {/* Low Stock Alert */}
       {data.summary.lowStockProducts > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-orange-600" />
-              <CardTitle className="text-orange-900">Low Stock Alert</CardTitle>
+              <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-500" />
+              <CardTitle className="text-orange-900 dark:text-orange-200">Low Stock Alert</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-orange-800">
+            <p className="text-orange-800 dark:text-orange-300">
               You have {data.summary.lowStockProducts} product{data.summary.lowStockProducts !== 1 ? 's' : ''} with low inventory.
             </p>
             <Link
               href="/admin/stock-alerts"
-              className="inline-block mt-3 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+              className="inline-block mt-3 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600"
             >
               View Stock Alerts
             </Link>

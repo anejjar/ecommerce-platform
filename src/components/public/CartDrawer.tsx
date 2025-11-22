@@ -6,8 +6,10 @@ import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { closeCart, removeFromCart, updateQuantity } from '@/lib/redux/features/cartSlice';
+import { useTranslations } from 'next-intl';
 
 export function CartDrawer() {
+  const t = useTranslations();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { items, isOpen } = useAppSelector((state) => state.cart);
@@ -45,14 +47,13 @@ export function CartDrawer() {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold">Shopping Cart ({itemCount})</h2>
+            <h2 className="text-lg font-semibold">{t('cart.title')} ({itemCount})</h2>
             <button
               onClick={() => dispatch(closeCart())}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -66,8 +67,8 @@ export function CartDrawer() {
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <ShoppingBag className="w-16 h-16 mb-4 text-gray-300" />
-                <p className="text-lg font-medium mb-2">Your cart is empty</p>
-                <p className="text-sm text-center">Add items to get started</p>
+                <p className="text-lg font-medium mb-2">{t('cart.emptyCart')}</p>
+                <p className="text-sm text-center">{t('cart.addProducts')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -118,7 +119,7 @@ export function CartDrawer() {
                           onClick={() => dispatch(removeFromCart(item.id))}
                           className="ml-auto text-red-600 hover:text-red-700 text-sm"
                         >
-                          Remove
+                          {t('cart.remove')}
                         </button>
                       </div>
                     </div>
@@ -140,12 +141,12 @@ export function CartDrawer() {
             <div className="border-t p-4 space-y-4">
               {/* Subtotal */}
               <div className="flex items-center justify-between text-lg font-semibold">
-                <span>Subtotal:</span>
+                <span>{t('cart.subtotal')}:</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
 
               <p className="text-xs text-gray-600 text-center">
-                Shipping and taxes calculated at checkout
+                {t('cart.shippingTaxesCalculated')}
               </p>
 
               {/* Buttons */}
@@ -155,7 +156,7 @@ export function CartDrawer() {
                   className="w-full"
                   size="lg"
                 >
-                  Checkout
+                  {t('cart.checkout')}
                 </Button>
                 <Button
                   onClick={handleViewCart}
@@ -163,7 +164,7 @@ export function CartDrawer() {
                   className="w-full"
                   size="lg"
                 >
-                  View Cart
+                  {t('cart.viewCart')}
                 </Button>
               </div>
             </div>

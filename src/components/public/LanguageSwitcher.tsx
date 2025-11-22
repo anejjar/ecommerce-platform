@@ -1,7 +1,9 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { Globe } from 'lucide-react';
+import { locales } from '@/i18n';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -11,25 +13,20 @@ const languages = [
 export function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
-
-  // Extract current locale from pathname
-  const currentLocale = pathname.startsWith('/fr') ? 'fr' : 'en';
+  const currentLocale = useLocale();
 
   const switchLanguage = (newLocale: string) => {
     if (newLocale === currentLocale) return;
 
-    // Remove current locale from pathname
-    let newPathname = pathname;
-    if (pathname.startsWith('/fr')) {
-      newPathname = pathname.replace(/^\/fr/, '') || '/';
-    }
+    // Save to localStorage
+    localStorage.setItem('locale', newLocale);
 
-    // Add new locale if not English (default)
-    if (newLocale !== 'en') {
-      newPathname = `/${newLocale}${newPathname}`;
-    }
+    // Dispatch custom event to update IntlProvider
+    const event = new CustomEvent('localeChange', { detail: { locale: newLocale } });
+    window.dispatchEvent(event);
 
-    router.push(newPathname);
+    // Reload the page to apply new locale
+    window.location.reload();
   };
 
   return (
@@ -47,9 +44,7 @@ export function LanguageSwitcher() {
             <button
               key={lang.code}
               onClick={() => switchLanguage(lang.code)}
-              className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 ${
-                currentLocale === lang.code ? 'bg-blue-50 text-blue-600 font-medium' : ''
-              }`}
+              className={'w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 ' + (currentLocale === lang.code ? 'bg-blue-50 text-blue-600 font-medium' : '')}
             >
               <span>{lang.flag}</span>
               <span>{lang.name}</span>

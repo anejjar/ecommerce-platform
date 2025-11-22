@@ -12,8 +12,10 @@ import { Label } from '@/components/ui/label';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
 import { clearCart } from '@/lib/redux/features/cartSlice';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 export function CheckoutContent() {
+  const t = useTranslations();
   const router = useRouter();
   const { data: session, status } = useSession();
   const dispatch = useAppDispatch();
@@ -83,13 +85,13 @@ export function CheckoutContent() {
 
       if (response.ok) {
         setAppliedDiscount(data);
-        toast.success('Discount applied!');
+        toast.success(t('checkout.discountApplied'));
       } else {
-        setDiscountError(data.error || 'Invalid discount code');
+        setDiscountError(data.error || t('checkout.invalidDiscount'));
         setAppliedDiscount(null);
       }
     } catch (error) {
-      setDiscountError('Failed to apply discount');
+      setDiscountError(t('checkout.failedToApplyDiscount'));
     } finally {
       setIsCheckingDiscount(false);
     }
@@ -106,13 +108,13 @@ export function CheckoutContent() {
 
     // Validate email for guest checkout
     if (!session && !formData.email) {
-      toast.error('Please enter your email address');
+      toast.error(t('checkout.enterEmail'));
       return;
     }
 
     // Validate password if creating account
     if (!session && createAccount && password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(t('checkout.passwordLength'));
       return;
     }
 
@@ -153,14 +155,14 @@ export function CheckoutContent() {
       if (response.ok) {
         const order = await response.json();
         dispatch(clearCart());
-        toast.success('Order placed successfully!');
+        toast.success(t('checkout.orderSuccess'));
         router.push(`/order-confirmation/${order.orderNumber}`);
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to place order');
+        toast.error(error.error || t('checkout.orderFailed'));
       }
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      toast.error(t('common.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -172,12 +174,12 @@ export function CheckoutContent() {
         <div className="max-w-md mx-auto text-center">
           <div className="bg-white rounded-lg shadow-sm p-12">
             <ShoppingBag className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
+            <h2 className="text-2xl font-bold mb-2">{t('cart.emptyCart')}</h2>
             <p className="text-gray-600 mb-6">
-              Add some products before checking out!
+              {t('cart.addProducts')}
             </p>
             <Link href="/shop">
-              <Button size="lg">Continue Shopping</Button>
+              <Button size="lg">{t('cart.continueShopping')}</Button>
             </Link>
           </div>
         </div>
@@ -188,14 +190,14 @@ export function CheckoutContent() {
   if (status === 'loading') {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <p>Loading...</p>
+        <p>{t('common.loading')}</p>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      <h1 className="text-3xl font-bold mb-8">{t('cart.checkout')}</h1>
 
       <form onSubmit={handleSubmit}>
         <div className="grid lg:grid-cols-3 gap-8">
@@ -203,14 +205,14 @@ export function CheckoutContent() {
           <div className="lg:col-span-2">
             {/* Contact Information */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4">Contact Information</h2>
+              <h2 className="text-xl font-bold mb-4">{t('checkout.contactInfo')}</h2>
 
               {!session && (
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
                   <p className="text-blue-800">
-                    Already have an account?{' '}
+                    {t('auth.alreadyHaveAccount')}{' '}
                     <Link href="/auth/signin?callbackUrl=/checkout" className="font-semibold underline">
-                      Sign in
+                      {t('auth.signIn')}
                     </Link>
                   </p>
                 </div>
@@ -218,7 +220,7 @@ export function CheckoutContent() {
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email Address *</Label>
+                  <Label htmlFor="email">{t('checkout.email')}</Label>
                   <Input
                     id="email"
                     name="email"
@@ -232,7 +234,7 @@ export function CheckoutContent() {
 
                 {!session && createAccount && (
                   <div>
-                    <Label htmlFor="password">Password * (min 6 characters)</Label>
+                    <Label htmlFor="password">{t('checkout.password')}</Label>
                     <Input
                       id="password"
                       name="password"
@@ -255,7 +257,7 @@ export function CheckoutContent() {
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded"
                     />
                     <Label htmlFor="createAccount" className="font-normal cursor-pointer">
-                      Create an account for faster checkout next time
+                      {t('checkout.createAccount')}
                     </Label>
                   </div>
                 )}
@@ -264,10 +266,10 @@ export function CheckoutContent() {
 
             {/* Shipping Address */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4">Shipping Address</h2>
+              <h2 className="text-xl font-bold mb-4">{t('checkout.shippingAddress')}</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <Label htmlFor="firstName">{t('checkout.firstName')}</Label>
                   <Input
                     id="firstName"
                     name="firstName"
@@ -277,7 +279,7 @@ export function CheckoutContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="lastName">{t('checkout.lastName')}</Label>
                   <Input
                     id="lastName"
                     name="lastName"
@@ -287,7 +289,7 @@ export function CheckoutContent() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="address">Street Address *</Label>
+                  <Label htmlFor="address">{t('checkout.address')}</Label>
                   <Input
                     id="address"
                     name="address"
@@ -297,7 +299,7 @@ export function CheckoutContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="city">City *</Label>
+                  <Label htmlFor="city">{t('checkout.city')}</Label>
                   <Input
                     id="city"
                     name="city"
@@ -307,7 +309,7 @@ export function CheckoutContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="state">State</Label>
+                  <Label htmlFor="state">{t('checkout.state')}</Label>
                   <Input
                     id="state"
                     name="state"
@@ -316,7 +318,7 @@ export function CheckoutContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="zip">Postal Code *</Label>
+                  <Label htmlFor="zip">{t('checkout.zip')}</Label>
                   <Input
                     id="zip"
                     name="zip"
@@ -326,7 +328,7 @@ export function CheckoutContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="country">Country *</Label>
+                  <Label htmlFor="country">{t('checkout.country')}</Label>
                   <Input
                     id="country"
                     name="country"
@@ -336,7 +338,7 @@ export function CheckoutContent() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">{t('checkout.phone')}</Label>
                   <Input
                     id="phone"
                     name="phone"
@@ -352,9 +354,7 @@ export function CheckoutContent() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
                 <Lock className="w-4 h-4 inline mr-1" />
-                <strong>Note:</strong> Payment processing is not yet implemented. This is
-                a demo checkout flow. Your order will be created with "PENDING" payment
-                status.
+                <strong>{t('common.note')}</strong> {t('checkout.paymentNote')}
               </p>
             </div>
           </div>
@@ -362,7 +362,7 @@ export function CheckoutContent() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+              <h2 className="text-xl font-bold mb-4">{t('cart.orderSummary')}</h2>
 
               {/* Cart Items */}
               <div className="space-y-3 mb-4 border-b pb-4">
@@ -384,7 +384,7 @@ export function CheckoutContent() {
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-sm">{item.name}</p>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="text-sm text-gray-600">{t('checkout.qty')} {item.quantity}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
@@ -398,14 +398,14 @@ export function CheckoutContent() {
               {/* Discount Code */}
               <div className="mb-4 border-b pb-4">
                 <Label htmlFor="discountCode" className="mb-2 block">
-                  Discount Code
+                  {t('checkout.discountCode')}
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     id="discountCode"
                     value={discountCode}
                     onChange={(e) => setDiscountCode(e.target.value)}
-                    placeholder="Enter code"
+                    placeholder={t('checkout.enterCode')}
                     disabled={!!appliedDiscount}
                   />
                   {appliedDiscount ? (
@@ -415,7 +415,7 @@ export function CheckoutContent() {
                       onClick={removeDiscount}
                       className="shrink-0"
                     >
-                      Remove
+                      {t('cart.remove')}
                     </Button>
                   ) : (
                     <Button
@@ -425,7 +425,7 @@ export function CheckoutContent() {
                       disabled={isCheckingDiscount || !discountCode}
                       className="shrink-0"
                     >
-                      Apply
+                      {t('checkout.apply')}
                     </Button>
                   )}
                 </div>
@@ -434,7 +434,7 @@ export function CheckoutContent() {
                 )}
                 {appliedDiscount && (
                   <p className="text-sm text-green-600 mt-1">
-                    Discount applied: {appliedDiscount.code}
+                    {t('checkout.discountAppliedLabel')} {appliedDiscount.code}
                   </p>
                 )}
               </div>
@@ -442,18 +442,18 @@ export function CheckoutContent() {
               {/* Totals */}
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-600">{t('cart.subtotal')}</span>
                   <span className="font-medium">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tax (10%)</span>
+                  <span className="text-gray-600">{t('cart.tax')} (10%)</span>
                   <span className="font-medium">${tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600">{t('cart.shipping')}</span>
                   <span className="font-medium">
                     {shipping === 0 ? (
-                      <span className="text-green-600">FREE</span>
+                      <span className="text-green-600">{t('cart.free')}</span>
                     ) : (
                       `$${shipping.toFixed(2)}`
                     )}
@@ -461,7 +461,7 @@ export function CheckoutContent() {
                 </div>
                 {appliedDiscount && (
                   <div className="flex justify-between text-sm text-green-600 font-medium">
-                    <span>Discount</span>
+                    <span>{t('checkout.discount')}</span>
                     <span>-${appliedDiscount.discountAmount.toFixed(2)}</span>
                   </div>
                 )}
@@ -469,7 +469,7 @@ export function CheckoutContent() {
 
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
+                  <span>{t('cart.total')}</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -480,14 +480,14 @@ export function CheckoutContent() {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Placing Order...' : 'Place Order'}
+                {isSubmitting ? t('checkout.placingOrder') : t('checkout.placeOrder')}
               </Button>
 
               <div className="mt-4 text-xs text-center text-gray-600">
-                <p>By placing your order, you agree to our</p>
+                <p>{t('checkout.agreeToTerms')}</p>
                 <p>
                   <Link href="/terms" className="underline">
-                    Terms & Conditions
+                    {t('footer.terms')}
                   </Link>
                 </p>
               </div>

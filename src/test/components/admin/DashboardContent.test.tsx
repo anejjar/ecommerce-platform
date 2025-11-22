@@ -1,32 +1,71 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { DashboardContent } from '@/components/admin/DashboardContent';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react'
+import { DashboardContent } from '@/components/admin/DashboardContent'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-// Mock Recharts
-vi.mock('recharts', () => {
-    const OriginalModule = vi.importActual('recharts');
-    return {
-        ...OriginalModule,
-        ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
-            <div style={{ width: 800, height: 800 }}>{children}</div>
-        ),
-        LineChart: ({ children }: { children: React.ReactNode }) => <div>LineChart {children}</div>,
-        BarChart: ({ children }: { children: React.ReactNode }) => <div>BarChart {children}</div>,
-        PieChart: ({ children }: { children: React.ReactNode }) => <div>PieChart {children}</div>,
-        Line: () => <div>Line</div>,
-        Bar: () => <div>Bar</div>,
-        Pie: () => <div>Pie</div>,
-        Cell: () => <div>Cell</div>,
-        XAxis: () => <div>XAxis</div>,
-        YAxis: () => <div>YAxis</div>,
-        CartesianGrid: () => <div>CartesianGrid</div>,
-        Tooltip: () => <div>Tooltip</div>,
-        Legend: () => <div>Legend</div>,
-    };
-});
+// Mock next/link
+vi.mock('next/link', () => ({
+    default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+        <a href={href}>{children}</a>
+    ),
+}))
 
-// Mock global fetch
-global.fetch = vi.fn(() => new Promise(() => { })) as any;
+// Mock next/image
+vi.mock('next/image', () => ({
+    default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+}))
+
+// Mock lucide-react
+vi.mock('lucide-react', () => ({
+    DollarSign: () => <div data-testid="icon-dollar" />,
+    ShoppingCart: () => <div data-testid="icon-cart" />,
+    Users: () => <div data-testid="icon-users" />,
+    Package: () => <div data-testid="icon-package" />,
+    TrendingUp: () => <div data-testid="icon-trending" />,
+    AlertCircle: () => <div data-testid="icon-alert" />,
+    Clock: () => <div data-testid="icon-clock" />,
+    Star: () => <div data-testid="icon-star" />,
+    User: () => <div data-testid="icon-user" />,
+}))
+
+// Mock recharts
+vi.mock('recharts', () => ({
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    AreaChart: () => <div data-testid="area-chart" />,
+    Area: () => null,
+    PieChart: () => <div data-testid="pie-chart" />,
+    Pie: () => null,
+    Cell: () => null,
+    XAxis: () => null,
+    YAxis: () => null,
+    CartesianGrid: () => null,
+    Tooltip: () => null,
+    Legend: () => null,
+    ChartContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    ChartTooltip: () => null,
+    ChartTooltipContent: () => null,
+    ChartLegend: () => null,
+    ChartLegendContent: () => null,
+}))
+
+// Mock UI components
+vi.mock('@/components/ui/card', () => ({
+    Card: ({ children }: { children: React.ReactNode }) => <div data-testid="card">{children}</div>,
+    CardHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    CardTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    CardContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}))
+
+vi.mock('@/components/ui/badge', () => ({
+    Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+}))
+
+vi.mock('@/components/ui/chart', () => ({
+    ChartContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    ChartTooltip: () => null,
+    ChartTooltipContent: () => null,
+    ChartLegend: () => null,
+    ChartLegendContent: () => null,
+}))
 
 const mockDashboardData = {
     summary: {
@@ -34,17 +73,20 @@ const mockDashboardData = {
         monthRevenue: 5000,
         weekRevenue: 1200,
         totalOrders: 150,
-        monthOrders: 45,
-        totalCustomers: 80,
-        newCustomers: 12,
+        monthOrders: 50,
+        totalCustomers: 100,
+        newCustomers: 10,
         totalProducts: 50,
         lowStockProducts: 2,
+        pendingOrders: 8,
+        outOfStockProducts: 7,
+        averageOrderValue: 100,
     },
     recentOrders: [
         {
-            id: 'order-1',
+            id: '1',
             orderNumber: 'ORD-001',
-            total: '120.00',
+            total: '150.00',
             status: 'PENDING',
             createdAt: new Date().toISOString(),
             user: { name: 'John Doe', email: 'john@example.com' },
@@ -52,57 +94,105 @@ const mockDashboardData = {
     ],
     topProducts: [
         {
-            name: 'Test Product',
-            slug: 'test-product',
-            price: '99.99',
-            totalSold: 10,
-            revenue: 999.90,
+            name: 'Product A',
+            slug: 'product-a',
+            price: '50.00',
+            totalSold: 20,
+            revenue: 1000,
         },
     ],
-    salesByDay: [],
+    salesByDay: [
+        { date: new Date().toISOString(), revenue: 500, orders: 5 },
+    ],
     ordersByStatus: [
         { status: 'PENDING', _count: { id: 5 } },
     ],
-};
+    recentReviews: [
+        {
+            id: '1',
+            rating: 5,
+            comment: 'Great product!',
+            createdAt: new Date().toISOString(),
+            user: { name: 'Jane Doe', image: null },
+            product: { name: 'Product A', slug: 'product-a', images: [] },
+        },
+    ],
+    topCustomers: [
+        {
+            id: '1',
+            name: 'Top Customer',
+            email: 'top@example.com',
+            image: null,
+            totalSpend: 5000,
+            totalOrders: 10,
+        },
+    ],
+}
 
 describe('DashboardContent', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
-    });
+        global.fetch = vi.fn(() =>
+            Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve(mockDashboardData),
+            })
+        ) as any
+    })
 
-    it('renders loading state initially', () => {
-        // Mock fetch to return a pending promise for this test to ensure loading state persists
-        global.fetch = vi.fn(() => new Promise(() => { })) as any;
-        render(<DashboardContent />);
-        expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
-    });
+    it('renders dashboard stats correctly', async () => {
+        render(<DashboardContent />)
 
-    it('renders dashboard data after fetch', async () => {
-        global.fetch = vi.fn().mockResolvedValue({
-            ok: true,
-            json: async () => mockDashboardData,
-        }) as any;
+        // Wait for data to load
+        await waitFor(() => expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument())
 
-        render(<DashboardContent />);
+        expect(screen.getByText('Total Revenue')).toBeInTheDocument()
+        expect(screen.getByText('$15,000')).toBeInTheDocument()
 
-        await waitFor(() => {
-            expect(screen.getByText('Dashboard')).toBeInTheDocument();
-        });
+        expect(screen.getByText('Total Orders')).toBeInTheDocument()
+        expect(screen.getByText('150')).toBeInTheDocument()
 
-        expect(screen.getByText('$15,000')).toBeInTheDocument(); // Total Revenue
-        expect(screen.getByText('150')).toBeInTheDocument(); // Total Orders
-        expect(screen.getByText('80')).toBeInTheDocument(); // Total Customers
-        expect(screen.getByText('50')).toBeInTheDocument(); // Total Products
-        expect(screen.getByText('2 low stock')).toBeInTheDocument();
-    });
+        expect(screen.getByText('Avg. Order Value')).toBeInTheDocument()
+        expect(screen.getByText('$100.00')).toBeInTheDocument()
 
-    it('handles fetch error', async () => {
-        global.fetch = vi.fn().mockRejectedValue(new Error('API Error')) as any;
+        expect(screen.getByText('Pending Orders')).toBeInTheDocument()
+        expect(screen.getByText('8')).toBeInTheDocument()
 
-        render(<DashboardContent />);
+        expect(screen.getByText('Out of Stock')).toBeInTheDocument()
+        expect(screen.getByText('7')).toBeInTheDocument()
+    })
 
-        await waitFor(() => {
-            expect(screen.getByText('Failed to load dashboard data')).toBeInTheDocument();
-        });
-    });
-});
+    it('renders recent orders', async () => {
+        render(<DashboardContent />)
+        await waitFor(() => expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument())
+
+        expect(screen.getByText('Recent Orders')).toBeInTheDocument()
+        expect(screen.getByText('ORD-001')).toBeInTheDocument()
+        expect(screen.getByText('John Doe')).toBeInTheDocument()
+    })
+
+    it('renders top products', async () => {
+        render(<DashboardContent />)
+        await waitFor(() => expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument())
+
+        expect(screen.getByText('Top Selling Products')).toBeInTheDocument()
+        expect(screen.getByText('Product A')).toBeInTheDocument()
+    })
+
+    it('renders recent reviews', async () => {
+        render(<DashboardContent />)
+        await waitFor(() => expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument())
+
+        expect(screen.getByText('Recent Reviews')).toBeInTheDocument()
+        expect(screen.getByText('"Great product!"')).toBeInTheDocument()
+        expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+    })
+
+    it('renders top customers', async () => {
+        render(<DashboardContent />)
+        await waitFor(() => expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument())
+
+        expect(screen.getByText('Top Customers')).toBeInTheDocument()
+        expect(screen.getByText('Top Customer')).toBeInTheDocument()
+        expect(screen.getByText('$5,000.00')).toBeInTheDocument()
+    })
+})

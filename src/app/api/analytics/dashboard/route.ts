@@ -211,6 +211,96 @@ export async function GET() {
       },
     });
 
+    // Pending orders count
+    const pendingOrders = await prisma.order.count({
+      where: {
+        status: 'PENDING',
+      },
+    });
+
+    // Out of stock products count
+    const outOfStockProducts = await prisma.product.count({
+      where: {
+        stock: 0,
+      },
+    });
+
+    // Recent reviews
+    const recentReviews = await prisma.review.findMany({
+      take: 5,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+        product: {
+          select: {
+            name: true,
+            slug: true,
+            images: {
+              take: 1,
+              select: {
+                url: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Top customers by spend
+    const topCustomersRaw = await prisma.order.groupBy({
+      by: ['userId'],
+      where: {
+        paymentStatus: 'PAID',
+        userId: {
+          not: null,
+        },
+      },
+      _sum: {
+        total: true,
+      },
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _sum: {
+          total: 'desc',
+        },
+      },
+      take: 5,
+    });
+
+    // Get customer details
+    const topCustomers = await Promise.all(
+      topCustomersRaw.map(async (item) => {
+        if (!item.userId) return null;
+        const user = await prisma.user.findUnique({
+          where: { id: item.userId },
+          select: {
+            name: true,
+            email: true,
+            image: true,
+          },
+        });
+        return {
+          ...user,
+          totalSpend: item._sum.total || 0,
+          totalOrders: item._count.id,
+        };
+      })
+    );
+
+    // Calculate Average Order Value (AOV)
+    const averageOrderValue = totalOrders > 0
+      ? (Number(totalRevenue._sum.total || 0) / totalOrders)
+      : 0;
+
     return NextResponse.json({
       summary: {
         totalRevenue: totalRevenue._sum.total || 0,
@@ -222,11 +312,16 @@ export async function GET() {
         newCustomers,
         totalProducts,
         lowStockProducts,
+        pendingOrders,
+        outOfStockProducts,
+        averageOrderValue,
       },
       recentOrders,
       topProducts: topProductsWithDetails,
       salesByDay,
       ordersByStatus,
+      recentReviews,
+      topCustomers: topCustomers.filter(Boolean),
     });
   } catch (error) {
     console.error('Dashboard analytics error:', error);

@@ -9,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 export default async function CustomersPage() {
   const customersData = await prisma.user.findMany({
@@ -48,15 +49,14 @@ export default async function CustomersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Customers</h1>
-          <p className="text-gray-600 mt-2">Manage your customer base</p>
+          <p className="text-muted-foreground mt-2">Manage your customer base</p>
         </div>
-        <a
-          href="/api/customers/export"
-          download
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Export CSV
-        </a>
+        <Button asChild>
+          <a href="/api/customers/export" download>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </a>
+        </Button>
       </div>
 
       <Card>
@@ -66,7 +66,7 @@ export default async function CustomersPage() {
         <CardContent>
           {customers.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No customers yet</p>
+              <p className="text-muted-foreground">No customers yet</p>
             </div>
           ) : (
             <Table>
@@ -99,12 +99,11 @@ export default async function CustomersPage() {
                         {new Date(customer.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Link
-                          href={`/admin/customers/${customer.id}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          View
-                        </Link>
+                        <Button variant="link" asChild className="p-0 h-auto">
+                          <Link href={`/admin/customers/${customer.id}`}>
+                            View
+                          </Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );

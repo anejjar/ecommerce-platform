@@ -6,6 +6,17 @@ import { Footer } from '@/components/public/Footer';
 import { AccountContent } from '@/components/public/AccountContent';
 import { prisma } from '@/lib/prisma';
 
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata() {
+  const t = await getTranslations('metadata.account');
+
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
+
 export default async function AccountPage() {
   const session = await getServerSession(authOptions);
 

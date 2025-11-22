@@ -14,6 +14,27 @@ vi.mock('react-hot-toast', () => ({
 // Mock global fetch
 global.fetch = vi.fn();
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+    useTranslations: () => (key: string) => {
+        const translations: Record<string, string> = {
+            'newsletter.enterEmail': 'Please enter your email',
+            'newsletter.success': 'Successfully subscribed to newsletter!',
+            'newsletter.error': 'Failed to subscribe',
+            'newsletter.genericError': 'Something went wrong',
+            'newsletter.thankYou': 'Thank you for subscribing!',
+            'newsletter.name': 'Name',
+            'newsletter.namePlaceholder': 'Your name (optional)',
+            'newsletter.email': 'Email',
+            'newsletter.emailPlaceholder': 'Enter your email',
+            'newsletter.subscribe': 'Subscribe',
+            'newsletter.subscribing': 'Subscribing...',
+            'newsletter.disclaimer': 'Get exclusive deals and updates.',
+        };
+        return translations[key] || key;
+    },
+}));
+
 describe('NewsletterForm', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -24,7 +45,7 @@ describe('NewsletterForm', () => {
 
         expect(screen.getByPlaceholderText('Enter your email')).toBeInTheDocument();
         expect(screen.getByText('Subscribe')).toBeInTheDocument();
-        expect(screen.getByText(/Get exclusive deals/)).toBeInTheDocument();
+        expect(screen.getByText('Get exclusive deals and updates.')).toBeInTheDocument();
     });
 
     it('shows name field when showName is true', () => {
@@ -60,7 +81,7 @@ describe('NewsletterForm', () => {
         });
 
         expect(toast.success).toHaveBeenCalledWith('Successfully subscribed to newsletter!');
-        expect(screen.getByText(/Thank you for subscribing/)).toBeInTheDocument();
+        expect(screen.getByText('Thank you for subscribing!')).toBeInTheDocument();
     });
 
     it('handles subscription error', async () => {

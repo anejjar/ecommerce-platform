@@ -5,15 +5,21 @@ import { Footer } from '@/components/public/Footer';
 import { ShopContent } from '@/components/public/ShopContent';
 import { prisma } from '@/lib/prisma';
 
-export const metadata: Metadata = {
-  title: 'Shop - Browse All Products | E-Commerce Platform',
-  description: 'Browse our wide selection of quality products. Shop electronics, clothing, books and more with great prices and free shipping on orders over $50.',
-  openGraph: {
-    title: 'Shop All Products - E-Commerce Platform',
-    description: 'Browse our wide selection of quality products at great prices.',
-    type: 'website',
-  },
-};
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata() {
+  const t = await getTranslations('metadata.shop');
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    openGraph: {
+      title: t('ogTitle'),
+      description: t('ogDescription'),
+      type: 'website',
+    },
+  };
+}
 
 export default async function ShopPage({
   searchParams,

@@ -6,6 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { X } from 'lucide-react';
 
 interface CategoryFormProps {
   category?: {
@@ -116,7 +125,7 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -127,6 +136,10 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
         .replace(/(^-|-$)/g, '');
       setFormData((prev) => ({ ...prev, slug }));
     }
+  };
+
+  const handleParentChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, parentId: value === 'none' ? '' : value }));
   };
 
   return (
@@ -158,37 +171,39 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
               required
               placeholder="electronics"
             />
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               URL-friendly version (auto-generated from name)
             </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="parentId">Parent Category</Label>
-            <select
-              id="parentId"
-              name="parentId"
-              value={formData.parentId}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
+            <Select
+              value={formData.parentId || 'none'}
+              onValueChange={handleParentChange}
             >
-              <option value="">No Parent (Top Level)</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a parent category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Parent (Top Level)</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <textarea
+            <Textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="w-full min-h-[100px] px-3 py-2 border rounded-md"
+              className="min-h-[100px]"
               placeholder="Category description..."
             />
           </div>
@@ -196,19 +211,21 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
           <div className="space-y-2">
             <Label>Category Image</Label>
             {imageUrl && (
-              <div className="relative w-32 h-32 rounded border overflow-hidden mb-2">
+              <div className="relative w-32 h-32 rounded border overflow-hidden mb-2 bg-muted">
                 <img
                   src={imageUrl}
                   alt="Category"
                   className="w-full h-full object-cover"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="destructive"
+                  size="icon"
                   onClick={() => setImageUrl('')}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full"
                 >
-                  ×
-                </button>
+                  <X className="w-3 h-3" />
+                </Button>
               </div>
             )}
             <div>

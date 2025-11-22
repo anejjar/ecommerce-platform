@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email';
+import { adminNewReviewEmail } from '@/lib/email-templates';
 
 // Get all reviews for a product
 export async function GET(
@@ -106,6 +108,38 @@ export async function POST(
         },
       },
     });
+
+    // Get product details for admin notification
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { name: true },
+    });
+
+    // Send admin notification email
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (adminEmail && product) {
+        await sendEmail({
+          to: adminEmail,
+          subject: `New Product Review - ${product.name}`,
+          html: adminNewReviewEmail(
+            {
+              rating: review.rating,
+              title: review.title,
+              comment: review.comment,
+              verified: review.verified,
+              createdAt: review.createdAt,
+            },
+            product.name,
+            review.user.name || review.user.email || 'Anonymous',
+            review.id
+          ),
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send admin review notification:', emailError);
+      // Don't fail the review submission if email fails
+    }
 
     return NextResponse.json(review);
   } catch (error) {

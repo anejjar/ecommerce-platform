@@ -18,6 +18,7 @@ const navigation = [
   { name: 'Orders', href: '/admin/orders' },
   { name: 'Customers', href: '/admin/customers' },
   { name: 'Categories', href: '/admin/categories' },
+  { name: 'Reviews', href: '/admin/reviews' },
   { name: 'Discounts', href: '/admin/discounts' },
   { name: 'Stock Alerts', href: '/admin/stock-alerts' },
 ];
@@ -28,6 +29,8 @@ const settingsPages = [
   { name: 'General', href: '/admin/settings/general' },
   { name: 'Email', href: '/admin/settings/email' },
   { name: 'Shipping', href: '/admin/settings/shipping' },
+  { name: 'Social Media', href: '/admin/settings/social' },
+  { name: 'Appearance', href: '/admin/settings/appearance' },
 ];
 
 export function AdminNav() {

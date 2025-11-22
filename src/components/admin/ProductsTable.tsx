@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProductActions } from '@/components/admin/ProductActions';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Star, Trash2, Eye, EyeOff } from 'lucide-react';
 
 interface Product {
@@ -110,13 +111,41 @@ export function ProductsTable({ products }: ProductsTableProps) {
     }
   };
 
+  const handleBulkFeatured = async (featured: boolean) => {
+    if (selectedIds.length === 0) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/products/bulk', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids: selectedIds,
+          data: { featured },
+        }),
+      });
+
+      if (response.ok) {
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update products');
+      }
+    } catch (error) {
+      alert('An error occurred while updating products');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const isAllSelected = products.length > 0 && selectedIds.length === products.length;
   const isSomeSelected = selectedIds.length > 0 && selectedIds.length < products.length;
 
   return (
     <div className="space-y-4">
       {selectedIds.length > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-950/20 dark:border-blue-900">
           <span className="text-sm font-medium">
             {selectedIds.length} product{selectedIds.length > 1 ? 's' : ''} selected
           </span>
@@ -141,6 +170,24 @@ export function ProductsTable({ products }: ProductsTableProps) {
             </Button>
             <Button
               size="sm"
+              variant="outline"
+              onClick={() => handleBulkFeatured(true)}
+              disabled={isProcessing}
+            >
+              <Star className="w-4 h-4 mr-1" />
+              Feature
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleBulkFeatured(false)}
+              disabled={isProcessing}
+            >
+              <Star className="w-4 h-4 mr-1" />
+              Unfeature
+            </Button>
+            <Button
+              size="sm"
               variant="destructive"
               onClick={handleBulkDelete}
               disabled={isProcessing}
@@ -152,93 +199,88 @@ export function ProductsTable({ products }: ProductsTableProps) {
         </div>
       )}
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">
-              <input
-                type="checkbox"
-                checked={isAllSelected}
-                ref={(input) => {
-                  if (input) {
-                    input.indeterminate = isSomeSelected;
-                  }
-                }}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                className="rounded"
-              />
-            </TableHead>
-            <TableHead>Image</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Stock</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id}>
-              <TableCell>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(product.id)}
-                  onChange={(e) => handleSelectOne(product.id, e.target.checked)}
-                  className="rounded"
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={isAllSelected || (isSomeSelected ? "indeterminate" : false)}
+                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                  aria-label="Select all"
                 />
-              </TableCell>
-              <TableCell>
-                {product.images[0] ? (
-                  <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-100">
-                    <Image
-                      src={product.images[0].url}
-                      alt={product.images[0].alt || product.name}
-                      fill
-                      className="object-cover"
-                      sizes="48px"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 rounded bg-gray-200 flex items-center justify-center text-xs text-gray-400">
-                    No image
-                  </div>
-                )}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{product.name}</span>
-                  {product.featured && (
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>{product.category?.name || 'N/A'}</TableCell>
-              <TableCell>
-                {product.comparePrice && parseFloat(product.comparePrice.toString()) > parseFloat(product.price.toString()) ? (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 line-through">
-                      ${product.comparePrice.toString()}
-                    </span>
-                    <span className="font-medium">${product.price.toString()}</span>
-                  </div>
-                ) : (
-                  <span>${product.price.toString()}</span>
-                )}
-              </TableCell>
-              <TableCell>{product.stock}</TableCell>
-              <TableCell>
-                <Badge variant={product.published ? 'default' : 'secondary'}>
-                  {product.published ? 'Published' : 'Draft'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <ProductActions productId={product.id} />
-              </TableCell>
+              </TableHead>
+              <TableHead>Image</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Stock</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {products.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.includes(product.id)}
+                    onCheckedChange={(checked) => handleSelectOne(product.id, !!checked)}
+                    aria-label="Select row"
+                  />
+                </TableCell>
+                <TableCell>
+                  {product.images[0] ? (
+                    <div className="relative w-12 h-12 rounded overflow-hidden bg-muted">
+                      <Image
+                        src={product.images[0].url}
+                        alt={product.images[0].alt || product.name}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                      No image
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{product.name}</span>
+                    {product.featured && (
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>{product.category?.name || 'N/A'}</TableCell>
+                <TableCell>
+                  {product.comparePrice && parseFloat(product.comparePrice.toString()) > parseFloat(product.price.toString()) ? (
+                    <div className="flex flex-col">
+                      <span className="text-sm text-muted-foreground line-through">
+                        ${product.comparePrice.toString()}
+                      </span>
+                      <span className="font-medium">${product.price.toString()}</span>
+                    </div>
+                  ) : (
+                    <span>${product.price.toString()}</span>
+                  )}
+                </TableCell>
+                <TableCell>{product.stock}</TableCell>
+                <TableCell>
+                  <Badge variant={product.published ? 'default' : 'secondary'}>
+                    {product.published ? 'Published' : 'Draft'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <ProductActions productId={product.id} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

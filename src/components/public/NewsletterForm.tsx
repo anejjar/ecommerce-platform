@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface NewsletterFormProps {
     source?: string;
@@ -13,6 +14,7 @@ interface NewsletterFormProps {
 }
 
 export function NewsletterForm({ source = 'footer', showName = false, className = '' }: NewsletterFormProps) {
+    const t = useTranslations();
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +24,7 @@ export function NewsletterForm({ source = 'footer', showName = false, className 
         e.preventDefault();
 
         if (!email) {
-            toast.error('Please enter your email address');
+            toast.error(t('newsletter.enterEmail'));
             return;
         }
 
@@ -42,15 +44,15 @@ export function NewsletterForm({ source = 'footer', showName = false, className 
             const data = await response.json();
 
             if (response.ok) {
-                toast.success('Successfully subscribed to newsletter!');
+                toast.success(t('newsletter.success'));
                 setIsSubscribed(true);
                 setEmail('');
                 setName('');
             } else {
-                toast.error(data.error || 'Failed to subscribe');
+                toast.error(data.error || t('newsletter.error'));
             }
         } catch (error) {
-            toast.error('An error occurred. Please try again.');
+            toast.error(t('newsletter.genericError'));
         } finally {
             setIsSubmitting(false);
         }
@@ -60,7 +62,7 @@ export function NewsletterForm({ source = 'footer', showName = false, className 
         return (
             <div className={`bg-green-50 border border-green-200 rounded-lg p-4 ${className}`}>
                 <p className="text-green-800 text-sm">
-                    ✓ Thank you for subscribing! Check your email for confirmation.
+                    {t('newsletter.thankYou')}
                 </p>
             </div>
         );
@@ -72,12 +74,12 @@ export function NewsletterForm({ source = 'footer', showName = false, className 
                 {showName && (
                     <div>
                         <Label htmlFor="newsletter-name" className="sr-only">
-                            Name
+                            {t('newsletter.name')}
                         </Label>
                         <Input
                             id="newsletter-name"
                             type="text"
-                            placeholder="Your name (optional)"
+                            placeholder={t('newsletter.namePlaceholder')}
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             disabled={isSubmitting}
@@ -86,12 +88,12 @@ export function NewsletterForm({ source = 'footer', showName = false, className 
                 )}
                 <div>
                     <Label htmlFor="newsletter-email" className="sr-only">
-                        Email
+                        {t('newsletter.email')}
                     </Label>
                     <Input
                         id="newsletter-email"
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder={t('newsletter.emailPlaceholder')}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -99,11 +101,11 @@ export function NewsletterForm({ source = 'footer', showName = false, className 
                     />
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                    {isSubmitting ? t('newsletter.subscribing') : t('newsletter.subscribe')}
                 </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-                Get exclusive deals and updates. Unsubscribe anytime.
+                {t('newsletter.disclaimer')}
             </p>
         </form>
     );

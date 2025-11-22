@@ -11,6 +11,7 @@ import { addToCart, openCart } from '@/lib/redux/features/cartSlice';
 import { ProductReviews } from '@/components/public/ProductReviews';
 import { WishlistButton } from '@/components/public/WishlistButton';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface VariantOptionValue {
   id: string;
@@ -57,6 +58,7 @@ interface ProductDetailProps {
 }
 
 export function ProductDetail({ product, relatedProducts }: ProductDetailProps) {
+  const t = useTranslations();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
@@ -132,7 +134,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   const handleAddToCart = () => {
     // Check if all variant options are selected
     if (hasVariants && !selectedVariant) {
-      toast.error('Please select all product options', {
+      toast.error(t('product.selectOptions'), {
         duration: 3000,
       });
       return;
@@ -160,7 +162,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
       })
     );
 
-    toast.success(`Added ${product.name} to cart!`, {
+    toast.success(t('success.addedToCart'), {
       duration: 2000,
     });
 
@@ -194,13 +196,13 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
           <ol className="flex items-center gap-2 text-gray-600">
             <li>
               <Link href="/" className="hover:text-blue-600">
-                Home
+                {t('product.home')}
               </Link>
             </li>
             <li>/</li>
             <li>
               <Link href="/shop" className="hover:text-blue-600">
-                Shop
+                {t('product.shop')}
               </Link>
             </li>
             {product.category && (
@@ -250,12 +252,12 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 {product.featured && (
                   <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
                     <Star className="w-4 h-4 fill-current" />
-                    Featured
+                    {t('product.featured')}
                   </div>
                 )}
                 {discount && (
                   <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    {discount}% OFF
+                    {discount}% {t('product.off')}
                   </div>
                 )}
               </div>
@@ -267,11 +269,10 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                     <button
                       key={image.id}
                       onClick={() => setSelectedImage(index)}
-                      className={`relative aspect-square rounded-lg overflow-hidden ${
-                        selectedImage === index
+                      className={`relative aspect-square rounded-lg overflow-hidden ${selectedImage === index
                           ? 'ring-2 ring-blue-600'
                           : 'ring-1 ring-gray-200'
-                      }`}
+                        }`}
                     >
                       <Image
                         src={image.url}
@@ -310,7 +311,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                         ${currentComparePrice.toFixed(2)}
                       </span>
                       <span className="text-green-600 font-semibold">
-                        Save ${(currentComparePrice - currentPrice).toFixed(2)}
+                        {t('product.save')} ${(currentComparePrice - currentPrice).toFixed(2)}
                       </span>
                     </>
                   )}
@@ -321,17 +322,17 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               <div className="mb-6">
                 {currentStock > 0 ? (
                   <p className="text-green-600 font-medium">
-                    ✓ In Stock ({currentStock} available)
+                    ✓ {t('product.inStock')} ({currentStock} {t('product.available')})
                   </p>
                 ) : (
-                  <p className="text-red-600 font-medium">✗ Out of Stock</p>
+                  <p className="text-red-600 font-medium">✗ {t('product.outOfStock')}</p>
                 )}
               </div>
 
               {/* Description */}
               {product.description && (
                 <div className="mb-6">
-                  <h2 className="font-semibold text-lg mb-2">Description</h2>
+                  <h2 className="font-semibold text-lg mb-2">{t('product.description')}</h2>
                   <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {product.description}
                   </p>
@@ -341,7 +342,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               {/* SKU */}
               {product.sku && (
                 <p className="text-sm text-gray-600 mb-6">
-                  SKU: <span className="font-mono">{product.sku}</span>
+                  {t('product.sku')}: <span className="font-mono">{product.sku}</span>
                 </p>
               )}
 
@@ -369,13 +370,12 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                               key={value.id}
                               onClick={() => handleOptionChange(option.id, value.value)}
                               disabled={!isAvailable}
-                              className={`px-4 py-2 border rounded-lg transition-colors ${
-                                isSelected
+                              className={`px-4 py-2 border rounded-lg transition-colors ${isSelected
                                   ? 'border-blue-600 bg-blue-50 text-blue-600 font-medium'
                                   : isAvailable
                                     ? 'border-gray-300 hover:border-blue-600'
                                     : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through'
-                              }`}
+                                }`}
                             >
                               {value.value}
                             </button>
@@ -389,7 +389,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
 
               {/* Quantity Selector */}
               <div className="mb-6">
-                <label className="block font-semibold mb-2">Quantity</label>
+                <label className="block font-semibold mb-2">{t('product.quantity')}</label>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center border rounded-lg">
                     <button
@@ -409,7 +409,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                     </button>
                   </div>
                   <span className="text-sm text-gray-600">
-                    Total:{' '}
+                    {t('product.total')}:{' '}
                     <span className="font-bold">${(currentPrice * quantity).toFixed(2)}</span>
                   </span>
                 </div>
@@ -426,12 +426,12 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                   {addedToCart ? (
                     <>
                       <Check className="w-5 h-5 mr-2" />
-                      Added to Cart
+                      {t('product.addedToCart')}
                     </>
                   ) : (
                     <>
                       <ShoppingCart className="w-5 h-5 mr-2" />
-                      Add to Cart
+                      {t('product.addToCart')}
                     </>
                   )}
                 </Button>
@@ -441,7 +441,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                   variant="secondary"
                   size="lg"
                 >
-                  Buy Now
+                  {t('product.buyNow')}
                 </Button>
                 <div className="border rounded-lg flex items-center justify-center px-4 hover:bg-gray-50">
                   <WishlistButton productId={product.id} showText={false} />
@@ -450,9 +450,9 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
 
               {/* Additional Info */}
               <div className="border-t pt-6 space-y-3 text-sm text-gray-600">
-                <p>✓ Free shipping on orders over $50</p>
-                <p>✓ 30-day money-back guarantee</p>
-                <p>✓ Secure checkout</p>
+                <p>✓ {t('product.freeShipping')}</p>
+                <p>✓ {t('product.moneyBack')}</p>
+                <p>✓ {t('product.secureCheckout')}</p>
               </div>
             </div>
           </div>
@@ -466,7 +466,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+            <h2 className="text-2xl font-bold mb-6">{t('product.relatedProducts')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <Link
@@ -499,7 +499,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                         </span>
                         {relatedProduct.comparePrice &&
                           Number(relatedProduct.comparePrice) >
-                            Number(relatedProduct.price) && (
+                          Number(relatedProduct.price) && (
                             <span className="text-sm text-gray-500 line-through">
                               ${Number(relatedProduct.comparePrice).toFixed(2)}
                             </span>

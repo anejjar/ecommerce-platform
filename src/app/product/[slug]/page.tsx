@@ -5,6 +5,8 @@ import { Footer } from '@/components/public/Footer';
 import { ProductDetail } from '@/components/public/ProductDetail';
 import { prisma } from '@/lib/prisma';
 
+import { getTranslations } from 'next-intl/server';
+
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
@@ -12,6 +14,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const t = await getTranslations('metadata.product');
 
   const product = await prisma.product.findUnique({
     where: { slug },
@@ -23,7 +26,7 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Product Not Found',
+      title: t('notFound'),
     };
   }
 
@@ -35,7 +38,7 @@ export async function generateMetadata({
 
   const description = product.description
     ? product.description.substring(0, 160)
-    : `Shop ${product.name} at great prices. ${discount ? `Save ${discount}%!` : ''}`;
+    : t('description', { name: product.name }) + (discount ? ' ' + t('save', { discount }) : '');
 
   const imageUrl = product.images[0]?.url || '/placeholder-product.jpg';
 

@@ -8,6 +8,7 @@ import { Search, Filter, X, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { WishlistButton } from '@/components/public/WishlistButton';
+import { useTranslations } from 'next-intl';
 
 interface Product {
   id: string;
@@ -44,6 +45,7 @@ export function ShopContent({
   initialFeatured,
   initialSort,
 }: ShopContentProps) {
+  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(initialSearch);
@@ -104,9 +106,9 @@ export function ShopContent({
     <div className="container mx-auto px-4 py-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Shop All Products</h1>
+        <h1 className="text-4xl font-bold mb-2">{t('shop.title')}</h1>
         <p className="text-gray-600">
-          {products.length} {products.length === 1 ? 'product' : 'products'} found
+          {products.length} {products.length === 1 ? t('cart.item') : t('cart.items')} found
         </p>
       </div>
 
@@ -119,7 +121,7 @@ export function ShopContent({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t('shop.searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -133,10 +135,10 @@ export function ShopContent({
             onChange={(e) => handleSortChange(e.target.value)}
             className="px-4 py-2 border rounded-md"
           >
-            <option value="newest">Newest First</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="name">Name: A to Z</option>
+            <option value="newest">{t('shop.sort.newest')}</option>
+            <option value="price-asc">{t('shop.sort.priceLowHigh')}</option>
+            <option value="price-desc">{t('shop.sort.priceHighLow')}</option>
+            <option value="name">{t('shop.sort.nameAZ')}</option>
           </select>
 
           {/* Filter Toggle (Mobile) */}
@@ -146,17 +148,17 @@ export function ShopContent({
             className="md:hidden"
           >
             <Filter className="w-4 h-4 mr-2" />
-            Filters
+            {t('shop.filters')}
           </Button>
         </div>
 
         {/* Active Filters */}
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
-            <span className="text-sm text-gray-600">Active filters:</span>
+            <span className="text-sm text-gray-600">{t('shop.activeFilters')}</span>
             {search && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                Search: {search}
+                {t('shop.filterSearch')} {search}
                 <button
                   onClick={() => {
                     setSearch('');
@@ -173,7 +175,7 @@ export function ShopContent({
             )}
             {initialCategory && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                Category: {categories.find(c => c.slug === initialCategory)?.name}
+                {t('shop.filterCategory')} {categories.find(c => c.slug === initialCategory)?.name}
                 <button onClick={() => handleCategoryFilter('')}>
                   <X className="w-3 h-3" />
                 </button>
@@ -181,7 +183,7 @@ export function ShopContent({
             )}
             {initialFeatured && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                Featured Only
+                {t('shop.filterFeatured')}
                 <button onClick={handleFeaturedToggle}>
                   <X className="w-3 h-3" />
                 </button>
@@ -191,7 +193,7 @@ export function ShopContent({
               onClick={clearFilters}
               className="text-sm text-blue-600 hover:underline ml-2"
             >
-              Clear all
+              {t('shop.clearAll')}
             </button>
           </div>
         )}
@@ -201,7 +203,7 @@ export function ShopContent({
         {/* Sidebar Filters */}
         <aside className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 flex-shrink-0`}>
           <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-            <h2 className="font-bold text-lg mb-4">Filters</h2>
+            <h2 className="font-bold text-lg mb-4">{t('shop.filters')}</h2>
 
             {/* Featured Toggle */}
             <div className="mb-6">
@@ -213,33 +215,31 @@ export function ShopContent({
                   className="w-4 h-4"
                 />
                 <Star className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm">Featured Only</span>
+                <span className="text-sm">{t('shop.filterFeatured')}</span>
               </label>
             </div>
 
             {/* Categories */}
             <div>
-              <h3 className="font-semibold mb-3">Categories</h3>
+              <h3 className="font-semibold mb-3">{t('shop.categories')}</h3>
               <div className="space-y-2">
                 <button
                   onClick={() => handleCategoryFilter('')}
-                  className={`block w-full text-left px-3 py-2 rounded text-sm ${
-                    !initialCategory
-                      ? 'bg-blue-100 text-blue-800 font-medium'
-                      : 'hover:bg-gray-100'
-                  }`}
+                  className={`block w-full text-left px-3 py-2 rounded text-sm ${!initialCategory
+                    ? 'bg-blue-100 text-blue-800 font-medium'
+                    : 'hover:bg-gray-100'
+                    }`}
                 >
-                  All Categories
+                  {t('shop.allCategories')}
                 </button>
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => handleCategoryFilter(category.slug)}
-                    className={`block w-full text-left px-3 py-2 rounded text-sm ${
-                      initialCategory === category.slug
-                        ? 'bg-blue-100 text-blue-800 font-medium'
-                        : 'hover:bg-gray-100'
-                    }`}
+                    className={`block w-full text-left px-3 py-2 rounded text-sm ${initialCategory === category.slug
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'hover:bg-gray-100'
+                      }`}
                   >
                     {category.name}
                   </button>
@@ -253,12 +253,12 @@ export function ShopContent({
         <div className="flex-1">
           {products.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <p className="text-gray-500 text-lg mb-2">No products found</p>
+              <p className="text-gray-500 text-lg mb-2">{t('shop.noProducts')}</p>
               <p className="text-sm text-gray-400 mb-4">
-                Try adjusting your filters or search terms
+                {t('shop.noProductsDesc')}
               </p>
               {hasActiveFilters && (
-                <Button onClick={clearFilters}>Clear Filters</Button>
+                <Button onClick={clearFilters}>{t('shop.clearFilters')}</Button>
               )}
             </div>
           ) : (
@@ -284,13 +284,13 @@ export function ShopContent({
                         {product.featured && (
                           <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                             <Star className="w-3 h-3 fill-current" />
-                            Featured
+                            {t('product.featured')}
                           </div>
                         )}
                         {product.comparePrice &&
                           Number(product.comparePrice) > Number(product.price) && (
                             <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                              Sale
+                              {t('common.save')}
                             </div>
                           )}
                         <div className="absolute bottom-2 right-2">
@@ -324,7 +324,7 @@ export function ShopContent({
                             )}
                         </div>
                         {product.stock === 0 && (
-                          <p className="text-xs text-red-600 mt-2">Out of Stock</p>
+                          <p className="text-xs text-red-600 mt-2">{t('product.outOfStock')}</p>
                         )}
                       </div>
                     </Link>

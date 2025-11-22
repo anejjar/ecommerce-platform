@@ -7,7 +7,10 @@ import { Footer } from '@/components/public/Footer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RefundRequestButton } from '@/components/customer/RefundRequestButton';
+import { isFeatureEnabled } from '@/lib/features';
 import { prisma } from '@/lib/prisma';
+import { getTranslations } from 'next-intl/server';
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
@@ -17,12 +20,37 @@ const statusColors: Record<string, string> = {
   CANCELLED: 'bg-red-100 text-red-800',
 };
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const t = await getTranslations('metadata.account.orderDetails');
+  const order = await prisma.order.findUnique({
+    where: { id },
+    select: { orderNumber: true },
+  });
+
+  if (!order) {
+    return {
+      title: 'Order Not Found',
+    };
+  }
+
+  return {
+    title: t('title', { orderNumber: order.orderNumber }),
+    description: t('description', { orderNumber: order.orderNumber }),
+  };
+}
+
 export default async function OrderDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const session = await getServerSession(authOptions);
+  const t = await getTranslations();
 
   if (!session) {
     redirect('/auth/signin');
@@ -40,6 +68,27 @@ export default async function OrderDetailPage({
         },
       },
       shippingAddress: true,
+      orderNotes: {
+        where: {
+          isInternal: false, // Only fetch public notes for customers
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
+      refunds: {
+        where: {
+          status: { in: ['PENDING', 'APPROVED', 'COMPLETED'] },
+        },
+      },
     },
   });
 
@@ -50,6 +99,9 @@ export default async function OrderDetailPage({
 
   // For guest orders, redirect to sign in (they can't access /account anyway)
   // For user orders, ensure they own the order
+  // Check if refund feature is enabled
+  const refundFeatureEnabled = await isFeatureEnabled('refund_management');
+
   if (order.userId !== session.user.id) {
     notFound();
   }
@@ -61,39 +113,50 @@ export default async function OrderDetailPage({
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold">Order #{order.orderNumber}</h1>
+              <h1 className="text-3xl font-bold">{t('account.orderNumber')} #{order.orderNumber}</h1>
               <p className="text-gray-600 mt-1">
-                Placed on {new Date(order.createdAt).toLocaleDateString()}
+                {t('account.orderDate')} {new Date(order.createdAt).toLocaleDateString()}
               </p>
             </div>
-            <Link href="/account/orders">
-              <Button variant="outline">← Back to Orders</Button>
-            </Link>
+            <div className="flex gap-3">
+              {refundFeatureEnabled && (
+                <RefundRequestButton
+                  orderId={order.id}
+                  orderNumber={order.orderNumber}
+                  orderItems={order.items}
+                  paymentStatus={order.paymentStatus}
+                  existingRefund={order.refunds?.[0]}
+                />
+              )}
+              <Link href="/account/orders">
+                <Button variant="outline">← {t('account.backToOrders')}</Button>
+              </Link>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             {/* Order Status */}
             <Card>
               <CardHeader>
-                <CardTitle>Order Status</CardTitle>
+                <CardTitle>{t('account.status')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Order Status</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('account.status')}</p>
                     <Badge className={statusColors[order.status]}>
                       {order.status}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Payment Status</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('account.paymentStatus')}</p>
                     <Badge
                       className={
                         order.paymentStatus === 'PAID'
                           ? 'bg-green-100 text-green-800'
                           : order.paymentStatus === 'FAILED'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
                       }
                     >
                       {order.paymentStatus}
@@ -106,7 +169,7 @@ export default async function OrderDetailPage({
             {/* Shipping Address */}
             <Card>
               <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
+                <CardTitle>{t('checkout.shippingAddress')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {order.shippingAddress ? (
@@ -122,7 +185,7 @@ export default async function OrderDetailPage({
                     <p>{order.shippingAddress.country}</p>
                   </div>
                 ) : (
-                  <p className="text-gray-500">No address available</p>
+                  <p className="text-gray-500">{t('account.noAddress')}</p>
                 )}
               </CardContent>
             </Card>
@@ -131,7 +194,7 @@ export default async function OrderDetailPage({
           {/* Order Items */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Order Items</CardTitle>
+              <CardTitle>{t('account.items')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -143,7 +206,7 @@ export default async function OrderDetailPage({
                     <div className="flex-1">
                       <p className="font-medium">{item.product.name}</p>
                       {item.variant && (
-                        <p className="text-sm text-gray-500">Variant: {item.variant.optionValues}</p>
+                        <p className="text-sm text-gray-500">{t('cart.variant')} {item.variant.optionValues}</p>
                       )}
                       <p className="text-sm text-gray-600">
                         ${Number(item.price).toFixed(2)} × {item.quantity}
@@ -157,25 +220,25 @@ export default async function OrderDetailPage({
 
                 <div className="space-y-2 pt-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-gray-600">{t('cart.subtotal')}</span>
                     <span className="font-medium">
                       ${Number(order.subtotal).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
+                    <span className="text-gray-600">{t('cart.tax')}</span>
                     <span className="font-medium">
                       ${Number(order.tax).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Shipping</span>
+                    <span className="text-gray-600">{t('cart.shipping')}</span>
                     <span className="font-medium">
                       ${Number(order.shipping).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                    <span>Total</span>
+                    <span>{t('cart.total')}</span>
                     <span>${Number(order.total).toFixed(2)}</span>
                   </div>
                 </div>
@@ -183,18 +246,54 @@ export default async function OrderDetailPage({
             </CardContent>
           </Card>
 
+          {/* Order Notes */}
+          {order.orderNotes && order.orderNotes.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>{t('account.orderNotes')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {order.orderNotes.map((note) => (
+                    <div
+                      key={note.id}
+                      className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-blue-900">
+                          {note.user.name || note.user.email || t('account.supportTeam')}
+                        </span>
+                        <span className="text-xs text-blue-700">
+                          {new Date(note.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-blue-900 whitespace-pre-wrap">
+                        {note.note}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Help Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Need Help?</CardTitle>
+              <CardTitle>{t('account.needHelp')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                If you have any questions about your order, please contact our
-                customer support team.
+                {t('account.contactSupportDesc')}
               </p>
               <Link href="/contact">
-                <Button variant="outline">Contact Support</Button>
+                <Button variant="outline">{t('account.contactSupport')}</Button>
               </Link>
             </CardContent>
           </Card>

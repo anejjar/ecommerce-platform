@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Order {
   id: string;
@@ -116,10 +117,30 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   const isAllSelected = orders.length > 0 && selectedIds.length === orders.length;
   const isSomeSelected = selectedIds.length > 0 && selectedIds.length < orders.length;
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'DELIVERED': return 'default';
+      case 'PROCESSING': return 'secondary';
+      case 'PENDING': return 'outline';
+      case 'CANCELLED': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const getPaymentStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'PAID': return 'default';
+      case 'PENDING': return 'outline';
+      case 'FAILED': return 'destructive';
+      case 'REFUNDED': return 'secondary';
+      default: return 'secondary';
+    }
+  };
+
   return (
     <div className="space-y-4">
       {selectedIds.length > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-950/20 dark:border-blue-900">
           <span className="text-sm font-medium">
             {selectedIds.length} order{selectedIds.length > 1 ? 's' : ''} selected
           </span>
@@ -160,103 +181,98 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         </div>
       )}
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">
-              <input
-                type="checkbox"
-                checked={isAllSelected}
-                ref={(input) => {
-                  if (input) {
-                    input.indeterminate = isSomeSelected;
-                  }
-                }}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                className="rounded"
-              />
-            </TableHead>
-            <TableHead>Order #</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Shipping Address</TableHead>
-            <TableHead>Items</TableHead>
-            <TableHead>Total</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Payment Status</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order.id}>
-              <TableCell>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(order.id)}
-                  onChange={(e) => handleSelectOne(order.id, e.target.checked)}
-                  className="rounded"
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={isAllSelected || (isSomeSelected ? "indeterminate" : false)}
+                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                  aria-label="Select all"
                 />
-              </TableCell>
-              <TableCell className="font-medium">{order.orderNumber}</TableCell>
-              <TableCell>
-                <div>
-                  <p className="font-medium">
-                    {order.user?.name || order.shippingAddress?.firstName
-                      ? `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim()
-                      : 'Guest'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {order.user?.email || order.guestEmail || 'N/A'}
-                  </p>
-                  {order.isGuest && (
-                    <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
-                      Guest Order
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                {order.shippingAddress ? (
-                  <div className="text-sm text-gray-600 max-w-xs">
-                    {order.shippingAddress.address1}
-                    {order.shippingAddress.address2 && `, ${order.shippingAddress.address2}`}
-                    <br />
-                    {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
-                    <br />
-                    {order.shippingAddress.country}
-                  </div>
-                ) : (
-                  <span className="text-gray-400">No address</span>
-                )}
-              </TableCell>
-              <TableCell>{order.items.length}</TableCell>
-              <TableCell>${order.total.toString()}</TableCell>
-              <TableCell>
-                <Badge className={statusColors[order.status]}>
-                  {order.status}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge className={paymentStatusColors[order.paymentStatus]}>
-                  {order.paymentStatus}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {new Date(order.createdAt).toLocaleDateString()}
-              </TableCell>
-              <TableCell>
-                <Link
-                  href={`/admin/orders/${order.id}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  View
-                </Link>
-              </TableCell>
+              </TableHead>
+              <TableHead>Order #</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Shipping Address</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Payment Status</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {orders.map((order) => (
+              <TableRow key={order.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.includes(order.id)}
+                    onCheckedChange={(checked) => handleSelectOne(order.id, !!checked)}
+                    aria-label="Select row"
+                  />
+                </TableCell>
+                <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">
+                      {order.user?.name || order.shippingAddress?.firstName
+                        ? `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim()
+                        : 'Guest'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {order.user?.email || order.guestEmail || 'N/A'}
+                    </p>
+                    {order.isGuest && (
+                      <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded">
+                        Guest Order
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {order.shippingAddress ? (
+                    <div className="text-sm text-muted-foreground max-w-xs">
+                      {order.shippingAddress.address1}
+                      {order.shippingAddress.address2 && `, ${order.shippingAddress.address2}`}
+                      <br />
+                      {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
+                      <br />
+                      {order.shippingAddress.country}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">No address</span>
+                  )}
+                </TableCell>
+                <TableCell>{order.items.length}</TableCell>
+                <TableCell>${order.total.toString()}</TableCell>
+                <TableCell>
+                  <Badge variant={getStatusBadgeVariant(order.status) as any}>
+                    {order.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={getPaymentStatusBadgeVariant(order.paymentStatus) as any}>
+                    {order.paymentStatus}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href={`/admin/orders/${order.id}`}
+                    className="text-primary hover:underline"
+                  >
+                    View
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

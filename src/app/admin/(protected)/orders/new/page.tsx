@@ -246,7 +246,7 @@ export default function CreateOrderPage() {
                   />
                 </div>
                 {showCustomerDropdown && customers.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-md max-h-60 overflow-auto">
                     {customers.map((customer) => (
                       <button
                         key={customer.id}
@@ -336,7 +336,7 @@ export default function CreateOrderPage() {
                 />
               </div>
               {showProductDropdown && products.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-md max-h-60 overflow-auto">
                   {products.map((product) => (
                     <button
                       key={product.id}

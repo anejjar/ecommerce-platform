@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface Review {
   id: string;
@@ -25,6 +26,7 @@ interface ProductReviewsProps {
 }
 
 export function ProductReviews({ productId }: ProductReviewsProps) {
+  const t = useTranslations();
   const { data: session } = useSession();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,13 +71,13 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
         await fetchReviews();
         setShowForm(false);
         setFormData({ rating: '5', title: '', comment: '' });
-        toast.success('Review submitted successfully!');
+        toast.success(t('reviews.submitSuccess') || 'Review submitted successfully!');
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to submit review');
+        toast.error(error.error || t('reviews.submitError') || 'Failed to submit review');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error(t('errors.somethingWentWrong') || 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -109,14 +111,14 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
   };
 
   if (isLoading) {
-    return <div>Loading reviews...</div>;
+    return <div>{t('common.loading')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Customer Reviews</CardTitle>
+          <CardTitle>{t('reviews.title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Rating Summary */}
@@ -125,13 +127,13 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
               <div className="text-5xl font-bold mb-2">{averageRating}</div>
               {renderStars(Math.round(parseFloat(averageRating)))}
               <p className="text-sm text-gray-600 mt-2">
-                Based on {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                {t('reviews.basedOn')} {reviews.length} {reviews.length !== 1 ? t('reviews.reviewCountPlural') : t('reviews.reviewCountSingular')}
               </p>
             </div>
             <div className="space-y-2">
               {ratingDistribution.map(({ star, count, percentage }) => (
                 <div key={star} className="flex items-center gap-3">
-                  <span className="text-sm font-medium w-12">{star} star</span>
+                  <span className="text-sm font-medium w-12">{star} {t('reviews.star')}</span>
                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-yellow-500"
@@ -146,12 +148,12 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
 
           {/* Write Review Button */}
           {session && !showForm && (
-            <Button onClick={() => setShowForm(true)}>Write a Review</Button>
+            <Button onClick={() => setShowForm(true)}>{t('reviews.writeReview')}</Button>
           )}
 
           {!session && (
             <p className="text-sm text-gray-600">
-              Please sign in to write a review
+              {t('reviews.signInToReview')}
             </p>
           )}
 
@@ -159,53 +161,53 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
           {showForm && (
             <form onSubmit={handleSubmit} className="space-y-4 border p-4 rounded">
               <div>
-                <label className="block text-sm font-medium mb-2">Rating *</label>
+                <label className="block text-sm font-medium mb-2">{t('reviews.rating')} *</label>
                 <select
                   value={formData.rating}
                   onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md"
                   required
                 >
-                  <option value="5">5 Stars - Excellent</option>
-                  <option value="4">4 Stars - Good</option>
-                  <option value="3">3 Stars - Average</option>
-                  <option value="2">2 Stars - Poor</option>
-                  <option value="1">1 Star - Terrible</option>
+                  <option value="5">5 {t('reviews.stars')} - {t('reviews.excellent')}</option>
+                  <option value="4">4 {t('reviews.stars')} - {t('reviews.good')}</option>
+                  <option value="3">3 {t('reviews.stars')} - {t('reviews.average')}</option>
+                  <option value="2">2 {t('reviews.stars')} - {t('reviews.poor')}</option>
+                  <option value="1">1 {t('reviews.star')} - {t('reviews.terrible')}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Review Title (optional)
+                  {t('reviews.reviewTitle')} ({t('common.optional')})
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Sum up your experience"
+                  placeholder={t('reviews.titlePlaceholder')}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Review (optional)
+                  {t('reviews.review')} ({t('common.optional')})
                 </label>
                 <textarea
                   value={formData.comment}
                   onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
                   className="w-full min-h-[100px] px-3 py-2 border rounded-md"
-                  placeholder="Share your thoughts about this product"
+                  placeholder={t('reviews.commentPlaceholder')}
                 />
               </div>
               <div className="flex gap-2">
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                  {isSubmitting ? t('common.submitting') : t('reviews.submitReview')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowForm(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
               </div>
             </form>
@@ -214,7 +216,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
           {/* Reviews List */}
           {reviews.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>No reviews yet. Be the first to review this product!</p>
+              <p>{t('reviews.noReviews')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -226,7 +228,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                         {renderStars(review.rating)}
                         {review.verified && (
                           <Badge className="bg-green-100 text-green-800 text-xs">
-                            Verified Purchase
+                            {t('reviews.verifiedPurchase')}
                           </Badge>
                         )}
                       </div>
@@ -242,7 +244,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                     <p className="text-gray-700 mb-2">{review.comment}</p>
                   )}
                   <p className="text-sm text-gray-600">
-                    by {review.user.name || review.user.email.split('@')[0]}
+                    {t('reviews.by')} {review.user.name || review.user.email.split('@')[0]}
                   </p>
                 </div>
               ))}

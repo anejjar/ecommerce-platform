@@ -7,8 +7,23 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2 } from 'lucide-react';
 
 const discountSchema = z.object({
@@ -28,12 +43,7 @@ export function DiscountForm() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        watch,
-    } = useForm<DiscountFormValues>({
+    const form = useForm<DiscountFormValues>({
         resolver: zodResolver(discountSchema),
         defaultValues: {
             type: 'PERCENTAGE',
@@ -42,7 +52,7 @@ export function DiscountForm() {
         },
     });
 
-    const type = watch('type');
+    const type = form.watch('type');
 
     const onSubmit = async (data: DiscountFormValues) => {
         setIsSubmitting(true);
@@ -77,124 +87,171 @@ export function DiscountForm() {
                 <CardTitle>Create Discount Code</CardTitle>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="code">Code</Label>
-                            <Input
-                                id="code"
-                                placeholder="SUMMER2024"
-                                {...register('code')}
-                                className={errors.code ? 'border-red-500' : ''}
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField
+                                control={form.control}
+                                name="code"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Code</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="SUMMER2024" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                            {errors.code && (
-                                <p className="text-sm text-red-500">{errors.code.message}</p>
+
+                            <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Type</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a discount type" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="PERCENTAGE">Percentage (%)</SelectItem>
+                                                <SelectItem value="FIXED_AMOUNT">Fixed Amount ($)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="value"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Value</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder={type === 'PERCENTAGE' ? '10' : '5.00'}
+                                                {...field}
+                                                onChange={e => field.onChange(parseFloat(e.target.value))}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="minOrderAmount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Min Order Amount (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                {...field}
+                                                onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
+                                                value={field.value ?? ''}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="maxUses"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Max Uses (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                placeholder="100"
+                                                {...field}
+                                                onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
+                                                value={field.value ?? ''}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="startDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Start Date</FormLabel>
+                                        <FormControl>
+                                            <Input type="date" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="endDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>End Date (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input type="date" {...field} value={field.value ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <FormField
+                            control={form.control}
+                            name="isActive"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel>
+                                            Active
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
                             )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="type">Type</Label>
-                            <select
-                                id="type"
-                                {...register('type')}
-                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <option value="PERCENTAGE">Percentage (%)</option>
-                                <option value="FIXED_AMOUNT">Fixed Amount ($)</option>
-                            </select>
-                            {errors.type && (
-                                <p className="text-sm text-red-500">{errors.type.message}</p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="value">Value</Label>
-                            <Input
-                                id="value"
-                                type="number"
-                                step="0.01"
-                                placeholder={type === 'PERCENTAGE' ? '10' : '5.00'}
-                                {...register('value', { valueAsNumber: true })}
-                                className={errors.value ? 'border-red-500' : ''}
-                            />
-                            {errors.value && (
-                                <p className="text-sm text-red-500">{errors.value.message}</p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="minOrderAmount">Min Order Amount (Optional)</Label>
-                            <Input
-                                id="minOrderAmount"
-                                type="number"
-                                step="0.01"
-                                placeholder="0.00"
-                                {...register('minOrderAmount', {
-                                    setValueAs: (v) => v === '' ? undefined : parseFloat(v)
-                                })}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="maxUses">Max Uses (Optional)</Label>
-                            <Input
-                                id="maxUses"
-                                type="number"
-                                placeholder="100"
-                                {...register('maxUses', {
-                                    setValueAs: (v) => v === '' ? undefined : parseInt(v)
-                                })}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="startDate">Start Date</Label>
-                            <Input
-                                id="startDate"
-                                type="date"
-                                {...register('startDate')}
-                                className={errors.startDate ? 'border-red-500' : ''}
-                            />
-                            {errors.startDate && (
-                                <p className="text-sm text-red-500">{errors.startDate.message}</p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="endDate">End Date (Optional)</Label>
-                            <Input
-                                id="endDate"
-                                type="date"
-                                {...register('endDate')}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                        <input
-                            type="checkbox"
-                            id="isActive"
-                            {...register('isActive')}
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <Label htmlFor="isActive">Active</Label>
-                    </div>
 
-                    <div className="flex justify-end gap-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => router.back()}
-                            disabled={isSubmitting}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create Discount
-                        </Button>
-                    </div>
-                </form>
+                        <div className="flex justify-end gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.back()}
+                                disabled={isSubmitting}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Create Discount
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
             </CardContent>
         </Card>
     );

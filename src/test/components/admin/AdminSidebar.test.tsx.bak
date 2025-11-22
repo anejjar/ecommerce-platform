@@ -1,0 +1,96 @@
+import { render, screen, fireEvent } from '@testing-library/react'
+import { AdminSidebar } from '@/components/admin/AdminSidebar'
+import { vi, describe, it, expect } from 'vitest'
+
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+    usePathname: () => '/admin/dashboard',
+}))
+
+// Mock next-auth/react
+vi.mock('next-auth/react', () => ({
+    useSession: () => ({
+        data: {
+            user: {
+                name: 'Admin User',
+                email: 'admin@example.com',
+                role: 'ADMIN',
+            },
+        },
+        status: 'authenticated',
+    }),
+    signOut: vi.fn(),
+}))
+
+// Mock next/link
+vi.mock('next/link', () => ({
+    default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+        <a href={href}>{children}</a>
+    ),
+}))
+
+// Mock lucide-react icons
+vi.mock('lucide-react', () => ({
+    LayoutDashboard: () => <div data-testid="icon-dashboard" />,
+    Package: () => <div data-testid="icon-package" />,
+    ShoppingCart: () => <div data-testid="icon-shopping-cart" />,
+    Users: () => <div data-testid="icon-users" />,
+    Star: () => <div data-testid="icon-star" />,
+    AlertTriangle: () => <div data-testid="icon-alert-triangle" />,
+    Settings: () => <div data-testid="icon-settings" />,
+    ChevronDown: () => <div data-testid="icon-chevron-down" />,
+    ChevronRight: () => <div data-testid="icon-chevron-right" />,
+    LogOut: () => <div data-testid="icon-log-out" />,
+    Menu: () => <div data-testid="icon-menu" />,
+    PanelLeftClose: () => <div data-testid="icon-panel-left-close" />,
+    PanelLeft: () => <div data-testid="icon-panel-left" />,
+    Package2: () => <div data-testid="icon-package-2" />,
+    Shield: () => <div data-testid="icon-shield" />,
+    BarChart3: () => <div data-testid="icon-bar-chart-3" />,
+    XIcon: () => <div data-testid="icon-x" />,
+}))
+
+// Mock global fetch for feature flags
+global.fetch = vi.fn(() =>
+    Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ features: ['analytics_dashboard'] }),
+    })
+) as any;
+
+describe('AdminSidebar', () => {
+    it('renders the sidebar with navigation items', async () => {
+        render(<AdminSidebar />)
+
+        expect(screen.getByText('Admin Panel')).toBeInTheDocument()
+        expect(screen.getByText('Dashboard')).toBeInTheDocument()
+        // Analytics is fetched async via feature flag
+        expect(await screen.findByText('Analytics', {}, { timeout: 2000 })).toBeInTheDocument()
+        expect(screen.getByText('Catalog')).toBeInTheDocument()
+        expect(screen.getByText('Sales')).toBeInTheDocument()
+        expect(screen.getByText('Customers')).toBeInTheDocument()
+        expect(screen.getByText('Reviews')).toBeInTheDocument()
+        expect(screen.getByText('Alerts')).toBeInTheDocument()
+        expect(screen.getByText('Settings')).toBeInTheDocument()
+    })
+
+    it('toggles collapse state', () => {
+        render(<AdminSidebar />)
+
+        const collapseButton = screen.getByText('Collapse')
+        fireEvent.click(collapseButton)
+
+        // After collapse, text should be hidden (or handled by CSS/conditional rendering)
+        expect(screen.queryByText('Admin Panel')).not.toBeInTheDocument()
+    })
+
+    it('expands submenus', () => {
+        render(<AdminSidebar />)
+
+        const catalogButton = screen.getByText('Catalog')
+        fireEvent.click(catalogButton)
+
+        expect(screen.getByText('Products')).toBeInTheDocument()
+        expect(screen.getByText('Categories')).toBeInTheDocument()
+    })
+})

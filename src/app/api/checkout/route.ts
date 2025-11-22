@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
-import { orderConfirmationEmail, welcomeEmail } from '@/lib/email-templates';
+import { orderConfirmationEmail, welcomeEmail, adminNewOrderEmail, lowStockAlertEmail } from '@/lib/email-templates';
 import bcrypt from 'bcryptjs';
 
 async function generateOrderNumber(): Promise<string> {
@@ -320,6 +320,60 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check for low stock alerts after stock updates
+    try {
+      const productIds = items.map((item: any) => item.productId);
+      
+      const lowStockProducts = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          stockAlert: {
+            isNot: null,
+          },
+        },
+        include: {
+          stockAlert: true,
+        },
+      });
+
+      const productsToAlert = lowStockProducts.filter((product) => {
+        if (!product.stockAlert) return false;
+        const threshold = product.stockAlert.threshold;
+        return product.stock <= threshold && !product.stockAlert.notified;
+      });
+
+      if (productsToAlert.length > 0) {
+        const adminEmail = process.env.ADMIN_EMAIL;
+        if (adminEmail) {
+          await sendEmail({
+            to: adminEmail,
+            subject: 'Low Stock Alert',
+            html: lowStockAlertEmail(
+              productsToAlert.map((p) => ({
+                name: p.name,
+                sku: p.sku,
+                stock: p.stock,
+                threshold: p.stockAlert!.threshold,
+              }))
+            ),
+          });
+
+          // Mark alerts as notified
+          await prisma.stockAlert.updateMany({
+            where: {
+              productId: { in: productsToAlert.map((p) => p.id) },
+            },
+            data: {
+              notified: true,
+            },
+          });
+        }
+      }
+    } catch (stockAlertError) {
+      console.error('Failed to check/send stock alerts:', stockAlertError);
+      // Don't fail the order if stock alert fails
+    }
+
     // Send order confirmation email
     const emailTo = user?.email || customerInfo.email;
     const customerName = user?.name || `${customerInfo.firstName} ${customerInfo.lastName}`.trim();
@@ -350,6 +404,39 @@ export async function POST(request: NextRequest) {
       });
     } catch (emailError) {
       console.error('Failed to send order confirmation email:', emailError);
+      // Don't fail the order if email fails
+    }
+
+    // Send admin notification email
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (adminEmail) {
+        await sendEmail({
+          to: adminEmail,
+          subject: `New Order Received - ${orderNumber}`,
+          html: adminNewOrderEmail(
+            {
+              orderNumber: order.orderNumber,
+              total: order.total.toString(),
+              subtotal: order.subtotal.toString(),
+              tax: order.tax.toString(),
+              shipping: order.shipping.toString(),
+              discountAmount: order.discountAmount.toString(),
+              status: order.status,
+              items: order.items.map((item) => ({
+                product: { name: item.product.name },
+                quantity: item.quantity,
+                price: item.price.toString(),
+                total: item.total.toString(),
+              })),
+              shippingAddress: order.shippingAddress || undefined,
+            },
+            emailTo
+          ),
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send admin notification email:', emailError);
       // Don't fail the order if email fails
     }
 

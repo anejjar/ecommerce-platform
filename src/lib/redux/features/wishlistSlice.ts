@@ -27,13 +27,13 @@ interface WishlistItem {
 interface WishlistState {
   items: WishlistItem[];
   isLoading: boolean;
-  productIds: Set<string>; // For quick lookup
+  productIds: string[]; // For quick lookup
 }
 
 const initialState: WishlistState = {
   items: [],
   isLoading: false,
-  productIds: new Set(),
+  productIds: [],
 };
 
 const wishlistSlice = createSlice({
@@ -42,24 +42,26 @@ const wishlistSlice = createSlice({
   reducers: {
     setWishlist: (state, action: PayloadAction<WishlistItem[]>) => {
       state.items = action.payload;
-      state.productIds = new Set(action.payload.map((item) => item.productId));
+      state.productIds = action.payload.map((item) => item.productId);
       state.isLoading = false;
     },
     addToWishlist: (state, action: PayloadAction<WishlistItem>) => {
       state.items.unshift(action.payload);
-      state.productIds.add(action.payload.productId);
+      if (!state.productIds.includes(action.payload.productId)) {
+        state.productIds.push(action.payload.productId);
+      }
     },
     removeFromWishlist: (state, action: PayloadAction<string>) => {
       const productId = action.payload;
       state.items = state.items.filter((item) => item.productId !== productId);
-      state.productIds.delete(productId);
+      state.productIds = state.productIds.filter((id) => id !== productId);
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
     clearWishlist: (state) => {
       state.items = [];
-      state.productIds = new Set();
+      state.productIds = [];
       state.isLoading = false;
     },
   },

@@ -12,8 +12,10 @@ import { addToCart } from '@/lib/redux/features/cartSlice';
 import { removeFromWishlist } from '@/lib/redux/features/wishlistSlice';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function WishlistContent() {
+  const t = useTranslations();
   const router = useRouter();
   const { data: session, status } = useSession();
   const dispatch = useAppDispatch();
@@ -30,13 +32,13 @@ export function WishlistContent() {
 
       if (response.ok) {
         dispatch(removeFromWishlist(productId));
-        toast.success('Removed from wishlist');
+        toast.success(t('wishlist.removed'));
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to remove from wishlist');
+        toast.error(error.error || t('wishlist.removeFailed'));
       }
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      toast.error(t('common.error'));
     } finally {
       setRemovingIds((prev) => {
         const newSet = new Set(prev);
@@ -48,7 +50,7 @@ export function WishlistContent() {
 
   const handleAddToCart = (product: any) => {
     if (product.stock === 0) {
-      toast.error('Product is out of stock');
+      toast.error(t('errors.outOfStock'));
       return;
     }
 
@@ -63,7 +65,7 @@ export function WishlistContent() {
         variantId: undefined,
       })
     );
-    toast.success('Added to cart');
+    toast.success(t('success.addedToCart'));
   };
 
   // Redirect if not authenticated
@@ -75,7 +77,7 @@ export function WishlistContent() {
   if (status === 'loading' || isLoading) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       </div>
     );
   }
@@ -86,12 +88,12 @@ export function WishlistContent() {
         <div className="max-w-md mx-auto text-center">
           <div className="bg-white rounded-lg shadow-sm p-12">
             <Heart className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Your wishlist is empty</h2>
+            <h2 className="text-2xl font-bold mb-2">{t('wishlist.empty')}</h2>
             <p className="text-gray-600 mb-6">
-              Save your favorite products to your wishlist and shop them later!
+              {t('wishlist.emptyDesc')}
             </p>
             <Link href="/shop">
-              <Button size="lg">Start Shopping</Button>
+              <Button size="lg">{t('wishlist.startShopping')}</Button>
             </Link>
           </div>
         </div>
@@ -102,9 +104,9 @@ export function WishlistContent() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">My Wishlist</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('wishlist.title')}</h1>
         <p className="text-gray-600">
-          {items.length} {items.length === 1 ? 'item' : 'items'} saved
+          {items.length} {items.length === 1 ? t('cart.item') : t('cart.items')} saved
         </p>
       </div>
 
@@ -174,9 +176,9 @@ export function WishlistContent() {
                 </div>
 
                 {product.stock === 0 ? (
-                  <p className="text-xs text-red-600 mb-3">Out of Stock</p>
+                  <p className="text-xs text-red-600 mb-3">{t('product.outOfStock')}</p>
                 ) : (
-                  <p className="text-xs text-green-600 mb-3">In Stock</p>
+                  <p className="text-xs text-green-600 mb-3">{t('product.inStock')}</p>
                 )}
 
                 <div className="flex gap-2">
@@ -187,7 +189,7 @@ export function WishlistContent() {
                     size="sm"
                   >
                     <ShoppingCart className="w-4 h-4 mr-1" />
-                    Add to Cart
+                    {t('product.addToCart')}
                   </Button>
                   <Button
                     onClick={() => handleRemove(product.id)}

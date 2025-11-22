@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email';
+import { customerOrderNoteEmail } from '@/lib/email-templates';
 
 export async function GET(
   request: NextRequest,
@@ -93,6 +95,44 @@ export async function POST(
         },
       },
     });
+
+    // Send customer notification if note is public (not internal)
+    if (!orderNote.isInternal) {
+      try {
+        const order = await prisma.order.findUnique({
+          where: { id },
+          select: {
+            orderNumber: true,
+            user: {
+              select: {
+                email: true,
+                name: true,
+              },
+            },
+            guestEmail: true,
+          },
+        });
+
+        if (order) {
+          const customerEmail = order.user?.email || order.guestEmail;
+          if (customerEmail) {
+            await sendEmail({
+              to: customerEmail,
+              subject: `New Note on Order #${order.orderNumber}`,
+              html: customerOrderNoteEmail(
+                order.orderNumber,
+                orderNote.note,
+                orderNote.user.name || orderNote.user.email || 'Admin',
+                orderNote.createdAt
+              ),
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error('Failed to send customer note notification:', emailError);
+        // Don't fail the note creation if email fails
+      }
+    }
 
     return NextResponse.json(orderNote);
   } catch (error) {
