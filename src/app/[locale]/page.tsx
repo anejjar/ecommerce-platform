@@ -3,12 +3,19 @@ import { Footer } from '@/components/public/Footer';
 import { HomePageContent } from '@/components/public/HomePageContent';
 import { prisma } from '@/lib/prisma';
 import { generateSEOMetadata } from '@/lib/metadata';
+import { getProducts } from '@/lib/translations';
 
 export async function generateMetadata() {
   return await generateSEOMetadata();
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
   // Fetch store settings for hero section
   const storeSettings = await prisma.storeSetting.findMany({
     where: {
@@ -26,39 +33,31 @@ export default async function HomePage() {
   const storeName = settings.general_store_name || 'YourStore';
   const storeTagline = settings.general_store_tagline || "Discover amazing products at unbeatable prices. Shop the latest trends and find exactly what you're looking for.";
 
-  // Fetch featured products
-  const featuredProductsData = await prisma.product.findMany({
-    where: {
-      published: true,
-      featured: true,
-    },
-    include: {
-      images: {
-        orderBy: { position: 'asc' },
-        take: 1,
+  // Fetch featured products with translations
+  const featuredProductsData = await getProducts(
+    {
+      where: {
+        published: true,
+        featured: true,
       },
-      category: true,
+      take: 8,
     },
-    take: 8,
-  });
+    locale
+  );
 
   // Fetch latest products if no featured
-  const latestProductsData = await prisma.product.findMany({
-    where: {
-      published: true,
-    },
-    include: {
-      images: {
-        orderBy: { position: 'asc' },
-        take: 1,
+  const latestProductsData = await getProducts(
+    {
+      where: {
+        published: true,
       },
-      category: true,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 8,
     },
-    orderBy: {
-      createdAt: 'desc',
-    },
-    take: 8,
-  });
+    locale
+  );
 
   // Convert Decimal fields to strings
   const featuredProducts = featuredProductsData.map(product => ({

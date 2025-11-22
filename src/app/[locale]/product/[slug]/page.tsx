@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { ProductDetail } from '@/components/public/ProductDetail';
-import { prisma } from '@/lib/prisma';
+import { getProductBySlug, getProducts } from '@/lib/translations';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -11,18 +11,12 @@ import { getTranslations } from 'next-intl/server';
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const t = await getTranslations('metadata.product');
 
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    include: {
-      images: { orderBy: { position: 'asc' }, take: 1 },
-      category: true,
-    },
-  });
+  const product = await getProductBySlug(slug, locale);
 
   if (!product) {
     return {
@@ -71,30 +65,11 @@ export async function generateMetadata({
 export default async function ProductPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
 
-  const productData = await prisma.product.findUnique({
-    where: { slug },
-    include: {
-      images: {
-        orderBy: { position: 'asc' },
-      },
-      category: true,
-      variantOptions: {
-        include: {
-          values: {
-            orderBy: { position: 'asc' },
-          },
-        },
-        orderBy: { position: 'asc' },
-      },
-      variants: {
-        orderBy: { createdAt: 'asc' },
-      },
-    },
-  });
+  const productData = await getProductBySlug(slug, locale);
 
   if (!productData || !productData.published) {
     notFound();
@@ -113,47 +88,30 @@ export default async function ProductPage({
   };
 
   // Fetch related products from same category
-  const relatedProductsData = await prisma.product.findMany({
-    where: {
-      published: true,
-      categoryId: product.categoryId,
-      id: { not: product.id },
+  const relatedProductsData = await getProducts(
+    {
+      where: {
+        published: true,
+        categoryId: product.categoryId,
+        id: { not: product.id },
+      },
+      take: 4,
     },
-    include: {
-      images: {
-        orderBy: { position: 'asc' },
-        take: 1,
-      },
-      category: true,
-      variantOptions: {
-        include: {
-          values: {
-            orderBy: { position: 'asc' },
-          },
-        },
-        orderBy: { position: 'asc' },
-      },
-      variants: {
-        orderBy: { createdAt: 'asc' },
-      },
-    },
-    take: 4,
-  });
+    locale
+  );
 
   // Convert Decimal fields for related products
   const relatedProducts = relatedProductsData.map(p => ({
     ...p,
     price: p.price.toString(),
     comparePrice: p.comparePrice ? p.comparePrice.toString() : null,
-    variants: p.variants.map((v) => ({
-      ...v,
-      price: v.price ? v.price.toString() : null,
-      comparePrice: v.comparePrice ? v.comparePrice.toString() : null,
-    })),
+    variantOptions: [],
+    variants: [],
   }));
 
   // Generate JSON-LD structured data for SEO
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const localizedPath = locale === 'en' ? '' : `/${locale}`;
   const price = Number(product.price);
   const comparePrice = product.comparePrice ? Number(product.comparePrice) : null;
 
@@ -170,7 +128,7 @@ export default async function ProductPage({
     },
     offers: {
       '@type': 'Offer',
-      url: `${baseUrl}/product/${product.slug}`,
+      url: `${baseUrl}${localizedPath}/product/${product.slug}`,
       priceCurrency: 'USD',
       price: price,
       priceValidUntil: comparePrice && comparePrice > price

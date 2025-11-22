@@ -25,6 +25,12 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/features', () => ({
   isFeatureEnabled: vi.fn(() => Promise.resolve(true)),
 }))
+// Mock activity log
+vi.mock('@/lib/activity-log', () => ({
+  logActivity: vi.fn(() => Promise.resolve()),
+  getClientIp: vi.fn(() => '127.0.0.1'),
+  getUserAgent: vi.fn(() => 'test-agent'),
+}))
 
 import { getServerSession } from 'next-auth/next'
 import { prisma } from '@/lib/prisma'

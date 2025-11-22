@@ -58,8 +58,8 @@ export default function ActivityLogViewer({
 
   // Filters
   const [userIdFilter, setUserIdFilter] = useState('')
-  const [actionFilter, setActionFilter] = useState('')
-  const [resourceFilter, setResourceFilter] = useState('')
+  const [actionFilter, setActionFilter] = useState('ALL')
+  const [resourceFilter, setResourceFilter] = useState('ALL')
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
@@ -74,8 +74,8 @@ export default function ActivityLogViewer({
         limit: limit.toString(),
       })
 
-      if (actionFilter) params.append('action', actionFilter)
-      if (resourceFilter) params.append('resource', resourceFilter)
+      if (actionFilter && actionFilter !== 'ALL') params.append('action', actionFilter)
+      if (resourceFilter && resourceFilter !== 'ALL') params.append('resource', resourceFilter)
       if (userIdFilter) params.append('userId', userIdFilter)
 
       const response = await fetch(`/api/admin/activity-logs?${params}`)
@@ -99,8 +99,8 @@ export default function ActivityLogViewer({
   }
 
   const clearFilters = () => {
-    setActionFilter('')
-    setResourceFilter('')
+    setActionFilter('ALL')
+    setResourceFilter('ALL')
     setUserIdFilter('')
     setSearchTerm('')
     setPage(1)
@@ -123,11 +123,11 @@ export default function ActivityLogViewer({
 
   const filteredLogs = searchTerm
     ? logs.filter(
-        (log) =>
-          log.details?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          log.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          log.user.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      (log) =>
+        log.details?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : logs
 
   return (
@@ -151,7 +151,7 @@ export default function ActivityLogViewer({
             <SelectValue placeholder="All Actions" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Actions</SelectItem>
+            <SelectItem value="ALL">All Actions</SelectItem>
             <SelectItem value="CREATE">Create</SelectItem>
             <SelectItem value="UPDATE">Update</SelectItem>
             <SelectItem value="DELETE">Delete</SelectItem>
@@ -164,7 +164,7 @@ export default function ActivityLogViewer({
             <SelectValue placeholder="All Resources" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Resources</SelectItem>
+            <SelectItem value="ALL">All Resources</SelectItem>
             <SelectItem value="ADMIN_USER">Admin User</SelectItem>
             <SelectItem value="PRODUCT">Product</SelectItem>
             <SelectItem value="ORDER">Order</SelectItem>

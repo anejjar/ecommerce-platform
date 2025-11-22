@@ -105,6 +105,12 @@ export default async function OrderDetailPage({
   if (order.userId !== session.user.id) {
     notFound();
   }
+  // Convert Decimal fields to numbers for client components
+  const orderItemsForRefund = order.items.map(item => ({
+    ...item,
+    price: Number(item.price),
+    total: Number(item.total),
+  }));
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -123,7 +129,7 @@ export default async function OrderDetailPage({
                 <RefundRequestButton
                   orderId={order.id}
                   orderNumber={order.orderNumber}
-                  orderItems={order.items}
+                  orderItems={orderItemsForRefund}
                   paymentStatus={order.paymentStatus}
                   existingRefund={order.refunds?.[0]}
                 />

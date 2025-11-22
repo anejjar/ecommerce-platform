@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { ShopContent } from '@/components/public/ShopContent';
-import { prisma } from '@/lib/prisma';
+import { getProducts, getCategories, getCategoryBySlug } from '@/lib/translations';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -22,15 +22,19 @@ export async function generateMetadata() {
 }
 
 export default async function ShopPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const params = await searchParams;
-  const search = typeof params.search === 'string' ? params.search : '';
-  const category = typeof params.category === 'string' ? params.category : '';
-  const featured = params.featured === 'true';
-  const sort = typeof params.sort === 'string' ? params.sort : 'newest';
+  const { locale } = await params;
+  const urlParams = await searchParams;
+  
+  const search = typeof urlParams.search === 'string' ? urlParams.search : '';
+  const category = typeof urlParams.category === 'string' ? urlParams.category : '';
+  const featured = urlParams.featured === 'true';
+  const sort = typeof urlParams.sort === 'string' ? urlParams.sort : 'newest';
 
   // Build where clause
   const where: any = {
@@ -41,13 +45,22 @@ export default async function ShopPage({
     where.OR = [
       { name: { contains: search } },
       { description: { contains: search } },
+      {
+        translations: {
+          some: {
+            locale,
+            OR: [
+              { name: { contains: search } },
+              { description: { contains: search } },
+            ],
+          },
+        },
+      },
     ];
   }
 
   if (category) {
-    const categoryRecord = await prisma.category.findUnique({
-      where: { slug: category },
-    });
+    const categoryRecord = await getCategoryBySlug(category, locale);
     if (categoryRecord) {
       where.categoryId = categoryRecord.id;
     }
@@ -67,18 +80,8 @@ export default async function ShopPage({
     orderBy = { name: 'asc' };
   }
 
-  // Fetch products
-  const productsData = await prisma.product.findMany({
-    where,
-    include: {
-      images: {
-        orderBy: { position: 'asc' },
-        take: 1,
-      },
-      category: true,
-    },
-    orderBy,
-  });
+  // Fetch products with translations
+  const productsData = await getProducts({ where, orderBy }, locale);
 
   // Convert Decimal fields to strings for client components
   const products = productsData.map(product => ({
@@ -87,10 +90,8 @@ export default async function ShopPage({
     comparePrice: product.comparePrice ? product.comparePrice.toString() : null,
   }));
 
-  // Fetch categories for filter
-  const categories = await prisma.category.findMany({
-    orderBy: { name: 'asc' },
-  });
+  // Fetch categories with translations
+  const categories = await getCategories(locale);
 
   return (
     <div className="flex flex-col min-h-screen">

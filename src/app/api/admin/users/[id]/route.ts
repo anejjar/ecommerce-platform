@@ -7,16 +7,16 @@ import { isFeatureEnabled } from '@/lib/features'
 import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 /**
  * PATCH /api/admin/users/[id]
  * Update an existing admin user
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(request: NextRequest, context: RouteParams) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions)
@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Feature not available' }, { status: 404 })
     }
 
-    const { id } = params
+    const { id } = await context.params
     const body = await request.json()
     const { name, email, role } = body
 
@@ -118,7 +118,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * DELETE /api/admin/users/[id]
  * Delete an admin user
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, context: RouteParams) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions)
@@ -137,7 +137,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Feature not available' }, { status: 404 })
     }
 
-    const { id } = params
+    const { id } = await context.params
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({

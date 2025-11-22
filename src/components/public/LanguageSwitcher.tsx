@@ -1,9 +1,9 @@
 'use client';
 
+import { useState, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Globe } from 'lucide-react';
-import { locales } from '@/i18n';
+import { Globe, Loader2 } from 'lucide-react';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -14,45 +14,83 @@ export function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
+  const [isPending, startTransition] = useTransition();
+  const [selectedLocale, setSelectedLocale] = useState<string | null>(null);
 
   const switchLanguage = (newLocale: string) => {
-    if (newLocale === currentLocale) return;
+    if (newLocale === currentLocale || isPending) return;
 
-    // Save to localStorage
-    localStorage.setItem('locale', newLocale);
+    setSelectedLocale(newLocale);
 
-    // Dispatch custom event to update IntlProvider
-    const event = new CustomEvent('localeChange', { detail: { locale: newLocale } });
-    window.dispatchEvent(event);
+    startTransition(() => {
+      // Build the new path with locale prefix
+      let newPath = pathname;
 
-    // Reload the page to apply new locale
-    window.location.reload();
+      // Remove current locale prefix if it exists
+      if (pathname.startsWith('/fr')) {
+        newPath = pathname.replace('/fr', '');
+      }
+
+      // Add new locale prefix if it's not the default (English)
+      if (newLocale !== 'en') {
+        newPath = `/${newLocale}${newPath}`;
+      }
+
+      // Ensure path starts with /
+      if (!newPath.startsWith('/')) {
+        newPath = `/${newPath}`;
+      }
+
+      // Navigate to the new path
+      router.push(newPath);
+      router.refresh();
+    });
   };
 
   return (
     <div className="relative group">
-      <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-lg hover:bg-gray-100">
-        <Globe className="w-4 h-4" />
+      <button
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        disabled={isPending}
+      >
+        {isPending ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Globe className="w-4 h-4" />
+        )}
         <span className="hidden sm:inline">
           {languages.find((l) => l.code === currentLocale)?.flag}
         </span>
       </button>
 
-      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
         <div className="py-1">
-          {languages.map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => switchLanguage(lang.code)}
-              className={'w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 ' + (currentLocale === lang.code ? 'bg-blue-50 text-blue-600 font-medium' : '')}
-            >
-              <span>{lang.flag}</span>
-              <span>{lang.name}</span>
-              {currentLocale === lang.code && (
-                <span className="ml-auto text-xs">✓</span>
-              )}
-            </button>
-          ))}
+          {languages.map((lang) => {
+            const isActive = currentLocale === lang.code;
+            const isLoading = isPending && selectedLocale === lang.code;
+
+            return (
+              <button
+                key={lang.code}
+                onClick={() => switchLanguage(lang.code)}
+                disabled={isPending}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 transition-colors ${
+                  isActive
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                    : 'text-gray-700 dark:text-gray-200'
+                } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <span>{lang.flag}</span>
+                <span>{lang.name}</span>
+                {isLoading && (
+                  <Loader2 className="ml-auto w-3 h-3 animate-spin" />
+                )}
+                {isActive && !isLoading && (
+                  <span className="ml-auto text-xs">✓</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

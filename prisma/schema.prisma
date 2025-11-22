@@ -93,6 +93,7 @@ model Category {
   updatedAt   DateTime   @updatedAt
 
   products Product[]
+  translations CategoryTranslation[]
 }
 
 model Product {
@@ -120,6 +121,7 @@ model Product {
   cartItems      CartItem[]
   stockAlert     StockAlert?
   wishlistItems  WishlistItem[]
+  translations   ProductTranslation[]
 }
 
 model ProductImage {
@@ -529,4 +531,42 @@ model AdminActivityLog {
   @@index([userId])
   @@index([createdAt])
   @@index([resource])
+}
+
+// ============================================
+// TRANSLATION MODELS
+// ============================================
+
+model ProductTranslation {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locale      String   // 'en' or 'fr'
+  name        String
+  description String?  @db.Text
+  slug        String
+  metaTitle   String?
+  metaDescription String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([productId, locale])
+  @@index([locale])
+  @@index([slug])
+}
+
+model CategoryTranslation {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  locale      String   // 'en' or 'fr'
+  name        String
+  description String?  @db.Text
+  slug        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([categoryId, locale])
+  @@index([locale])
+  @@index([slug])
 }
