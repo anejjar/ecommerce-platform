@@ -59,8 +59,9 @@ export function RefundRequestButton({
     Record<string, { selected: boolean; quantity: number }>
   >({});
 
-  // Can't request refund if not paid or if refund already exists
-  if (paymentStatus !== 'PAID' || existingRefund) {
+  // Can't request refund if refund already exists
+  // Payment check disabled per user request
+  if (existingRefund) {
     return null;
   }
 

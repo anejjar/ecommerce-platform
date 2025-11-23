@@ -14,6 +14,10 @@ enum UserRole {
   CUSTOMER
   ADMIN
   SUPERADMIN
+  MANAGER
+  EDITOR
+  SUPPORT
+  VIEWER
 }
 
 enum OrderStatus {
@@ -54,6 +58,9 @@ model User {
   wishlistItems  WishlistItem[]
   refundsRequested Refund[] @relation("RefundRequestedBy")
   refundsProcessed Refund[] @relation("RefundProcessedBy")
+  activityLogs AdminActivityLog[]
+  blogPosts    BlogPost[]
+  uploadedMedia MediaLibrary[]
 }
 
 model Account {
@@ -88,6 +95,7 @@ model Category {
   updatedAt   DateTime   @updatedAt
 
   products Product[]
+  translations CategoryTranslation[]
 }
 
 model Product {
@@ -115,6 +123,7 @@ model Product {
   cartItems      CartItem[]
   stockAlert     StockAlert?
   wishlistItems  WishlistItem[]
+  translations   ProductTranslation[]
 }
 
 model ProductImage {
@@ -454,4 +463,367 @@ model RefundItem {
   variantId   String?
   
   @@index([refundId])
+}
+
+// ===== Multi-Admin User Management =====
+
+enum PermissionResource {
+  PRODUCT
+  ORDER
+  CUSTOMER
+  CATEGORY
+  REVIEW
+  DISCOUNT
+  SETTINGS
+  ANALYTICS
+  FEATURES
+  ADMIN_USER
+  STOCK_ALERT
+  NEWSLETTER
+  REFUND
+}
+
+enum PermissionAction {
+  VIEW
+  CREATE
+  UPDATE
+  DELETE
+  MANAGE
+}
+
+model Permission {
+  id        String             @id @default(cuid())
+  resource  PermissionResource
+  action    PermissionAction
+  role      UserRole
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@unique([resource, action, role])
+  @@index([role])
+}
+
+model AdminInvitation {
+  id         String    @id @default(cuid())
+  email      String
+  role       UserRole
+  token      String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  
+  invitedBy  String
+  
+  @@index([email])
+  @@index([token])
+}
+
+model AdminActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // CREATE, UPDATE, DELETE, VIEW
+  resource  String   // PRODUCT, ORDER, etc.
+  resourceId String?
+  details   String?  @db.Text
+  ipAddress String?
+  userAgent String?  @db.Text
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([resource])
+}
+
+// ============================================
+// TRANSLATION MODELS
+// ============================================
+
+model ProductTranslation {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locale      String   // 'en' or 'fr'
+  name        String
+  description String?  @db.Text
+  slug        String
+  metaTitle   String?
+  metaDescription String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([productId, locale])
+  @@index([locale])
+  @@index([slug])
+}
+
+model CategoryTranslation {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  locale      String   // 'en' or 'fr'
+  name        String
+  description String?  @db.Text
+  slug        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([categoryId, locale])
+  @@index([locale])
+  @@index([slug])
+}
+
+// ============================================
+// TEMPLATE MANAGEMENT
+// ============================================
+
+enum TemplateType {
+  INVOICE
+  PACKING_SLIP
+  EMAIL_TRANSACTIONAL
+  EMAIL_MARKETING
+}
+
+model Template {
+  id          String       @id @default(cuid())
+  name        String
+  type        TemplateType
+  isActive    Boolean      @default(false)
+  content     String       @db.Text // JSON config for PDF, HTML for Email
+  variables   String?      @db.Text // Available variables description
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+}
+
+// ============================================
+// CMS (CONTENT MANAGEMENT SYSTEM)
+// ============================================
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model BlogPost {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  content       String      @db.Text
+  excerpt       String?     @db.Text
+  featuredImage String?
+  status        PostStatus  @default(DRAFT)
+  publishedAt   DateTime?
+  
+  // SEO
+  seoTitle       String?
+  seoDescription String?    @db.Text
+  
+  // Relations
+  authorId      String
+  author        User        @relation(fields: [authorId], references: [id])
+  
+  categoryId    String?
+  category      BlogCategory? @relation(fields: [categoryId], references: [id])
+  
+  tags          BlogTag[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status])
+  @@index([slug])
+  @@index([authorId])
+  @@index([categoryId])
+}
+
+model BlogCategory {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  
+  posts       BlogPost[]
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model BlogTag {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  
+  posts     BlogPost[]
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Page {
+  id            String     @id @default(cuid())
+  title         String
+  slug          String     @unique
+  content       String     @db.Text
+  status        PostStatus @default(DRAFT)
+  useStorefrontLayout Boolean @default(true)
+  
+  // SEO
+  seoTitle       String?
+  seoDescription String?   @db.Text
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([slug])
+  @@index([status])
+}
+
+// ============================================
+// MEDIA LIBRARY
+// ============================================
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  OTHER
+}
+
+enum MediaUsageType {
+  PRODUCT_IMAGE
+  PRODUCT_VARIANT
+  CATEGORY_IMAGE
+  BLOG_FEATURED_IMAGE
+  BLOG_CONTENT
+  PAGE_CONTENT
+  USER_AVATAR
+  STORE_SETTING
+  OTHER
+}
+
+model MediaLibrary {
+  id              String      @id @default(cuid())
+
+  // File Information
+  filename        String
+  originalName    String
+  mimeType        String
+  fileSize        Int         // in bytes
+  type            MediaType
+
+  // Cloudinary Information
+  cloudinaryId    String      @unique
+  url             String      @db.Text
+  secureUrl       String      @db.Text
+  publicId        String
+  version         Int?
+  format          String?
+
+  // Image-specific fields
+  width           Int?
+  height          Int?
+  aspectRatio     Float?
+
+  // Metadata
+  altText         String?     @db.Text
+  title           String?
+  caption         String?     @db.Text
+  description     String?     @db.Text
+
+  // Organization
+  folderId        String?
+  folder          MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags            MediaTag[]
+
+  // Tracking
+  uploadedById    String
+  uploadedBy      User        @relation(fields: [uploadedById], references: [id])
+  usageCount      Int         @default(0)
+  lastUsedAt      DateTime?
+
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  usage           MediaUsage[]
+  variants        MediaVariant[]
+
+  @@index([type])
+  @@index([folderId])
+  @@index([uploadedById])
+  @@index([createdAt])
+  @@index([cloudinaryId])
+  @@fulltext([filename, altText, title, caption])
+}
+
+model MediaFolder {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String
+  parentId    String?
+  parent      MediaFolder?  @relation("FolderToFolder", fields: [parentId], references: [id])
+  children    MediaFolder[] @relation("FolderToFolder")
+
+  media       MediaLibrary[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([parentId, slug])
+  @@index([parentId])
+}
+
+model MediaTag {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  slug        String         @unique
+
+  media       MediaLibrary[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+// Track where media is being used
+model MediaUsage {
+  id              String          @id @default(cuid())
+
+  mediaId         String
+  media           MediaLibrary    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  usageType       MediaUsageType
+  resourceType    String          // "Product", "BlogPost", "Page", etc.
+  resourceId      String          // ID of the resource
+  fieldName       String?         // e.g., "featuredImage", "content"
+
+  createdAt       DateTime        @default(now())
+
+  @@index([mediaId])
+  @@index([resourceType, resourceId])
+  @@unique([mediaId, usageType, resourceType, resourceId, fieldName])
+}
+
+// Store different size variants of images
+model MediaVariant {
+  id              String       @id @default(cuid())
+
+  mediaId         String
+  media           MediaLibrary @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  name            String       // "thumbnail", "medium", "large", "custom_300x200"
+  width           Int
+  height          Int
+  url             String       @db.Text
+  cloudinaryId    String?
+
+  createdAt       DateTime     @default(now())
+
+  @@unique([mediaId, name])
+  @@index([mediaId])
 }

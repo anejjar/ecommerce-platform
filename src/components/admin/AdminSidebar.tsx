@@ -97,6 +97,7 @@ const navigation: NavItem[] = [
     name: "Marketing",
     icon: Megaphone,
     children: [
+      { name: "Abandoned Carts", href: "/admin/abandoned-carts" },
       { name: "Email Campaigns", href: "/admin/marketing/email-campaigns" },
     ],
   },

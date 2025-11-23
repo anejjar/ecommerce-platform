@@ -18,28 +18,26 @@ This document provides detailed specifications for all premium features availabl
 ### 1. Analytics & Reporting Dashboard
 **Feature ID:** `analytics_dashboard`
 **Tier:** PRO
-**Status:** 🚧 In Development
+**Status:** ✅ Completed
 
 **Description:**
 Comprehensive analytics dashboard with interactive charts, graphs, and key performance indicators.
 
-**Features:**
-- Real-time sales metrics (daily, weekly, monthly, yearly)
-- Revenue trends with time-period comparisons
-- Average order value tracking
-- Conversion rate analytics
-- Top products by revenue and quantity
-- Sales by category breakdown
-- Customer acquisition metrics
-- Geographic sales distribution
-- Interactive date range selectors
-- Dashboard widgets for quick insights
+**Implemented Features:**
+- ✅ Real-time sales metrics (daily, weekly, monthly, yearly)
+- ✅ Revenue trends with time-period comparisons
+- ✅ Average order value tracking
+- ✅ Top products by revenue and quantity
+- ✅ Sales by category breakdown
+- ✅ Customer acquisition metrics
+- ✅ Interactive date range selectors
+
+**Location:** `/admin/analytics`
 
 **Technical Implementation:**
-- Charts: Recharts or Chart.js
+- Charts: Recharts
 - Data aggregation: Prisma queries with grouping
-- Caching: Redis for performance
-- Export: CSV and PDF generation
+- Real-time data fetching
 
 ---
 
@@ -51,7 +49,7 @@ Comprehensive analytics dashboard with interactive charts, graphs, and key perfo
 **Description:**
 Detailed sales reporting with customizable parameters and export capabilities.
 
-**Features:**
+**Planned Features:**
 - Custom date range reports
 - Product sales reports
 - Category performance reports
@@ -60,6 +58,7 @@ Detailed sales reporting with customizable parameters and export capabilities.
 - Shipping cost analysis
 - Hourly/daily/weekly/monthly/yearly views
 - Year-over-year comparisons
+- CSV and PDF export
 
 ---
 
@@ -71,7 +70,7 @@ Detailed sales reporting with customizable parameters and export capabilities.
 **Description:**
 Deep insights into customer behavior and lifetime value.
 
-**Features:**
+**Planned Features:**
 - Customer lifetime value (CLV) calculation
 - New vs returning customer ratio
 - Customer retention rate
@@ -91,7 +90,7 @@ Deep insights into customer behavior and lifetime value.
 **Description:**
 Track and analyze product performance metrics.
 
-**Features:**
+**Planned Features:**
 - Best-selling products
 - Low-performing products
 - Stock turnover rate
@@ -111,7 +110,7 @@ Track and analyze product performance metrics.
 **Description:**
 Export all analytics and reports to external formats.
 
-**Features:**
+**Planned Features:**
 - CSV export for spreadsheet analysis
 - PDF export for presentations
 - Scheduled email reports
@@ -125,33 +124,65 @@ Export all analytics and reports to external formats.
 ### 6. Refund & Return Management
 **Feature ID:** `refund_management`
 **Tier:** PRO
-**Status:** ⏳ Pending
+**Status:** ✅ Completed
 
 **Description:**
 Complete workflow for handling product returns and refunds.
 
-**Features:**
-- Customer-initiated return requests
-- Admin approval/rejection workflow
-- Partial and full refund support
-- Automatic stock restoration
-- Return reason tracking
-- RMA (Return Merchandise Authorization) numbers
-- Refund history and reporting
-- Email notifications for all stakeholders
+**Implemented Features:**
+- ✅ Customer-initiated return requests
+- ✅ Admin approval/rejection workflow
+- ✅ Partial and full refund support
+- ✅ Automatic stock restoration
+- ✅ Return reason tracking (DEFECTIVE, WRONG_ITEM, NOT_AS_DESCRIBED, etc.)
+- ✅ RMA (Return Merchandise Authorization) number generation
+- ✅ Refund history and reporting
+- ✅ Email notifications for all stakeholders
+- ✅ Multi-item refund support with quantity selection
+- ✅ Admin notes and customer notes
+
+**Location:** `/admin/refunds` (Admin), Customer Order Details (Customer)
 
 **Database Schema:**
 ```prisma
 model Refund {
-  id String @id @default(cuid())
-  orderId String
-  order Order @relation(fields: [orderId], references: [id])
-  status RefundStatus // PENDING, APPROVED, REJECTED, COMPLETED
-  amount Decimal
-  reason String
-  rmaNumber String @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String       @id @default(cuid())
+  rmaNumber       String       @unique
+  status          RefundStatus @default(PENDING)
+  reason          RefundReason
+  reasonDetails   String?      @db.Text
+  refundAmount    Decimal      @db.Decimal(10, 2)
+  restockItems    Boolean      @default(true)
+  adminNotes      String?      @db.Text
+  customerNotes   String?      @db.Text
+  processedAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  orderId         String
+  order           Order        @relation(fields: [orderId], references: [id])
+  requestedById   String
+  requestedBy     User         @relation("RefundRequestedBy", fields: [requestedById], references: [id])
+  processedById   String?
+  processedBy     User?        @relation("RefundProcessedBy", fields: [processedById], references: [id])
+  refundItems     RefundItem[]
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum RefundReason {
+  DEFECTIVE
+  WRONG_ITEM
+  NOT_AS_DESCRIBED
+  CHANGED_MIND
+  ARRIVED_LATE
+  OTHER
 }
 ```
 
@@ -160,16 +191,20 @@ model Refund {
 ### 7. Bulk Operations
 **Feature ID:** `bulk_operations`
 **Tier:** PRO
-**Status:** ⏳ Pending
+**Status:** 🚧 Partial (CMS Bulk Actions)
 
 **Description:**
 Perform actions on multiple items simultaneously.
 
-**Features:**
+**Implemented Features:**
+- ✅ Bulk blog post deletion
+- ✅ Bulk page deletion
+
+**Planned Features:**
 - Bulk order status updates
 - Bulk product price changes
 - Bulk product publish/unpublish
-- Bulk delete with confirmation
+- Bulk product deletion
 - Bulk export to CSV
 - Bulk review approval/rejection
 - Bulk email to customers
@@ -180,32 +215,35 @@ Perform actions on multiple items simultaneously.
 ### 8. Activity Log & Audit Trail
 **Feature ID:** `activity_log`
 **Tier:** PRO
-**Status:** ⏳ Pending
+**Status:** ✅ Completed
 
 **Description:**
 Complete history of all admin actions for security and accountability.
 
-**Features:**
-- Track all create, update, delete operations
-- User attribution (who did what)
-- Timestamp tracking
-- IP address logging
-- Filterable by user, action type, date
-- Searchable activity log
-- Export audit reports
-- Retention policy configuration
+**Implemented Features:**
+- ✅ Track all create, update, delete operations
+- ✅ User attribution (who did what)
+- ✅ Timestamp tracking
+- ✅ IP address logging
+- ✅ User agent tracking
+- ✅ Filterable by user, action type, date
+- ✅ Searchable activity log
+- ✅ Resource type and ID tracking
+
+**Location:** `/admin/activity-logs`
 
 **Database Schema:**
 ```prisma
-model ActivityLog {
-  id String @id @default(cuid())
-  userId String
-  user User @relation(fields: [userId], references: [id])
-  action String // CREATE, UPDATE, DELETE
-  entity String // ORDER, PRODUCT, USER, etc.
-  entityId String
-  changes Json? // What changed
+model AdminActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // CREATE, UPDATE, DELETE, VIEW
+  resource  String   // PRODUCT, ORDER, etc.
+  resourceId String?
+  details   String?  @db.Text
   ipAddress String?
+  userAgent String?  @db.Text
   createdAt DateTime @default(now())
 }
 ```
@@ -215,19 +253,19 @@ model ActivityLog {
 ### 9. Multi-Admin User Management
 **Feature ID:** `multi_admin`
 **Tier:** ENTERPRISE
-**Status:** ⏳ Pending
+**Status:** ✅ Completed
 
 **Description:**
 Create and manage multiple admin users with role-based permissions.
 
-**Features:**
-- Multiple admin roles (Manager, Editor, Support, Viewer)
-- Granular permissions (can view orders, can edit products, etc.)
-- Permission groups
-- Admin user invitation system
-- Admin user activity tracking
-- Two-factor authentication for admins
-- Session management
+**Implemented Features:**
+- ✅ Multiple admin roles (SUPERADMIN, ADMIN, MANAGER, EDITOR, SUPPORT, VIEWER)
+- ✅ Granular permissions system
+- ✅ Admin user management interface
+- ✅ Role-based access control
+- ✅ Permission checking utilities
+
+**Location:** `/admin/users`
 
 **Roles:**
 - **SUPERADMIN**: Full access including feature management
@@ -236,6 +274,26 @@ Create and manage multiple admin users with role-based permissions.
 - **EDITOR**: Can edit products and content
 - **SUPPORT**: Can view orders and customers, manage support tickets
 - **VIEWER**: Read-only access
+
+**Database Schema:**
+```prisma
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPERADMIN
+  MANAGER
+  EDITOR
+  SUPPORT
+  VIEWER
+}
+
+model Permission {
+  id        String             @id @default(cuid())
+  resource  PermissionResource
+  action    PermissionAction
+  role      UserRole
+}
+```
 
 ---
 
@@ -247,19 +305,22 @@ Create and manage multiple admin users with role-based permissions.
 **Description:**
 Automatically generate professional PDF invoices and packing slips.
 
-**Features:**
-- Auto-generate invoices on order completion
-- Customizable invoice templates
-- Company logo and branding
-- Tax and shipping details
-- Packing slips for warehouse
-- Bulk invoice printing
-- Email invoices to customers
-- Invoice numbering system
+**Implemented Features:**
+- ✅ PDF invoice generation using jsPDF
+- ✅ Customizable invoice templates via Template Manager
+- ✅ Company logo and branding support
+- ✅ Tax and shipping details
+- ✅ Packing slip generation
+- ✅ Download invoices from order page
+- ✅ Invoice numbering system (uses order number)
+- ✅ Template-based customization
+
+**Location:** Order details page (customer and admin)
 
 **Tech Stack:**
-- PDF generation: jsPDF or Puppeteer
-- Template engine: React components rendered to PDF
+- PDF generation: jsPDF + jsPDF-AutoTable
+- Template engine: JSON-based configuration
+- Integration: Template Manager
 
 ---
 
@@ -271,7 +332,7 @@ Automatically generate professional PDF invoices and packing slips.
 **Description:**
 Bulk manage products via CSV import/export.
 
-**Features:**
+**Planned Features:**
 - Export products to CSV
 - Import products from CSV
 - Update existing products via CSV
@@ -291,7 +352,7 @@ Bulk manage products via CSV import/export.
 **Description:**
 Organize customers into segments for targeted actions.
 
-**Features:**
+**Planned Features:**
 - Manual customer grouping
 - Auto-segments based on behavior
   - High spenders (>$1000 total)
@@ -313,7 +374,7 @@ Organize customers into segments for targeted actions.
 **Description:**
 Time-limited promotional system with automatic scheduling.
 
-**Features:**
+**Planned Features:**
 - Schedule sales to start/end automatically
 - Countdown timers on product pages
 - Limited quantity deals
@@ -332,7 +393,7 @@ Time-limited promotional system with automatic scheduling.
 **Description:**
 Sophisticated shipping options and carrier integrations.
 
-**Features:**
+**Planned Features:**
 - Shipping zones (domestic, international, by state/country)
 - Multiple carrier support (USPS, FedEx, UPS, DHL)
 - Real-time shipping rate calculation
@@ -355,12 +416,17 @@ Sophisticated shipping options and carrier integrations.
 ### 15. Advanced Inventory Management
 **Feature ID:** `inventory_management`
 **Tier:** PRO
-**Status:** ⏳ Pending
+**Status:** 🚧 Partial (Basic Stock Alerts)
 
 **Description:**
 Enhanced inventory tracking and management tools.
 
-**Features:**
+**Implemented Features:**
+- ✅ Basic stock level tracking
+- ✅ Stock alerts with threshold configuration
+- ✅ Low stock notifications
+
+**Planned Features:**
 - Stock movement history
 - Stock adjustment logs
 - Predicted stock-out dates (based on sales velocity)
@@ -370,6 +436,8 @@ Enhanced inventory tracking and management tools.
 - Multi-location inventory
 - Stock transfer between locations
 - Inventory valuation reports
+
+**Location:** `/admin/stock-alerts`
 
 ---
 
@@ -381,7 +449,7 @@ Enhanced inventory tracking and management tools.
 **Description:**
 Built-in helpdesk for managing customer inquiries.
 
-**Features:**
+**Planned Features:**
 - Customers submit tickets from account page
 - Ticket status tracking (Open, In Progress, Resolved, Closed)
 - Admin dashboard to manage tickets
@@ -392,341 +460,31 @@ Built-in helpdesk for managing customer inquiries.
 - SLA tracking
 - Canned responses
 
-**Database Schema:**
-```prisma
-model SupportTicket {
-  id String @id @default(cuid())
-  ticketNumber String @unique
-  subject String
-  status TicketStatus
-  priority TicketPriority
-  customerId String
-  customer User @relation(fields: [customerId], references: [id])
-  assignedToId String?
-  assignedTo User? @relation(fields: [assignedToId], references: [id])
-  messages TicketMessage[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
-
 ---
 
-## Marketing
-
-### 17. Abandoned Cart Recovery
-**Feature ID:** `abandoned_cart`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Automated system to recover abandoned shopping carts.
-
-**Features:**
-- Track when users abandon carts
-- Automated email sequence:
-  - 1 hour after abandonment
-  - 24 hours after abandonment
-  - 3 days after abandonment
-- Direct "Complete Your Purchase" links
-- Optional discount codes for abandoned carts
-- Recovery rate tracking
-- A/B testing email templates
-- Cart expiration settings
-
-**Email Sequence:**
-1. **1 Hour**: "You left something behind!"
-2. **24 Hours**: "Still thinking about it? Get 10% off!"
-3. **3 Days**: "Last chance! Your items are waiting"
-
----
-
-### 18. Email Campaign Builder
-**Feature ID:** `email_campaigns`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Advanced email marketing tools with drag-and-drop builder.
-
-**Features:**
-- Drag-and-drop email designer
-- Pre-built email templates
-- A/B testing campaigns
-- Automated email sequences
-  - Welcome series
-  - Win-back campaigns
-  - Birthday campaigns
-  - Post-purchase follow-up
-- Campaign scheduling
-- Segment targeting
-- Campaign performance analytics
-  - Open rate
-  - Click-through rate
-  - Conversion rate
-- Unsubscribe management
-
-**Integrations:**
-- Mailchimp
-- SendGrid
-- Custom SMTP
-
----
-
-### 19. Content Management System
-**Feature ID:** `cms`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Manage website content without developer assistance.
-
-**Features:**
-- Blog/articles for SEO
-- Custom page builder
-- Rich text editor (markdown or WYSIWYG)
-- Image upload and management
-- SEO metadata per page
-- Draft/publish workflow
-- Page categories and tags
-- URL slug customization
-- Scheduled publishing
-- Page templates
-
-**Pages:**
-- Blog posts
-- About Us
-- FAQ
-- Terms of Service
-- Privacy Policy
-- Custom landing pages
-
----
-
-### 20. Promotional Banner Management
-**Feature ID:** `banner_management`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Manage homepage banners and promotional content.
-
-**Features:**
-- Create rotating hero banners
-- Announcement bars (top of site)
-- Schedule banners for specific dates
-- Mobile vs desktop versions
-- A/B test different banners
-- Click-through tracking
-- Banner position management
-- Image upload and cropping
-- Call-to-action buttons
-
----
-
-### 21. Product Badges & Labels
-**Feature ID:** `product_badges`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Visual product indicators to highlight special products.
-
-**Features:**
-- Pre-built badges:
-  - "New Arrival"
-  - "Best Seller"
-  - "Sale"
-  - "Limited Stock"
-  - "Featured"
-  - "Hot Deal"
-- Custom badge creation
-- Auto-assign rules:
-  - New = Added in last 30 days
-  - Best Seller = Top 10% by sales
-  - Limited Stock = Stock < 5
-- Badge positioning on product cards
-- Badge styling customization
-
----
-
-## Financial
-
-### 22. Advanced Tax Management
-**Feature ID:** `tax_management`
-**Tier:** ENTERPRISE
-**Status:** ⏳ Pending
-
-**Description:**
-Sophisticated tax handling for compliance.
-
-**Features:**
-- Tax rates by location (state, country, zip code)
-- Tax exemption for wholesale customers
-- EU VAT handling with VIES validation
-- Tax reports for filing
-- Tax holidays and special rates
-- Product-specific tax rates
-- Nexus management
-- Tax calculation overrides
-
-**Integrations:**
-- TaxJar API
-- Avalara API
-
----
-
-### 23. Multi-Currency Support
-**Feature ID:** `multi_currency`
-**Tier:** ENTERPRISE
-**Status:** ⏳ Pending
-
-**Description:**
-Sell internationally with multiple currency support.
-
-**Features:**
-- Multiple currency options
-- Auto-conversion using live exchange rates
-- Display prices in customer's currency
-- Process payments in different currencies
-- Currency selector in header
-- Manual exchange rate overrides
-- Historical exchange rate tracking
-- Currency-specific rounding rules
-
-**Supported Currencies:**
-- USD, EUR, GBP, CAD, AUD, JPY, etc.
-
-**Exchange Rate Provider:**
-- Open Exchange Rates API
-- European Central Bank
-
----
-
-### 24. Product Bundles & Kits
-**Feature ID:** `product_bundles`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Sell multiple products together as bundles.
-
-**Features:**
-- Create product bundles
-- Discounted bundle pricing
-- Inventory tracking for components
-- "Frequently Bought Together" suggestions
-- Bundle builder for customers
-- Fixed bundles and dynamic bundles
-- Bundle variants
-
-**Example Bundles:**
-- "Starter Kit" (3 products at 20% off)
-- "Complete Set" (all accessories included)
-
----
-
-## Customer Experience
-
-### 25. Advanced Product Reviews
-**Feature ID:** `advanced_reviews`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Enhanced review features to boost credibility.
-
-**Features:**
-- Photo/video review uploads
-- Review voting (helpful/not helpful)
-- Admin replies to reviews
-- Review rewards (points for reviewing)
-- Import reviews from other platforms
-- Review verification badges
-- Review filtering (by rating, date, verified)
-- Review questions & answers
-- Review syndication
-
-**Current Features:**
-- ✅ Star ratings
-- ✅ Verified purchase badge
-- ✅ Admin moderation
-
-**New Features:**
-- 📸 Photo/video uploads
-- 👍 Helpful votes
-- 💬 Admin replies
-- 🎁 Review rewards
-
----
-
-### 26. Wishlist Management
-**Feature ID:** `wishlist`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Customer wishlist system with engagement features.
-
-**Features:**
-- Save products for later
-- Email when wishlist items go on sale
-- Email when wishlist items back in stock
-- Share wishlists via link
-- Public vs private wishlists
-- Move wishlist items to cart
-- Admin analytics on popular wishlist items
-- Wishlist abandonment recovery
-
-**Current Implementation:**
-- Basic wishlist table exists in schema
-- Need to build UI and features
-
----
-
-### 27. Loyalty & Rewards Program
-**Feature ID:** `loyalty_program`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Customer loyalty program with points and rewards.
-
-**Features:**
-- Earn points for:
-  - Purchases ($1 = 10 points)
-  - Product reviews (50 points)
-  - Referrals (500 points)
-  - Social shares (25 points)
-  - Birthday (100 points)
-- Redeem points for discounts
-- Tiered rewards system:
-  - Bronze (0-999 points)
-  - Silver (1000-4999 points)
-  - Gold (5000+ points)
-- Tier-specific benefits
-- Points expiration rules
-- Points history tracking
-- Referral tracking
-
----
-
-### 28. Template Manager
+### 17. Template Manager
 **Feature ID:** `template_manager`
 **Tier:** PRO
-**Status:** ⏳ Pending
+**Status:** ✅ Completed
 
 **Description:**
 Centralized system to manage and customize templates for invoices, packing slips, and emails.
 
-**Features:**
-- Create and manage multiple templates
-- Template types: Invoice, Packing Slip, Email
-- JSON-based configuration for PDF templates (colors, layout, labels)
-- HTML editor for email templates
-- Live preview for PDF templates
-- Set active template per type
-- Variable substitution support (e.g., {{orderNumber}})
+**Implemented Features:**
+- ✅ Create and manage multiple templates
+- ✅ Template types: Invoice, Packing Slip, Email Transactional, Email Marketing
+- ✅ JSON-based configuration for PDF templates
+- ✅ HTML editor for email templates
+- ✅ Live preview for templates
+- ✅ Set active template per type (only one active per type)
+- ✅ Variable substitution support (50+ variables)
+- ✅ Template duplication
+- ✅ Multi-step creation wizard
+- ✅ 11 professional starter templates
+- ✅ Variables helper with search and categories
+- ✅ Fullscreen preview mode
+
+**Location:** `/admin/templates`
 
 **Database Schema:**
 ```prisma
@@ -751,6 +509,539 @@ enum TemplateType {
 
 ---
 
+## Marketing
+
+### 18. Abandoned Cart Recovery
+**Feature ID:** `abandoned_cart`
+**Tier:** PRO
+**Status:** ⏳ Pending
+
+**Description:**
+Automated system to recover abandoned shopping carts.
+
+**Planned Features:**
+- Track when users abandon carts
+- Automated email sequence:
+  - 1 hour after abandonment
+  - 24 hours after abandonment
+  - 3 days after abandonment
+- Direct "Complete Your Purchase" links
+- Optional discount codes for abandoned carts
+- Recovery rate tracking
+- A/B testing email templates
+- Cart expiration settings
+
+**Email Sequence:**
+1. **1 Hour**: "You left something behind!"
+2. **24 Hours**: "Still thinking about it? Get 10% off!"
+3. **3 Days**: "Last chance! Your items are waiting"
+
+---
+
+### 19. Email Campaign Builder
+**Feature ID:** `email_campaigns`
+**Tier:** PRO
+**Status:** 🚧 Partial (Basic Email Campaigns)
+
+**Description:**
+Advanced email marketing tools with campaign management.
+
+**Implemented Features:**
+- ✅ Send campaigns to newsletter subscribers
+- ✅ Basic email template support
+- ✅ Newsletter subscriber management
+
+**Planned Features:**
+- Drag-and-drop email designer
+- Pre-built email templates
+- A/B testing campaigns
+- Automated email sequences
+  - Welcome series
+  - Win-back campaigns
+  - Birthday campaigns
+  - Post-purchase follow-up
+- Campaign scheduling
+- Segment targeting
+- Campaign performance analytics
+  - Open rate
+  - Click-through rate
+  - Conversion rate
+
+**Location:** `/admin/marketing/email-campaigns`
+
+---
+
+### 20. Content Management System (CMS)
+**Feature ID:** `cms`
+**Tier:** PRO
+**Status:** ✅ Completed
+
+**Description:**
+Manage website content without developer assistance.
+
+**Implemented Features:**
+- ✅ Blog/articles management
+- ✅ Custom page builder
+- ✅ Rich text editor (TipTap WYSIWYG)
+- ✅ Image upload and management
+- ✅ SEO metadata per page
+- ✅ Draft/publish/archived workflow
+- ✅ Page categories and tags
+- ✅ URL slug customization
+- ✅ Author attribution
+- ✅ Featured images
+- ✅ Excerpt support
+- ✅ Bulk deletion
+- ✅ Search and filtering
+
+**Location:** `/admin/cms`
+
+**Pages Supported:**
+- Blog posts
+- Custom pages
+- Categories management
+- Tags management
+
+**Database Schema:**
+```prisma
+model BlogPost {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  content        String        @db.Text
+  excerpt        String?       @db.Text
+  featuredImage  String?
+  status         PostStatus    @default(DRAFT)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?       @db.Text
+  authorId       String
+  categoryId     String?
+  tags           BlogTag[]
+}
+
+model Page {
+  id                  String     @id @default(cuid())
+  title               String
+  slug                String     @unique
+  content             String     @db.Text
+  status              PostStatus @default(DRAFT)
+  useStorefrontLayout Boolean    @default(true)
+  seoTitle            String?
+  seoDescription      String?    @db.Text
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+```
+
+---
+
+### 21. Promotional Banner Management
+**Feature ID:** `banner_management`
+**Tier:** PRO
+**Status:** ⏳ Pending
+
+**Description:**
+Manage homepage banners and promotional content.
+
+**Planned Features:**
+- Create rotating hero banners
+- Announcement bars (top of site)
+- Schedule banners for specific dates
+- Mobile vs desktop versions
+- A/B test different banners
+- Click-through tracking
+- Banner position management
+- Image upload and cropping
+- Call-to-action buttons
+
+---
+
+### 22. Product Badges & Labels
+**Feature ID:** `product_badges`
+**Tier:** PRO
+**Status:** ⏳ Pending
+
+**Description:**
+Visual product indicators to highlight special products.
+
+**Planned Features:**
+- Pre-built badges:
+  - "New Arrival"
+  - "Best Seller"
+  - "Sale"
+  - "Limited Stock"
+  - "Featured"
+  - "Hot Deal"
+- Custom badge creation
+- Auto-assign rules:
+  - New = Added in last 30 days
+  - Best Seller = Top 10% by sales
+  - Limited Stock = Stock < 5
+- Badge positioning on product cards
+- Badge styling customization
+
+---
+
+### 23. Newsletter Management
+**Feature ID:** `newsletter_management`
+**Tier:** PRO
+**Status:** ✅ Completed
+
+**Description:**
+Complete newsletter subscription system.
+
+**Implemented Features:**
+- ✅ Subscriber list management
+- ✅ Email collection via forms
+- ✅ Unsubscribe handling
+- ✅ Subscriber export (CSV)
+- ✅ Active/inactive status tracking
+- ✅ Source tracking (footer, checkout, popup)
+- ✅ User account linking
+
+**Location:** `/admin/newsletter`
+
+**Database Schema:**
+```prisma
+model NewsletterSubscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  isActive       Boolean   @default(true)
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+  source         String?
+  userId         String?   @unique
+}
+```
+
+---
+
+### 24. Discount Code Management
+**Feature ID:** `discount_codes`
+**Tier:** PRO
+**Status:** ✅ Completed
+
+**Description:**
+Create and manage discount codes.
+
+**Implemented Features:**
+- ✅ Percentage or fixed amount discounts
+- ✅ Minimum order requirements
+- ✅ Usage limits (max uses)
+- ✅ Start/end dates
+- ✅ Active/inactive toggle
+- ✅ Validation API
+- ✅ Usage tracking (used count)
+
+**Location:** `/admin/discounts`
+
+**Database Schema:**
+```prisma
+model DiscountCode {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  type           DiscountType
+  value          Decimal      @db.Decimal(10, 2)
+  minOrderAmount Decimal?     @db.Decimal(10, 2)
+  maxUses        Int?
+  usedCount      Int          @default(0)
+  startDate      DateTime
+  endDate        DateTime?
+  isActive       Boolean      @default(true)
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+```
+
+---
+
+## Financial
+
+### 25. Advanced Tax Management
+**Feature ID:** `tax_management`
+**Tier:** ENTERPRISE
+**Status:** ⏳ Pending
+
+**Description:**
+Sophisticated tax handling for compliance.
+
+**Planned Features:**
+- Tax rates by location (state, country, zip code)
+- Tax exemption for wholesale customers
+- EU VAT handling with VIES validation
+- Tax reports for filing
+- Tax holidays and special rates
+- Product-specific tax rates
+- Nexus management
+- Tax calculation overrides
+
+**Integrations:**
+- TaxJar API
+- Avalara API
+
+---
+
+### 26. Multi-Currency Support
+**Feature ID:** `multi_currency`
+**Tier:** ENTERPRISE
+**Status:** ⏳ Pending
+
+**Description:**
+Sell internationally with multiple currency support.
+
+**Planned Features:**
+- Multiple currency options
+- Auto-conversion using live exchange rates
+- Display prices in customer's currency
+- Process payments in different currencies
+- Currency selector in header
+- Manual exchange rate overrides
+- Historical exchange rate tracking
+- Currency-specific rounding rules
+
+**Supported Currencies:**
+- USD, EUR, GBP, CAD, AUD, JPY, etc.
+
+**Exchange Rate Provider:**
+- Open Exchange Rates API
+- European Central Bank
+
+---
+
+### 27. Product Bundles & Kits
+**Feature ID:** `product_bundles`
+**Tier:** PRO
+**Status:** ⏳ Pending
+
+**Description:**
+Sell multiple products together as bundles.
+
+**Planned Features:**
+- Create product bundles
+- Discounted bundle pricing
+- Inventory tracking for components
+- "Frequently Bought Together" suggestions
+- Bundle builder for customers
+- Fixed bundles and dynamic bundles
+- Bundle variants
+
+**Example Bundles:**
+- "Starter Kit" (3 products at 20% off)
+- "Complete Set" (all accessories included)
+
+---
+
+## Customer Experience
+
+### 28. Advanced Product Reviews
+**Feature ID:** `advanced_reviews`
+**Tier:** PRO
+**Status:** 🚧 Partial (Basic Reviews)
+
+**Description:**
+Enhanced review features to boost credibility.
+
+**Implemented Features:**
+- ✅ Star ratings
+- ✅ Verified purchase badge
+- ✅ Admin moderation/approval
+- ✅ Review title and comment
+- ✅ Customer attribution
+
+**Planned Features:**
+- Photo/video review uploads
+- Review voting (helpful/not helpful)
+- Admin replies to reviews
+- Review rewards (points for reviewing)
+- Import reviews from other platforms
+- Review filtering (by rating, date, verified)
+- Review questions & answers
+- Review syndication
+
+**Location:** `/admin/reviews`, Product pages
+
+---
+
+### 29. Wishlist Management
+**Feature ID:** `wishlist`
+**Tier:** PRO
+**Status:** 🚧 Partial (Database Only)
+
+**Description:**
+Customer wishlist system with engagement features.
+
+**Implemented Features:**
+- ✅ Database schema exists
+
+**Planned Features:**
+- Save products for later
+- Email when wishlist items go on sale
+- Email when wishlist items back in stock
+- Share wishlists via link
+- Public vs private wishlists
+- Move wishlist items to cart
+- Admin analytics on popular wishlist items
+- Wishlist abandonment recovery
+
+**Database Schema:**
+```prisma
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+```
+
+---
+
+### 30. Loyalty & Rewards Program
+**Feature ID:** `loyalty_program`
+**Tier:** PRO
+**Status:** ⏳ Pending
+
+**Description:**
+Customer loyalty program with points and rewards.
+
+**Planned Features:**
+- Earn points for:
+  - Purchases ($1 = 10 points)
+  - Product reviews (50 points)
+  - Referrals (500 points)
+  - Social shares (25 points)
+  - Birthday (100 points)
+- Redeem points for discounts
+- Tiered rewards system:
+  - Bronze (0-999 points)
+  - Silver (1000-4999 points)
+  - Gold (5000+ points)
+- Tier-specific benefits
+- Points expiration rules
+- Points history tracking
+- Referral tracking
+
+---
+
+### 31. Multi-Language Translation System
+**Feature ID:** `translation_system`
+**Tier:** PRO
+**Status:** ✅ Completed
+
+**Description:**
+Comprehensive multi-language support for products and categories.
+
+**Implemented Features:**
+- ✅ Product translations (name, description, slug, SEO)
+- ✅ Category translations (name, description, slug)
+- ✅ Supported locales: en, ar, fr, es, de
+- ✅ Tabbed interface per language
+- ✅ Real-time save indicators
+- ✅ Progress bars showing completion
+- ✅ Search and filter capabilities
+
+**Location:** `/admin/settings/translations`
+
+**Database Schema:**
+```prisma
+model ProductTranslation {
+  id              String   @id @default(cuid())
+  productId       String
+  locale          String
+  name            String
+  description     String?  @db.Text
+  slug            String
+  metaTitle       String?
+  metaDescription String?  @db.Text
+
+  @@unique([productId, locale])
+}
+
+model CategoryTranslation {
+  id          String   @id @default(cuid())
+  categoryId  String
+  locale      String
+  name        String
+  description String?  @db.Text
+  slug        String
+
+  @@unique([categoryId, locale])
+}
+```
+
+---
+
+### 32. Media Library Management
+**Feature ID:** `media_library`
+**Tier:** PRO
+**Status:** ✅ Completed
+
+**Description:**
+Comprehensive media management system with Cloudinary integration.
+
+**Implemented Features:**
+- ✅ Upload images, videos, documents
+- ✅ Cloudinary integration for storage
+- ✅ Folder organization
+- ✅ Tag management
+- ✅ Search and filter
+- ✅ Image metadata (alt text, title, caption)
+- ✅ Usage tracking
+- ✅ Multiple file upload
+- ✅ Media picker for content
+- ✅ Automatic optimization
+
+**Location:** `/admin/media`
+
+**Database Schema:**
+```prisma
+model MediaLibrary {
+  id              String      @id @default(cuid())
+  filename        String
+  originalName    String
+  mimeType        String
+  fileSize        Int
+  type            MediaType
+  cloudinaryId    String      @unique
+  url             String      @db.Text
+  secureUrl       String      @db.Text
+  altText         String?     @db.Text
+  title           String?
+  caption         String?     @db.Text
+  folderId        String?
+  tags            MediaTag[]
+  uploadedById    String
+  usageCount      Int         @default(0)
+}
+
+model MediaFolder {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String
+  parentId    String?
+  children    MediaFolder[] @relation("FolderToFolder")
+}
+
+model MediaTag {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  slug        String         @unique
+  media       MediaLibrary[]
+}
+```
+
+---
+
 ## Implementation Status
 
 ### ✅ Phase 1: Foundation (COMPLETED)
@@ -759,46 +1050,55 @@ enum TemplateType {
 - [x] Feature management API endpoints
 - [x] Feature Management admin page
 - [x] Feature utility functions
-- [x] 27 feature flags seeded
+- [x] Feature flags seeded
 - [x] Feature toggle system working
 - [x] Features hidden when disabled
 
-### 🚧 Phase 2: First Premium Feature (IN PROGRESS)
-- [ ] Analytics & Reporting Dashboard
-  - [ ] Database queries for analytics
-  - [ ] Chart components
-  - [ ] Dashboard layout
-  - [ ] Feature flag integration
-  - [ ] Export functionality
-
-### ⏳ Phase 3: High Priority Features (PLANNED)
+### ✅ Phase 2: Core Premium Features (COMPLETED)
+- [x] Analytics & Reporting Dashboard
 - [x] Invoice Generator
 - [x] Template Manager
-- [ ] Refund Management
-- [ ] Bulk Operations
-- [ ] Activity Log
+- [x] Refund Management
+- [x] Activity Log & Audit Trail
+- [x] Multi-Admin User Management
+- [x] Content Management System (CMS)
+- [x] Multi-Language Translation System
+- [x] Newsletter Management
+- [x] Discount Code Management
+- [x] Media Library Management
+
+### 🚧 Phase 3: Partial Implementation
+- [x] Basic Stock Alerts (partial Inventory Management)
+- [x] Basic Email Campaigns (partial Email Campaign Builder)
+- [x] Basic Product Reviews (partial Advanced Reviews)
+- [x] Basic Bulk Operations (CMS only)
+- [x] Wishlist Database Schema (no UI)
+
+### ⏳ Phase 4: High Priority Pending
 - [ ] Abandoned Cart Recovery
-
-### 📋 Phase 4: Medium Priority Features (BACKLOG)
-- [ ] Multi-Admin Management
 - [ ] Product Import/Export
-- [ ] Customer Segments
-- [ ] Flash Sales
-- [ ] Advanced Shipping
-- [ ] Inventory Management
-- [ ] Support Tickets
-- [ ] Email Campaigns
-- [ ] CMS
-- [ ] Banner Management
-- [ ] Product Badges
+- [ ] Customer Segments & Groups
+- [ ] Flash Sales & Scheduled Promotions
+- [ ] Support Ticket System
+- [ ] Advanced Email Campaign Builder
+- [ ] Promotional Banner Management
+- [ ] Product Badges & Labels
 
-### 🎯 Phase 5: Advanced Features (FUTURE)
-- [ ] Tax Management
-- [ ] Multi-Currency
-- [ ] Product Bundles
-- [ ] Advanced Reviews
-- [ ] Wishlist Enhancement
-- [ ] Loyalty Program
+### 📋 Phase 5: Medium Priority Pending
+- [ ] Advanced Shipping Management
+- [ ] Advanced Inventory Management
+- [ ] Sales Reports
+- [ ] Customer Analytics
+- [ ] Product Performance Analytics
+- [ ] Export Reports
+
+### 🎯 Phase 6: Advanced Features (FUTURE)
+- [ ] Advanced Tax Management
+- [ ] Multi-Currency Support
+- [ ] Product Bundles & Kits
+- [ ] Advanced Product Reviews (full)
+- [ ] Wishlist Management (full)
+- [ ] Loyalty & Rewards Program
 
 ---
 
@@ -845,22 +1145,30 @@ export async function GET(request: Request) {
 
 ### FREE
 - All basic e-commerce features
-- Current features available
+- Product catalog
+- Order management
+- Customer accounts
+- Basic reviews
+- Basic stock tracking
 
 ### PRO - $99/month
 - All FREE features
-- All PRO tier features (23 features)
+- All PRO tier features (24 features)
 - Advanced analytics
 - Marketing automation
 - Operational efficiency tools
+- CMS & Media Library
+- Refund management
+- Template customization
 
 ### ENTERPRISE - $299/month
 - All PRO features
-- All ENTERPRISE tier features (3 features)
-- Multi-admin management
+- All ENTERPRISE tier features
+- Multi-admin management with permissions
 - Advanced tax management
 - Multi-currency support
 - Priority support
+- Custom integrations
 
 ---
 
@@ -881,8 +1189,22 @@ When implementing a new premium feature:
 
 ---
 
-Last Updated: 2025-11-22
-Total Features: 27
-Implemented: 0
-In Progress: 1
-Planned: 26
+## Summary Statistics
+
+**Total Features:** 32
+**Fully Implemented:** 13
+**Partially Implemented:** 5
+**Pending:** 14
+
+**Implementation by Category:**
+- **Analytics & Reporting:** 1/5 (20%)
+- **Operations:** 6/12 (50%)
+- **Marketing:** 4/7 (57%)
+- **Financial:** 0/3 (0%)
+- **Customer Experience:** 2/5 (40%)
+
+---
+
+**Last Updated:** November 23, 2024
+**Platform Version:** 1.0.0
+**Documentation Version:** 2.0.0

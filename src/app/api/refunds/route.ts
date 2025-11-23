@@ -130,13 +130,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Check if order is paid
-    if (order.paymentStatus !== 'PAID') {
-      return NextResponse.json(
-        { error: 'Can only request refund for paid orders' },
-        { status: 400 }
-      );
-    }
+    // Check if order is paid - DISABLED per user request
+    // if (order.paymentStatus !== 'PAID') {
+    //   return NextResponse.json(
+    //     { error: 'Can only request refund for paid orders' },
+    //     { status: 400 }
+    //   );
+    // }
 
     // Check if refund already exists for this order
     const existingRefund = await prisma.refund.findFirst({

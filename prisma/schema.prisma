@@ -61,6 +61,7 @@ model User {
   activityLogs AdminActivityLog[]
   blogPosts    BlogPost[]
   uploadedMedia MediaLibrary[]
+  abandonedCarts AbandonedCart[]
 }
 
 model Account {
@@ -199,6 +200,54 @@ model CartItem {
 
   @@unique([cartId, productId, variantId])
 }
+
+// ===== ABANDONED CART RECOVERY =====
+
+enum AbandonedCartStatus {
+  ABANDONED
+  RECOVERED
+  EXPIRED
+}
+
+model AbandonedCart {
+  id                String              @id @default(cuid())
+  userId            String?
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestEmail        String?
+  guestName         String?
+  cartSnapshot      String              @db.Text
+  totalValue        Decimal             @db.Decimal(10, 2)
+  status            AbandonedCartStatus @default(ABANDONED)
+  abandonedAt       DateTime            @default(now())
+  recoveredAt       DateTime?
+  recoveryToken     String              @unique
+  discountCode      String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  emails AbandonedCartEmail[]
+
+  @@index([userId])
+  @@index([guestEmail])
+  @@index([status])
+  @@index([abandonedAt])
+}
+
+model AbandonedCartEmail {
+  id               String        @id @default(cuid())
+  abandonedCartId  String
+  abandonedCart    AbandonedCart @relation(fields: [abandonedCartId], references: [id], onDelete: Cascade)
+  emailType        String
+  sentAt           DateTime      @default(now())
+  opened           Boolean       @default(false)
+  clicked          Boolean       @default(false)
+
+  @@index([abandonedCartId])
+  @@index([emailType])
+}
+
+// ==========================================
+
 
 model Order {
   id            String        @id @default(cuid())

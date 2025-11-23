@@ -99,7 +99,7 @@ export const MediaLibrary: React.FC = () => {
         <div className="flex h-[calc(100vh-100px)] flex-col bg-background">
             {/* Enhanced Header */}
             <div className="border-b bg-card">
-                <div className="flex items-center justify-between p-6">
+                <div className="flex items-center justify-between pb-6">
                     <div className="flex items-center gap-6">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight">Media Library</h1>
@@ -136,7 +136,7 @@ export const MediaLibrary: React.FC = () => {
                 </div>
 
                 {/* Filters Bar */}
-                <div className="flex items-center gap-3 px-6 pb-4">
+                <div className="flex items-center gap-3  pb-4">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -186,7 +186,7 @@ export const MediaLibrary: React.FC = () => {
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Main Content */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto py-4">
                     {showUploader ? (
                         <MediaUploader onUploadComplete={handleUploadComplete} folderId={filters.folderId} />
                     ) : (

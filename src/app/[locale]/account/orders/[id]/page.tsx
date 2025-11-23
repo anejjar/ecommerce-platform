@@ -156,7 +156,8 @@ export default async function OrderDetailPage({
                       {order.status}
                     </Badge>
                   </div>
-                  <div>
+                  {/* Payment Status - HIDDEN per user request */}
+                  {/* <div>
                     <p className="text-sm text-gray-600 mb-1">{t('account.paymentStatus')}</p>
                     <Badge
                       className={
@@ -169,7 +170,7 @@ export default async function OrderDetailPage({
                     >
                       {order.paymentStatus}
                     </Badge>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>

@@ -9,7 +9,10 @@
     "lint": "eslint",
     "test": "vitest",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "seed:features": "tsx prisma/seed-features.ts",
+    "seed:test": "tsx prisma/seed-test-data.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

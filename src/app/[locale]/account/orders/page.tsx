@@ -93,7 +93,8 @@ export default async function OrderHistoryPage() {
                           {order.status}
                         </Badge>
                       </div>
-                      <div>
+                      {/* Payment Status - HIDDEN per user request */}
+                      {/* <div>
                         <p className="text-sm text-gray-600">{t('account.paymentStatus')}</p>
                         <Badge
                           className={
@@ -104,7 +105,7 @@ export default async function OrderHistoryPage() {
                         >
                           {order.paymentStatus}
                         </Badge>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 

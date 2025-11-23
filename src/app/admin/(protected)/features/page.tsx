@@ -9,10 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-hot-toast';
-import { Search, Filter, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronRight, FileText, BookOpen } from 'lucide-react';
 import { FeatureStats } from '@/components/admin/FeatureStats';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { FeatureDocModal } from '@/components/admin/FeatureDocModal';
+import { getFeatureDoc, FeatureDocumentation } from '@/lib/feature-docs';
+import Link from 'next/link';
 
 interface FeatureFlag {
   id: string;
@@ -32,6 +35,8 @@ export default function FeaturesPage() {
   const [features, setFeatures] = useState<FeatureFlag[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [selectedFeatureDoc, setSelectedFeatureDoc] = useState<FeatureDocumentation | null>(null);
+  const [docModalOpen, setDocModalOpen] = useState(false);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,6 +96,14 @@ export default function FeaturesPage() {
       toast.error('Failed to update feature');
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const handleViewDocs = (feature: FeatureFlag) => {
+    const doc = getFeatureDoc(feature.name);
+    if (doc) {
+      setSelectedFeatureDoc(doc);
+      setDocModalOpen(true);
     }
   };
 
@@ -194,11 +207,18 @@ export default function FeaturesPage() {
               features={categoryFeatures}
               getCategoryIcon={getCategoryIcon}
               toggleFeature={toggleFeature}
+              onViewDocs={handleViewDocs}
               updating={updating}
             />
           ))}
         </div>
       )}
+
+      <FeatureDocModal
+        open={docModalOpen}
+        onOpenChange={setDocModalOpen}
+        feature={selectedFeatureDoc}
+      />
     </div>
   );
 }
@@ -208,6 +228,7 @@ function FeatureCategoryGroup({
   features,
   getCategoryIcon,
   toggleFeature,
+  onViewDocs,
   updating
 }: any) {
   const [isOpen, setIsOpen] = useState(true);
@@ -261,6 +282,22 @@ function FeatureCategoryGroup({
                       Active
                     </Badge>
                   )}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Link href={`/admin/features/docs/${feature.name}`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+                      View Docs
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onViewDocs(feature)}
+                    title="Quick view documentation"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
