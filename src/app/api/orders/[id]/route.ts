@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 import { sendEmail } from '@/lib/email';
 import { orderShippedEmail, orderDeliveredEmail } from '@/lib/email-templates';
 
@@ -133,6 +134,17 @@ export async function PATCH(
       console.error('Failed to send order status email:', emailError);
       // Don't fail the update if email fails
     }
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'ORDER',
+      resourceId: order.id,
+      details: `Updated order ${order.orderNumber} status to ${status || 'unchanged'}`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    });
 
     return NextResponse.json(order);
   } catch (error) {

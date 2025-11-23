@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 export async function GET() {
   try {
@@ -51,6 +52,17 @@ export async function POST(request: NextRequest) {
         image: image || null,
         parentId: parentId || null,
       },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'CATEGORY',
+      resourceId: category.id,
+      details: `Created category: ${category.name}`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
     });
 
     return NextResponse.json(category);

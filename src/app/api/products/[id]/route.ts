@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 export async function GET(
   request: Request,
@@ -51,6 +52,17 @@ export async function PATCH(
       data: json,
     });
 
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'PRODUCT',
+      resourceId: product.id,
+      details: `Updated product: ${product.name}`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    });
+
     return NextResponse.json(product);
   } catch (error) {
     console.error(error);
@@ -73,9 +85,27 @@ export async function DELETE(
     }
 
     const resolvedParams = await params;
+    const id = resolvedParams.id;
+
+    // Get product name before deleting for the log
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { name: true }
+    });
 
     await prisma.product.delete({
-      where: { id: resolvedParams.id },
+      where: { id },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'DELETE',
+      resource: 'PRODUCT',
+      resourceId: id,
+      details: `Deleted product: ${product?.name || id}`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
     });
 
     return NextResponse.json({ success: true });

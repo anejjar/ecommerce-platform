@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefundRequestButton } from '@/components/customer/RefundRequestButton';
+import { DownloadInvoiceButton } from '@/components/customer/DownloadInvoiceButton';
 import { isFeatureEnabled } from '@/lib/features';
 import { prisma } from '@/lib/prisma';
 import { getTranslations } from 'next-intl/server';
@@ -125,6 +126,7 @@ export default async function OrderDetailPage({
               </p>
             </div>
             <div className="flex gap-3">
+              <DownloadInvoiceButton order={order} />
               {refundFeatureEnabled && (
                 <RefundRequestButton
                   orderId={order.id}

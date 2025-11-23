@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import { ProductVariants } from '@/components/admin/ProductVariants';
 import { StockAlertConfig } from '@/components/admin/StockAlertConfig';
+import { ProductTranslationManager } from '@/components/admin/ProductTranslationManager';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -311,6 +312,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       <StockAlertConfig productId={id} currentStock={parseInt(formData.stock) || 0} />
 
       {/* Product Variants Section */}
+      {/* Product Translations */}
+      <ProductTranslationManager productId={id} productName={formData.name} />
       <ProductVariants productId={id} basePrice={parseFloat(formData.price) || 0} />
     </div>
   );

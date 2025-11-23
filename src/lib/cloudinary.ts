@@ -8,7 +8,7 @@ cloudinary.config({
 
 export default cloudinary;
 
-export const uploadToCloudinary = async (file: File): Promise<string> => {
+export const uploadToCloudinary = async (file: File, folder: string = 'ecommerce/products'): Promise<any> => {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
@@ -16,12 +16,12 @@ export const uploadToCloudinary = async (file: File): Promise<string> => {
     cloudinary.uploader
       .upload_stream(
         {
-          folder: 'ecommerce/products',
-          resource_type: 'image',
+          folder: folder,
+          resource_type: 'auto', // Allow video/audio/docs
         },
         (error, result) => {
           if (error) reject(error);
-          else resolve(result!.secure_url);
+          else resolve(result);
         }
       )
       .end(buffer);

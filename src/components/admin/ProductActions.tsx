@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { EllipsisVertical } from 'lucide-react';
 
 export function ProductActions({ productId }: { productId: string }) {
   const router = useRouter();
@@ -49,7 +50,7 @@ export function ProductActions({ productId }: { productId: string }) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm">
-            Actions
+            <EllipsisVertical />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

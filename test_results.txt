@@ -1,0 +1,124 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.12 [39m[90mC:/laragon/www/claude/ecommerce-platform[39m
+
+ [32m✓[39m src/test/api/media/list.test.ts[2m > [22mMedia List API[2m > [22mshould return 401 if not authenticated[32m 11[2mms[22m[39m
+ [32m✓[39m src/test/api/media/list.test.ts[2m > [22mMedia List API[2m > [22mshould return list of media with pagination[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/api/media/list.test.ts[2m > [22mMedia List API[2m > [22mshould filter by search query[32m 2[2mms[22m[39m
+ [32m✓[39m src/test/api/media/list.test.ts[2m > [22mMedia List API[2m > [22mshould filter by type[32m 2[2mms[22m[39m
+ [32m✓[39m src/test/api/media/list.test.ts[2m > [22mMedia List API[2m > [22mshould filter by folder[32m 1[2mms[22m[39m
+ [32m✓[39m src/test/api/media/details.test.ts[2m > [22mMedia Details API[2m > [22mGET /api/media/[id][2m > [22mshould return 401 if not authenticated[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/api/media/details.test.ts[2m > [22mMedia Details API[2m > [22mGET /api/media/[id][2m > [22mshould return 404 if media not found[32m 2[2mms[22m[39m
+ [32m✓[39m src/test/api/media/details.test.ts[2m > [22mMedia Details API[2m > [22mGET /api/media/[id][2m > [22mshould return media details[32m 2[2mms[22m[39m
+ [32m✓[39m src/test/api/media/details.test.ts[2m > [22mMedia Details API[2m > [22mPATCH /api/media/[id][2m > [22mshould update media metadata[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/api/media/details.test.ts[2m > [22mMedia Details API[2m > [22mDELETE /api/media/[id][2m > [22mshould delete media from db and cloudinary[32m 3[2mms[22m[39m
+ [32m✓[39m src/test/api/media/organization.test.ts[2m > [22mMedia Organization API[2m > [22mFolders API[2m > [22mshould list folders[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/api/media/organization.test.ts[2m > [22mMedia Organization API[2m > [22mFolders API[2m > [22mshould create a folder[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/api/media/organization.test.ts[2m > [22mMedia Organization API[2m > [22mTags API[2m > [22mshould list tags[32m 2[2mms[22m[39m
+ [32m✓[39m src/test/api/media/organization.test.ts[2m > [22mMedia Organization API[2m > [22mTags API[2m > [22mshould create a tag[32m 4[2mms[22m[39m
+stderr | src/test/api/media/upload.test.ts > Media Upload API > should handle upload errors
+Upload error: Error: Cloudinary error
+    at C:/laragon/www/claude/ecommerce-platform/src/test/api/media/upload.test.ts:129:61
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:912:26
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1237:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1203:10)
+    at file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1647:37
+    at Traces.$ (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/vitest/dist/chunks/test.DqQZzsWf.js:234:21)
+    at runTest (file:///C:/laragon/www/claude/ecommerce-platform/node_modules/@vitest/runner/dist/index.js:1647:12)
+
+ [32m✓[39m src/test/api/media/upload.test.ts[2m > [22mMedia Upload API[2m > [22mshould return 401 if not authenticated[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/api/media/upload.test.ts[2m > [22mMedia Upload API[2m > [22mshould return 400 if no file provided[32m 4[2mms[22m[39m
+ [31m×[39m src/test/api/media/upload.test.ts[2m > [22mMedia Upload API[2m > [22mshould upload file and create database record[32m 24[2mms[22m[39m
+[31m   → expected "vi.fn()" to be called with arguments: [ ObjectContaining{…} ][90m
+
+Received: 
+
+[1m  1st vi.fn() call:
+
+[22m[2m  [[22m
+[32m-   ObjectContaining {[90m
+[32m-     "data": ObjectContaining {[90m
+[32m-       "filename": "test.jpg",[90m
+[31m+   {[90m
+[31m+     "data": {[90m
+[31m+       "aspectRatio": 1,[90m
+[31m+       "cloudinaryId": "test_id",[90m
+[31m+       "fileSize": 1024,[90m
+[31m+       "filename": "blob",[90m
+[31m+       "folderId": null,[90m
+[31m+       "format": "jpg",[90m
+[31m+       "height": 100,[90m
+[31m+       "mimeType": "image/jpeg",[90m
+[31m+       "originalName": "blob",[90m
+[31m+       "publicId": "test_id",[90m
+[31m+       "secureUrl": "https://cloudinary.com/test.jpg",[90m
+[31m+       "type": "IMAGE",[90m
+[2m        "uploadedById": "1",[22m
+[31m+       "url": "http://cloudinary.com/test.jpg",[90m
+[31m+       "version": 1,[90m
+[31m+       "width": 100,[90m
+[2m      },[22m
+[2m    },[22m
+[2m  ][22m
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+ [32m✓[39m src/test/api/media/upload.test.ts[2m > [22mMedia Upload API[2m > [22mshould handle upload errors[32m 6[2mms[22m[39m
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/api/media/upload.test.ts > Media Upload API > should upload file and create database record
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…} ]
+
+Received: 
+
+  1st vi.fn() call:
+
+  [
+-   ObjectContaining {
+-     "data": ObjectContaining {
+-       "filename": "test.jpg",
++   {
++     "data": {
++       "aspectRatio": 1,
++       "cloudinaryId": "test_id",
++       "fileSize": 1024,
++       "filename": "blob",
++       "folderId": null,
++       "format": "jpg",
++       "height": 100,
++       "mimeType": "image/jpeg",
++       "originalName": "blob",
++       "publicId": "test_id",
++       "secureUrl": "https://cloudinary.com/test.jpg",
++       "type": "IMAGE",
+        "uploadedById": "1",
++       "url": "http://cloudinary.com/test.jpg",
++       "version": 1,
++       "width": 100,
+      },
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/test/api/media/upload.test.ts:116:44
+
+    114|         expect(data).toEqual(mockMedia)
+    115|         expect(uploadToCloudinary).toHaveBeenCalled()
+    116|         expect(prisma.mediaLibrary.create).toHaveBeenCalledWith(expect…
+       |                                            ^
+    117|             data: expect.objectContaining({
+    118|                 filename: 'test.jpg',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m17 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 20:25:53
+[2m   Duration [22m 2.58s[2m (transform 549ms, setup 1.12s, collect 974ms, tests 130ms, environment 6.46s, prepare 121ms)[22m
+

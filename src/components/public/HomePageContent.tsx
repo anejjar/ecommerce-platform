@@ -25,13 +25,15 @@ interface HomePageContentProps {
   storeTagline: string;
   displayProducts: Product[];
   featuredProducts: Product[];
+  recentPosts?: any[];
 }
 
 export function HomePageContent({
   storeName,
   storeTagline,
   displayProducts,
-  featuredProducts
+  featuredProducts,
+  recentPosts
 }: HomePageContentProps) {
   const t = useTranslations('home');
 
@@ -321,6 +323,73 @@ export function HomePageContent({
           </div>
         </div>
       </section>
+
+      {/* Recent Posts */}
+      {recentPosts && recentPosts.length > 0 && (
+        <section className="py-20 bg-amber-50">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-12">
+              <div>
+                <h2 className="text-4xl font-bold text-amber-900 mb-2">From Our Blog</h2>
+                <p className="text-lg text-amber-700">Latest news and stories</p>
+              </div>
+              <Link href="/blog">
+                <Button variant="outline" className="border-amber-800 text-amber-900 hover:bg-amber-100">
+                  Read More
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {recentPosts.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/blog/${post.slug}`}
+                  className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+                >
+                  {post.featuredImage ? (
+                    <div className="relative aspect-video">
+                      <Image
+                        src={post.featuredImage}
+                        alt={post.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-amber-100 flex items-center justify-center">
+                      <Coffee className="w-12 h-12 text-amber-300" />
+                    </div>
+                  )}
+                  <div className="flex-1 p-6 space-y-4">
+                    <div className="space-y-2">
+                      {post.category && (
+                        <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                          {post.category.name}
+                        </span>
+                      )}
+                      <h3 className="text-xl font-bold text-amber-900 group-hover:text-amber-700 transition-colors line-clamp-2">
+                        {post.title}
+                      </h3>
+                    </div>
+                    <p className="text-amber-700 line-clamp-3 text-sm">
+                      {post.excerpt || post.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...'}
+                    </p>
+                    <div className="pt-4 mt-auto border-t border-amber-100 flex items-center justify-between text-xs text-amber-600">
+                      <span>{post.author.name || 'Admin'}</span>
+                      <span>
+                        {post.publishedAt
+                          ? new Date(post.publishedAt).toLocaleDateString()
+                          : ''}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Newsletter Section */}
       <section className="py-20 bg-white">

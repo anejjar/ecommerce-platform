@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { Plus, Search, Trash2, Edit, Shield } from 'lucide-react'
 import { AddEditAdminUserDialog } from './AddEditAdminUserDialog'
 import toast from 'react-hot-toast'
@@ -158,7 +157,8 @@ export function AdminUsersClient({ currentUserRole }: AdminUsersClientProps) {
   return (
     <div className="space-y-4">
       {/* Filters and Actions */}
-      <Card className="p-4">
+      {/* Filters and Actions */}
+      <div>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 gap-2">
             <div className="relative flex-1 max-w-sm">
@@ -200,10 +200,11 @@ export function AdminUsersClient({ currentUserRole }: AdminUsersClientProps) {
             )}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Users Table */}
-      <Card>
+      {/* Users Table */}
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -320,7 +321,7 @@ export function AdminUsersClient({ currentUserRole }: AdminUsersClientProps) {
             </div>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Add/Edit Dialog */}
       <AddEditAdminUserDialog

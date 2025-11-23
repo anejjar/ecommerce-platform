@@ -198,7 +198,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               <TableHead>Items</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Payment Status</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -250,11 +249,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                 <TableCell>
                   <Badge variant={getStatusBadgeVariant(order.status) as any}>
                     {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getPaymentStatusBadgeVariant(order.paymentStatus) as any}>
-                    {order.paymentStatus}
                   </Badge>
                 </TableCell>
                 <TableCell>

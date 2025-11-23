@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 // GET /api/settings - Get all settings or by category (Public access for storefront)
 export async function GET(request: NextRequest) {
@@ -63,6 +64,16 @@ export async function POST(request: NextRequest) {
     );
 
     await Promise.all(updates);
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'SETTINGS',
+      details: `Updated settings in category: ${category || 'general'}`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductsList } from '@/components/admin/ProductsList';
 
 export default async function ProductsPage() {
@@ -46,23 +45,16 @@ export default async function ProductsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Products</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {products.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No products yet</p>
-              <Link href="/admin/products/new">
-                <Button>Create your first product</Button>
-              </Link>
-            </div>
-          ) : (
-            <ProductsList products={products} categories={categories} />
-          )}
-        </CardContent>
-      </Card>
+      {products.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg bg-gray-50">
+          <p className="text-gray-500 mb-4">No products yet</p>
+          <Link href="/admin/products/new">
+            <Button>Create your first product</Button>
+          </Link>
+        </div>
+      ) : (
+        <ProductsList products={products} categories={categories} />
+      )}
     </div>
   );
 }

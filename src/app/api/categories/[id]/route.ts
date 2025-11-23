@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 export async function GET(
   request: NextRequest,
@@ -84,6 +85,17 @@ export async function PATCH(
       },
     });
 
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'UPDATE',
+      resource: 'CATEGORY',
+      resourceId: category.id,
+      details: `Updated category: ${category.name}`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    });
+
     return NextResponse.json(category);
   } catch (error) {
     console.error('Error updating category:', error);
@@ -143,6 +155,17 @@ export async function DELETE(
 
     await prisma.category.delete({
       where: { id },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'DELETE',
+      resource: 'CATEGORY',
+      resourceId: id,
+      details: `Deleted category: ${category.name}`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
     });
 
     return NextResponse.json({ success: true });

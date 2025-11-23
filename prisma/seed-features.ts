@@ -134,6 +134,14 @@ const features = [
     tier: 'PRO' as const,
     enabled: false,
   },
+  {
+    name: 'template_manager',
+    displayName: 'Template Manager',
+    description: 'Centralized system to manage and customize templates for invoices, packing slips, and emails',
+    category: 'operations',
+    tier: 'PRO' as const,
+    enabled: false,
+  },
 
   // Marketing
   {

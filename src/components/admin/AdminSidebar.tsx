@@ -31,13 +31,20 @@ import {
   Shield,
   BarChart3,
   RotateCcw,
+  Megaphone,
+  FileText,
+  ExternalLink,
 } from "lucide-react"
 
 interface NavItem {
   name: string
   href?: string
-  icon: React.ComponentType<{ className?: string }>
-  children?: { name: string; href: string }[]
+  icon: any
+  featureFlag?: string
+  children?: {
+    name: string
+    href: string
+  }[]
 }
 
 const navigation: NavItem[] = [
@@ -87,24 +94,32 @@ const navigation: NavItem[] = [
     ],
   },
   {
+    name: "Marketing",
+    icon: Megaphone,
+    children: [
+      { name: "Email Campaigns", href: "/admin/marketing/email-campaigns" },
+    ],
+  },
+  {
     name: "Features",
     href: "/admin/features",
     icon: Shield,
   },
   {
-    name: "Settings",
-    icon: Settings,
+    name: "Content",
+    icon: FileText,
+    featureFlag: "cms",
     children: [
-      { name: "General", href: "/admin/settings/general" },
-      { name: "Admin Users", href: "/admin/users" },
-      { name: "Activity Logs", href: "/admin/activity-logs" },
-      { name: "SEO", href: "/admin/settings/seo" },
-      { name: "Email", href: "/admin/settings/email" },
-      { name: "Shipping & Tax", href: "/admin/settings/shipping" },
-      { name: "Social Media", href: "/admin/settings/social" },
-      { name: "Appearance", href: "/admin/settings/appearance" },
-      { name: "Translations", href: "/admin/settings/translations" },
+      { name: "Media Library", href: "/admin/media" },
+      { name: "Blog Posts", href: "/admin/cms/posts" },
+      { name: "Pages", href: "/admin/cms/pages" },
+      { name: "Categories & Tags", href: "/admin/cms/categories" },
     ],
+  },
+  {
+    name: "Settings",
+    href: "/admin/settings",
+    icon: Settings,
   },
 ]
 
@@ -171,17 +186,40 @@ export function AdminSidebar() {
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+      <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
         <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
           <Package2 className="h-6 w-6" />
-          {!isCollapsed && <span className="">Admin Panel</span>}
+          {!isCollapsed && <span className="">Admin</span>}
         </Link>
+        {!isCollapsed && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => window.open('/', '_blank')}
+              title="Open Storefront"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setIsCollapsed(true)}
+              title="Collapse Sidebar"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
       <ScrollArea className="flex-1 px-3">
         <nav className="grid items-start gap-2 text-sm font-medium py-4">
           {navigation.filter(item => {
             if (item.name === 'Features' && (session?.user?.role as string) !== 'SUPERADMIN') return false;
             if (item.name === 'Analytics' && !enabledFeatures.includes('analytics_dashboard')) return false;
+            if (item.name === 'Marketing' && !enabledFeatures.includes('email_campaigns')) return false;
             return true;
           }).map((item) => {
             // Filter children based on feature flags
@@ -189,6 +227,7 @@ export function AdminSidebar() {
             if (item.children) {
               filteredItem.children = item.children.filter(child => {
                 if (child.name === 'Refunds' && !enabledFeatures.includes('refund_management')) return false;
+                if (child.name === 'Templates' && !enabledFeatures.includes('template_manager')) return false;
                 return true;
               });
               // Hide parent if no children remain

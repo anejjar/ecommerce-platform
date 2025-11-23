@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { CategoryForm } from '@/components/admin/CategoryForm';
+import { CategoryTranslationManager } from '@/components/admin/CategoryTranslationManager';
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -42,6 +43,9 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       </div>
 
       <CategoryForm mode="edit" category={category} />
+
+      {/* Category Translations */}
+      <CategoryTranslationManager categoryId={id} categoryName={category.name} />
     </div>
   );
 }

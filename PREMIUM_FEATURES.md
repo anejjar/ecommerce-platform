@@ -242,7 +242,7 @@ Create and manage multiple admin users with role-based permissions.
 ### 10. Invoice & Packing Slip Generator
 **Feature ID:** `invoice_generator`
 **Tier:** PRO
-**Status:** ⏳ Pending
+**Status:** ✅ Completed
 
 **Description:**
 Automatically generate professional PDF invoices and packing slips.
@@ -711,6 +711,46 @@ Customer loyalty program with points and rewards.
 
 ---
 
+### 28. Template Manager
+**Feature ID:** `template_manager`
+**Tier:** PRO
+**Status:** ⏳ Pending
+
+**Description:**
+Centralized system to manage and customize templates for invoices, packing slips, and emails.
+
+**Features:**
+- Create and manage multiple templates
+- Template types: Invoice, Packing Slip, Email
+- JSON-based configuration for PDF templates (colors, layout, labels)
+- HTML editor for email templates
+- Live preview for PDF templates
+- Set active template per type
+- Variable substitution support (e.g., {{orderNumber}})
+
+**Database Schema:**
+```prisma
+model Template {
+  id          String       @id @default(cuid())
+  name        String
+  type        TemplateType
+  isActive    Boolean      @default(false)
+  content     String       @db.Text
+  variables   String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum TemplateType {
+  INVOICE
+  PACKING_SLIP
+  EMAIL_TRANSACTIONAL
+  EMAIL_MARKETING
+}
+```
+
+---
+
 ## Implementation Status
 
 ### ✅ Phase 1: Foundation (COMPLETED)
@@ -732,11 +772,12 @@ Customer loyalty program with points and rewards.
   - [ ] Export functionality
 
 ### ⏳ Phase 3: High Priority Features (PLANNED)
+- [x] Invoice Generator
+- [x] Template Manager
 - [ ] Refund Management
 - [ ] Bulk Operations
 - [ ] Activity Log
 - [ ] Abandoned Cart Recovery
-- [ ] Invoice Generator
 
 ### 📋 Phase 4: Medium Priority Features (BACKLOG)
 - [ ] Multi-Admin Management

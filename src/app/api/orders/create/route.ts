@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 async function generateOrderNumber(): Promise<string> {
   const date = new Date();
@@ -144,6 +145,17 @@ export async function POST(request: NextRequest) {
         },
       });
     }
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'ORDER',
+      resourceId: order.id,
+      details: `Created order: ${order.orderNumber} (Total: ${order.total})`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    });
 
     return NextResponse.json(order);
   } catch (error) {

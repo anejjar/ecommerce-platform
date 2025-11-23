@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import {
   Table,
   TableBody,
@@ -59,60 +59,55 @@ export default async function CustomersPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Customers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {customers.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No customers yet</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Total Orders</TableHead>
-                  <TableHead>Total Spent</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customers.map((customer) => {
-                  const totalSpent = customer.orders.reduce(
-                    (sum, order) => sum + Number(order.total),
-                    0
-                  );
+      {customers.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg bg-gray-50">
+          <p className="text-muted-foreground">No customers yet</p>
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Total Orders</TableHead>
+                <TableHead>Total Spent</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {customers.map((customer) => {
+                const totalSpent = customer.orders.reduce(
+                  (sum, order) => sum + Number(order.total),
+                  0
+                );
 
-                  return (
-                    <TableRow key={customer.id}>
-                      <TableCell className="font-medium">
-                        {customer.name || 'N/A'}
-                      </TableCell>
-                      <TableCell>{customer.email}</TableCell>
-                      <TableCell>{customer._count.orders}</TableCell>
-                      <TableCell>${totalSpent.toFixed(2)}</TableCell>
-                      <TableCell>
-                        {new Date(customer.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="link" asChild className="p-0 h-auto">
-                          <Link href={`/admin/customers/${customer.id}`}>
-                            View
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                return (
+                  <TableRow key={customer.id}>
+                    <TableCell className="font-medium">
+                      {customer.name || 'N/A'}
+                    </TableCell>
+                    <TableCell>{customer.email}</TableCell>
+                    <TableCell>{customer._count.orders}</TableCell>
+                    <TableCell>${totalSpent.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {new Date(customer.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="link" asChild className="p-0 h-auto">
+                        <Link href={`/admin/customers/${customer.id}`}>
+                          View
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

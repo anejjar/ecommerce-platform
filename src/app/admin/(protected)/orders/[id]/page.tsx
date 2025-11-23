@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/table';
 import toast from 'react-hot-toast';
 import { OrderNotes } from '@/components/admin/OrderNotes';
+import { generateInvoice, generatePackingSlip } from '@/lib/invoice-generator';
+import { FileText, Package } from 'lucide-react';
 
 const statusOptions = [
   'PENDING',
@@ -39,9 +41,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [invoiceFeatureEnabled, setInvoiceFeatureEnabled] = useState(false);
 
   useEffect(() => {
     fetchOrder();
+    checkInvoiceFeature();
   }, []);
 
   const fetchOrder = async () => {
@@ -56,6 +60,40 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       console.error('Failed to fetch order');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkInvoiceFeature = async () => {
+    try {
+      const response = await fetch('/api/features/enabled');
+      if (response.ok) {
+        const data = await response.json();
+        setInvoiceFeatureEnabled(data.features?.includes('invoice_generator') || false);
+      }
+    } catch (error) {
+      console.error('Failed to check invoice feature');
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    try {
+      await generateInvoice(order);
+      toast.success('Invoice downloaded successfully');
+    } catch (error) {
+      console.error('Failed to generate invoice:', error);
+      toast.error('Failed to generate invoice');
+    }
+  };
+
+  const handleDownloadPackingSlip = async () => {
+    if (!order) return;
+    try {
+      await generatePackingSlip(order);
+      toast.success('Packing slip downloaded successfully');
+    } catch (error) {
+      console.error('Failed to generate packing slip:', error);
+      toast.error('Failed to generate packing slip');
     }
   };
 
@@ -102,12 +140,24 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => window.open(`/admin/orders/${id}/invoice`, '_blank')}
-          >
-            Print Invoice
-          </Button>
+          {invoiceFeatureEnabled && (
+            <>
+              <Button
+                variant="outline"
+                onClick={handleDownloadInvoice}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Download Invoice
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDownloadPackingSlip}
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Download Packing Slip
+              </Button>
+            </>
+          )}
           <Button variant="outline" onClick={() => router.back()}>
             Back
           </Button>
@@ -129,12 +179,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
             <div>
               <label className="text-sm font-medium">Payment Status</label>
-              <Badge className={`ml-2 ${
-                order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+              <Badge className={`ml-2 ${order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
                 order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
-                order.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
+                  order.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
+                    'bg-yellow-100 text-yellow-800'
+                }`}>
                 {order.paymentStatus}
               </Badge>
             </div>
@@ -172,7 +221,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <p className="text-sm text-gray-600">Name</p>
               <p className="font-medium">
                 {order.user?.name ||
-                 (order.shippingAddress ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}` : 'Guest')}
+                  (order.shippingAddress ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}` : 'Guest')}
               </p>
             </div>
             <div>

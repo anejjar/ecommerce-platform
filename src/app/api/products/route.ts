@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 export async function GET() {
   try {
@@ -48,8 +49,20 @@ export async function POST(request: Request) {
       },
     });
 
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      action: 'CREATE',
+      resource: 'PRODUCT',
+      resourceId: product.id,
+      details: `Created product: ${product.name} (${product.sku || 'No SKU'})`,
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    });
+
     return NextResponse.json(product);
   } catch (error) {
+    console.error('Error creating product:', error);
     return NextResponse.json(
       { error: 'Failed to create product' },
       { status: 500 }

@@ -1,0 +1,189 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Plus, FileText, Mail, Package, Edit, Trash2, Check } from 'lucide-react';
+import toast from 'react-hot-toast';
+import Link from 'next/link';
+
+interface Template {
+    id: string;
+    name: string;
+    type: string;
+    isActive: boolean;
+    updatedAt: string;
+}
+
+const templateTypes = [
+    { value: 'INVOICE', label: 'Invoices', icon: FileText },
+    { value: 'PACKING_SLIP', label: 'Packing Slips', icon: Package },
+    { value: 'EMAIL_TRANSACTIONAL', label: 'Transactional Emails', icon: Mail },
+    { value: 'EMAIL_MARKETING', label: 'Marketing Emails', icon: Mail },
+];
+
+export default function TemplatesPage() {
+    const router = useRouter();
+    const [templates, setTemplates] = useState<Template[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedType, setSelectedType] = useState('INVOICE');
+
+    useEffect(() => {
+        fetchTemplates();
+    }, [selectedType]);
+
+    const fetchTemplates = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`/api/admin/templates?type=${selectedType}`);
+            if (response.ok) {
+                const data = await response.json();
+                setTemplates(data.templates);
+            }
+        } catch (error) {
+            toast.error('Failed to fetch templates');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this template?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/templates/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                toast.success('Template deleted');
+                fetchTemplates();
+            } else {
+                toast.error('Failed to delete template');
+            }
+        } catch (error) {
+            toast.error('An error occurred');
+        }
+    };
+
+    const handleCreate = async () => {
+        const name = prompt('Enter template name:');
+        if (!name) return;
+
+        try {
+            const defaultContent = selectedType.includes('EMAIL')
+                ? '<html><body><h1>New Template</h1></body></html>'
+                : JSON.stringify({
+                    primaryColor: '#000000',
+                    secondaryColor: '#ffffff',
+                    logoUrl: '',
+                    showTaxId: true,
+                    showSku: true,
+                    footerText: 'Thank you for your business!'
+                }, null, 2);
+
+            const response = await fetch('/api/admin/templates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    type: selectedType,
+                    content: defaultContent,
+                    isActive: false
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success('Template created');
+                router.push(`/admin/templates/${data.template.id}`);
+            } else {
+                toast.error('Failed to create template');
+            }
+        } catch (error) {
+            toast.error('An error occurred');
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold">Template Manager</h1>
+                <Button onClick={handleCreate}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Template
+                </Button>
+            </div>
+
+            <div className="flex gap-2 overflow-x-auto pb-2">
+                {templateTypes.map((type) => {
+                    const Icon = type.icon;
+                    return (
+                        <Button
+                            key={type.value}
+                            variant={selectedType === type.value ? 'default' : 'outline'}
+                            onClick={() => setSelectedType(type.value)}
+                            className="flex items-center gap-2"
+                        >
+                            <Icon className="w-4 h-4" />
+                            {type.label}
+                        </Button>
+                    );
+                })}
+            </div>
+
+            {loading ? (
+                <div className="text-center py-12">Loading templates...</div>
+            ) : templates.length === 0 ? (
+                <div className="text-center py-12 border rounded-lg bg-gray-50">
+                    <p className="text-gray-500 mb-4">No templates found for this type</p>
+                    <Button onClick={handleCreate} variant="outline">
+                        Create your first template
+                    </Button>
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {templates.map((template) => (
+                        <div
+                            key={template.id}
+                            className={`border rounded-lg p-4 bg-white relative ${template.isActive ? 'ring-2 ring-blue-500' : ''
+                                }`}
+                        >
+                            {template.isActive && (
+                                <div className="absolute top-2 right-2">
+                                    <Badge className="bg-blue-500">Active</Badge>
+                                </div>
+                            )}
+
+                            <div className="mb-4">
+                                <h3 className="font-semibold text-lg">{template.name}</h3>
+                                <p className="text-sm text-gray-500">
+                                    Last updated: {new Date(template.updatedAt).toLocaleDateString()}
+                                </p>
+                            </div>
+
+                            <div className="flex gap-2 mt-4">
+                                <Link href={`/admin/templates/${template.id}`} className="flex-1">
+                                    <Button variant="outline" className="w-full">
+                                        <Edit className="w-4 h-4 mr-2" />
+                                        Edit
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={() => handleDelete(template.id)}
+                                    disabled={template.isActive}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}

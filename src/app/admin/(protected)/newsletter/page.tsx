@@ -148,59 +148,58 @@ export default function NewsletterSubscribersPage() {
             </div>
 
             {/* Filters and Actions */}
-            <Card>
-                <CardHeader>
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <CardTitle>All Subscribers</CardTitle>
-                        <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={exportToCSV}>
-                                <Download className="mr-2 h-4 w-4" />
-                                Export CSV
-                            </Button>
-                        </div>
+            {/* Filters and Actions */}
+            <div>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex gap-2 ml-auto">
+                        <Button variant="outline" size="sm" onClick={exportToCSV}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Export CSV
+                        </Button>
                     </div>
-                    <div className="flex flex-col md:flex-row gap-4 mt-4">
-                        <Input
-                            placeholder="Search by email or name..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="md:max-w-sm"
-                        />
-                        <div className="flex gap-2">
-                            <Button
-                                variant={filter === 'all' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setFilter('all')}
-                            >
-                                All
-                            </Button>
-                            <Button
-                                variant={filter === 'active' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setFilter('active')}
-                            >
-                                Active
-                            </Button>
-                            <Button
-                                variant={filter === 'inactive' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setFilter('inactive')}
-                            >
-                                Inactive
-                            </Button>
-                        </div>
+                </div>
+                <div className="flex flex-col md:flex-row gap-4 mt-4 mb-4">
+                    <Input
+                        placeholder="Search by email or name..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="md:max-w-sm"
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            variant={filter === 'all' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setFilter('all')}
+                        >
+                            All
+                        </Button>
+                        <Button
+                            variant={filter === 'active' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setFilter('active')}
+                        >
+                            Active
+                        </Button>
+                        <Button
+                            variant={filter === 'inactive' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setFilter('inactive')}
+                        >
+                            Inactive
+                        </Button>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500">Loading subscribers...</p>
-                        </div>
-                    ) : subscribers.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500">No subscribers found</p>
-                        </div>
-                    ) : (
+                </div>
+
+                {isLoading ? (
+                    <div className="text-center py-12 border rounded-lg bg-gray-50">
+                        <p className="text-gray-500">Loading subscribers...</p>
+                    </div>
+                ) : subscribers.length === 0 ? (
+                    <div className="text-center py-12 border rounded-lg bg-gray-50">
+                        <p className="text-gray-500">No subscribers found</p>
+                    </div>
+                ) : (
+                    <div className="rounded-md border">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -244,9 +243,9 @@ export default function NewsletterSubscribersPage() {
                                 ))}
                             </TableBody>
                         </Table>
-                    )}
-                </CardContent>
-            </Card>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

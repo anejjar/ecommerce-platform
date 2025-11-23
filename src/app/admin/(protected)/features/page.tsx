@@ -1,12 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-hot-toast';
+import { Search, Filter, ChevronDown, ChevronRight } from 'lucide-react';
+import { FeatureStats } from '@/components/admin/FeatureStats';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface FeatureFlag {
   id: string;
@@ -27,10 +33,13 @@ export default function FeaturesPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, ACTIVE, INACTIVE
+
   // Redirect if not SUPERADMIN
   useEffect(() => {
     if (status === 'loading') return;
-
     if (!session || session.user.role !== 'SUPERADMIN') {
       router.push('/admin/dashboard');
     }
@@ -40,7 +49,6 @@ export default function FeaturesPage() {
   useEffect(() => {
     if (status === 'loading') return;
     if (!session || session.user.role !== 'SUPERADMIN') return;
-
     fetchFeatures();
   }, [session, status]);
 
@@ -48,7 +56,6 @@ export default function FeaturesPage() {
     try {
       const response = await fetch('/api/features');
       if (!response.ok) throw new Error('Failed to fetch features');
-
       const data = await response.json();
       setFeatures(data);
     } catch (error) {
@@ -87,27 +94,32 @@ export default function FeaturesPage() {
     }
   };
 
-  // Group features by category
-  const groupedFeatures = features.reduce((acc, feature) => {
-    if (!acc[feature.category]) {
-      acc[feature.category] = [];
-    }
-    acc[feature.category].push(feature);
-    return acc;
-  }, {} as Record<string, FeatureFlag[]>);
+  // Filter and Group features
+  const filteredFeatures = useMemo(() => {
+    return features.filter(feature => {
+      const matchesSearch =
+        feature.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        feature.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        feature.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'FREE':
-        return 'bg-gray-100 text-gray-800';
-      case 'PRO':
-        return 'bg-blue-100 text-blue-800';
-      case 'ENTERPRISE':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+      const matchesStatus =
+        statusFilter === 'ALL' ||
+        (statusFilter === 'ACTIVE' && feature.enabled) ||
+        (statusFilter === 'INACTIVE' && !feature.enabled);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [features, searchQuery, statusFilter]);
+
+  const groupedFeatures = useMemo(() => {
+    return filteredFeatures.reduce((acc, feature) => {
+      if (!acc[feature.category]) {
+        acc[feature.category] = [];
+      }
+      acc[feature.category].push(feature);
+      return acc;
+    }, {} as Record<string, FeatureFlag[]>);
+  }, [filteredFeatures]);
 
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, string> = {
@@ -122,111 +134,139 @@ export default function FeaturesPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="p-8">
-        <div className="animate-pulse">
-          <div className="h-8 w-64 bg-gray-200 rounded mb-4"></div>
-          <div className="h-4 w-96 bg-gray-200 rounded mb-8"></div>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
+      <div className="p-8 space-y-4">
+        <div className="h-32 bg-muted animate-pulse rounded-lg" />
+        <div className="h-12 bg-muted animate-pulse rounded-lg" />
+        <div className="h-64 bg-muted animate-pulse rounded-lg" />
       </div>
     );
   }
 
-  if (!session || session.user.role !== 'SUPERADMIN') {
-    return null;
-  }
+  if (!session || session.user.role !== 'SUPERADMIN') return null;
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Feature Management</h1>
-        <p className="text-gray-600 mt-2">
-          Control which premium features are enabled for your store. Toggle features on/off to activate or deactivate functionality.
+    <div className="p-8 space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Feature Management</h1>
+        <p className="text-muted-foreground mt-2">
+          Control premium features, manage availability, and configure system capabilities.
         </p>
       </div>
 
-      {features.length === 0 ? (
+      <FeatureStats features={features} />
+
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search features..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Status</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="INACTIVE">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {Object.keys(groupedFeatures).length === 0 ? (
         <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-gray-500 mb-4">No features configured yet.</p>
-            <p className="text-sm text-gray-400">
-              Features will appear here once they are added to the database.
-            </p>
+          <CardContent className="p-12 text-center text-muted-foreground">
+            No features found matching your filters.
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
-            <Card key={category}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">{getCategoryIcon(category)}</span>
-                  <span className="capitalize">{category.replace(/_/g, ' ')}</span>
-                  <Badge variant="outline" className="ml-2">
-                    {categoryFeatures.length} {categoryFeatures.length === 1 ? 'feature' : 'features'}
-                  </Badge>
-                </CardTitle>
+            <FeatureCategoryGroup
+              key={category}
+              category={category}
+              features={categoryFeatures}
+              getCategoryIcon={getCategoryIcon}
+              toggleFeature={toggleFeature}
+              updating={updating}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FeatureCategoryGroup({
+  category,
+  features,
+  getCategoryIcon,
+  toggleFeature,
+  updating
+}: any) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-2">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-xl font-semibold flex items-center gap-2 capitalize">
+          <span>{getCategoryIcon(category)}</span>
+          {category.replace(/_/g, ' ')}
+          <Badge variant="secondary" className="ml-2 text-xs">
+            {features.length}
+          </Badge>
+        </h2>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="w-9 p-0">
+            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <span className="sr-only">Toggle</span>
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+
+      <CollapsibleContent className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {features.map((feature: any) => (
+            <Card key={feature.id} className={`transition-all hover:shadow-md ${feature.enabled ? 'border-primary/50 bg-primary/5' : 'opacity-80'}`}>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <CardTitle className="text-base font-semibold leading-tight">
+                      {feature.displayName}
+                    </CardTitle>
+                    <CardDescription className="text-xs mt-1 font-mono">
+                      {feature.name}
+                    </CardDescription>
+                  </div>
+                  <Switch
+                    checked={feature.enabled}
+                    onCheckedChange={() => toggleFeature(feature.id, feature.enabled)}
+                    disabled={updating === feature.id}
+                  />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {categoryFeatures.map((feature) => (
-                    <div
-                      key={feature.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="font-semibold">{feature.displayName}</h3>
-                          <Badge className={getTierColor(feature.tier)}>
-                            {feature.tier}
-                          </Badge>
-                          {feature.enabled && (
-                            <Badge className="bg-green-100 text-green-800">
-                              Active
-                            </Badge>
-                          )}
-                        </div>
-                        {feature.description && (
-                          <p className="text-sm text-gray-600">{feature.description}</p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-1">
-                          ID: {feature.name}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={feature.enabled}
-                          onCheckedChange={() => toggleFeature(feature.id, feature.enabled)}
-                          disabled={updating === feature.id}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">
+                  {feature.description || 'No description available.'}
+                </p>
+                <div className="flex items-center gap-2">
+                  {feature.enabled && (
+                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200 dark:border-green-900">
+                      Active
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      )}
-
-      <Card className="mt-8 bg-blue-50 border-blue-200">
-        <CardHeader>
-          <CardTitle className="text-blue-900">About Feature Flags</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li>• <strong>FREE</strong>: Features available to all users</li>
-            <li>• <strong>PRO</strong>: Premium features for paying customers</li>
-            <li>• <strong>ENTERPRISE</strong>: Advanced features for enterprise plans</li>
-            <li>• Features are completely hidden when disabled (no UI, no routes, no API access)</li>
-            <li>• Changes take effect immediately after toggling</li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

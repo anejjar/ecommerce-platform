@@ -74,6 +74,17 @@ export default async function HomePage({
 
   const displayProducts = featuredProducts.length > 0 ? featuredProducts : latestProducts;
 
+  // Fetch recent blog posts
+  const recentPosts = await prisma.blogPost.findMany({
+    where: { status: 'PUBLISHED' },
+    orderBy: { publishedAt: 'desc' },
+    take: 3,
+    include: {
+      author: { select: { name: true } },
+      category: true,
+    },
+  });
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -83,6 +94,7 @@ export default async function HomePage({
         storeTagline={storeTagline}
         displayProducts={displayProducts}
         featuredProducts={featuredProducts}
+        recentPosts={recentPosts}
       />
 
       <Footer />

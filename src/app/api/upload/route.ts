@@ -28,7 +28,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 });
     }
 
-    const imageUrl = await uploadToCloudinary(file);
+    const folder = formData.get('folder') as string || 'ecommerce/products';
+
+    const imageUrl = await uploadToCloudinary(file, folder);
 
     return NextResponse.json({ url: imageUrl });
   } catch (error) {
