@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const body = await request.json();
-    const { items, shippingAddress, customerInfo, isGuest, createAccount, password } = body;
+    const { items, shippingAddress, customerInfo, isGuest, createAccount, password, orderNotes } = body;
 
     // Validation
     if (!items || items.length === 0) {
@@ -42,8 +42,7 @@ export async function POST(request: NextRequest) {
     if (
       !shippingAddress ||
       !shippingAddress.address1 ||
-      !shippingAddress.city ||
-      !shippingAddress.postalCode
+      !shippingAddress.city
     ) {
       return NextResponse.json(
         { error: 'Complete shipping address is required' },
@@ -239,12 +238,13 @@ export async function POST(request: NextRequest) {
       data: {
         firstName: customerInfo.firstName || '',
         lastName: customerInfo.lastName || '',
+        company: shippingAddress.company || null,
         address1: shippingAddress.address1,
         address2: shippingAddress.address2 || null,
         city: shippingAddress.city,
         state: shippingAddress.state || null,
-        postalCode: shippingAddress.postalCode,
-        country: shippingAddress.country || 'USA',
+        postalCode: shippingAddress.postalCode || '00000',
+        country: shippingAddress.country || 'Morocco',
         phone: customerInfo.phone || null,
         userId: user?.id || null,
       },
@@ -265,6 +265,7 @@ export async function POST(request: NextRequest) {
         total,
         discountCodeId,
         discountAmount,
+        notes: orderNotes || null,
         userId: user?.id || null,
         isGuest: !user || isGuest,
         guestEmail: !user ? customerInfo.email : null,
@@ -323,7 +324,7 @@ export async function POST(request: NextRequest) {
     // Check for low stock alerts after stock updates
     try {
       const productIds = items.map((item: any) => item.productId);
-      
+
       const lowStockProducts = await prisma.product.findMany({
         where: {
           id: { in: productIds },

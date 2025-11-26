@@ -35,6 +35,7 @@ export default function PageEditorPage({ params }: { params: Promise<{ id: strin
     const [useStorefrontLayout, setUseStorefrontLayout] = useState(true);
     const [seoTitle, setSeoTitle] = useState('');
     const [seoDescription, setSeoDescription] = useState('');
+    const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
     useEffect(() => {
         if (!isNew) {
@@ -54,6 +55,7 @@ export default function PageEditorPage({ params }: { params: Promise<{ id: strin
                 setUseStorefrontLayout(page.useStorefrontLayout ?? true);
                 setSeoTitle(page.seoTitle || '');
                 setSeoDescription(page.seoDescription || '');
+                setIsSlugManuallyEdited(true);
             } else {
                 toast.error('Failed to fetch page');
                 router.push('/admin/cms/pages');
@@ -69,7 +71,7 @@ export default function PageEditorPage({ params }: { params: Promise<{ id: strin
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newTitle = e.target.value;
         setTitle(newTitle);
-        if (isNew && !slug) {
+        if (isNew && !isSlugManuallyEdited) {
             setSlug(newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
         }
     };
@@ -155,7 +157,14 @@ export default function PageEditorPage({ params }: { params: Promise<{ id: strin
                             </div>
                             <div className="space-y-2">
                                 <Label>Slug</Label>
-                                <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="page-slug" />
+                                <Input
+                                    value={slug}
+                                    onChange={(e) => {
+                                        setSlug(e.target.value);
+                                        setIsSlugManuallyEdited(true);
+                                    }}
+                                    placeholder="page-slug"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label>Content</Label>

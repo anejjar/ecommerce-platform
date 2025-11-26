@@ -1,18 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Lock, ShoppingBag } from 'lucide-react';
+import { Lock, ShoppingBag, MapPin, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
 import { clearCart } from '@/lib/redux/features/cartSlice';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
+import { useFeatureFlag } from '@/hooks/useFeatureFlag';
+import { RegionSelect } from './RegionSelect';
+import { CitySelect } from './CitySelect';
+import { AddressAutocomplete } from './AddressAutocomplete';
+import { CheckoutSettings } from '@/types/checkout-settings';
+import { CountdownTimer } from '@/components/checkout/CountdownTimer';
+import { FreeShippingBar } from '@/components/checkout/FreeShippingBar';
+import { TestimonialsCarousel } from '@/components/checkout/TestimonialsCarousel';
+import { RecentPurchasePopup } from '@/components/checkout/RecentPurchasePopup';
+import {
+  TrustBadges,
+  SecuritySeals,
+  MoneyBackGuarantee,
+  CustomerServiceDisplay,
+  TrustRating,
+  OrderCountTicker,
+} from '@/components/checkout/TrustElements';
 
 export function CheckoutContent() {
   const t = useTranslations();
@@ -22,17 +40,41 @@ export function CheckoutContent() {
   const cartItems = useAppSelector((state) => state.cart.items);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Feature flags
+  const checkoutCustomizationEnabled = useFeatureFlag('checkout_customization');
+
+  // Checkout settings
+  const [checkoutSettings, setCheckoutSettings] = useState<CheckoutSettings | null>(null);
+
+  // Saved addresses
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [useNewAddress, setUseNewAddress] = useState(false);
+
+  // Region and city selection
+  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
+
   const [formData, setFormData] = useState({
     email: session?.user?.email || '',
     firstName: '',
     lastName: '',
+    company: '',
     address: '',
+    address2: '',
     city: '',
     state: '',
-    zip: '',
-    country: 'USA',
+    country: 'Morocco',
     phone: '',
+    orderNotes: '',
+    // Phase 2: Additional standard fields
+    alternativePhone: '',
+    deliveryInstructions: '',
+    giftMessage: '',
+    deliveryDate: '',
   });
+
+  // Phase 2: Custom fields data
+  const [customFieldsData, setCustomFieldsData] = useState<Record<string, any>>({});
 
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState('');
@@ -46,6 +88,152 @@ export function CheckoutContent() {
   } | null>(null);
   const [discountError, setDiscountError] = useState('');
   const [isCheckingDiscount, setIsCheckingDiscount] = useState(false);
+
+  // Phase 1: Dynamic styling based on settings
+  const pageStyles = useMemo(() => {
+    if (!checkoutSettings || !checkoutCustomizationEnabled) return {};
+
+    const styles: React.CSSProperties = {};
+
+    // Font family
+    const fontFamilyMap = {
+      system: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      inter: '"Inter", sans-serif',
+      roboto: '"Roboto", sans-serif',
+      opensans: '"Open Sans", sans-serif',
+    };
+    if (checkoutSettings.fontFamily) {
+      styles.fontFamily = fontFamilyMap[checkoutSettings.fontFamily];
+    }
+
+    return styles;
+  }, [checkoutSettings, checkoutCustomizationEnabled]);
+
+  const containerClass = useMemo(() => {
+    if (!checkoutSettings || !checkoutCustomizationEnabled) return 'container mx-auto px-4 py-8';
+    const widthMap = {
+      narrow: 'max-w-4xl mx-auto px-4 py-8',
+      normal: 'container mx-auto px-4 py-8',
+      wide: 'max-w-7xl mx-auto px-4 py-8',
+    };
+    return widthMap[checkoutSettings.pageWidth || 'normal'];
+  }, [checkoutSettings, checkoutCustomizationEnabled]);
+
+  const buttonClass = useMemo(() => {
+    if (!checkoutSettings || !checkoutCustomizationEnabled) return '';
+    const buttonStyleMap = {
+      rounded: 'rounded-md',
+      square: 'rounded-none',
+      pill: 'rounded-full',
+    };
+    return buttonStyleMap[checkoutSettings.buttonStyle || 'rounded'];
+  }, [checkoutSettings, checkoutCustomizationEnabled]);
+
+  // Phase 2: Helper functions for custom field labels and placeholders
+  const getFieldLabel = (fieldName: string, defaultLabel: string) => {
+    if (checkoutCustomizationEnabled && checkoutSettings?.fieldLabels && checkoutSettings.fieldLabels[fieldName as keyof typeof checkoutSettings.fieldLabels]) {
+      return checkoutSettings.fieldLabels[fieldName as keyof typeof checkoutSettings.fieldLabels];
+    }
+    return defaultLabel;
+  };
+
+  const getFieldPlaceholder = (fieldName: string, defaultPlaceholder?: string) => {
+    if (checkoutCustomizationEnabled && checkoutSettings?.fieldPlaceholders && checkoutSettings.fieldPlaceholders[fieldName as keyof typeof checkoutSettings.fieldPlaceholders]) {
+      return checkoutSettings.fieldPlaceholders[fieldName as keyof typeof checkoutSettings.fieldPlaceholders];
+    }
+    return defaultPlaceholder || '';
+  };
+
+  // Fetch checkout settings
+  useEffect(() => {
+    fetchCheckoutSettings();
+  }, []);
+
+  const fetchCheckoutSettings = async () => {
+    try {
+      const response = await fetch('/api/checkout-settings');
+      if (response.ok) {
+        const data = await response.json();
+        setCheckoutSettings(data);
+      }
+    } catch (error) {
+      console.error('Error fetching checkout settings:', error);
+    }
+  };
+
+  // Fetch saved addresses for logged-in users
+  useEffect(() => {
+    if (session?.user) {
+      fetchSavedAddresses();
+    }
+  }, [session]);
+
+  const fetchSavedAddresses = async () => {
+    try {
+      const response = await fetch('/api/account/addresses');
+      if (response.ok) {
+        const data = await response.json();
+        setSavedAddresses(data || []);
+
+        // Auto-select default address
+        const defaultAddress = data.find((addr: any) => addr.isDefault);
+        if (defaultAddress && !useNewAddress) {
+          handleSelectSavedAddress(defaultAddress.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching saved addresses:', error);
+    }
+  };
+
+  const handleSelectSavedAddress = (addressId: string) => {
+    const address = savedAddresses.find(addr => addr.id === addressId);
+    if (address) {
+      setSelectedAddressId(addressId);
+      setUseNewAddress(false);
+      setFormData({
+        ...formData,
+        firstName: address.firstName,
+        lastName: address.lastName,
+        company: address.company || '',
+        address: address.address1,
+        address2: address.address2 || '',
+        city: address.city,
+        state: address.state || '',
+        country: address.country,
+        phone: address.phone || '',
+      });
+    }
+  };
+
+  const handleUseNewAddress = () => {
+    setUseNewAddress(true);
+    setSelectedAddressId(null);
+    setFormData({
+      email: session?.user?.email || formData.email,
+      firstName: '',
+      lastName: '',
+      company: '',
+      address: '',
+      address2: '',
+      city: '',
+      state: '',
+      country: 'Morocco',
+      phone: '',
+      orderNotes: '',
+    });
+    setSelectedRegionId('');
+  };
+
+  const handleAddressAutocompleteSelect = (addressData: any) => {
+    setFormData({
+      ...formData,
+      address: addressData.address,
+      city: addressData.city,
+      state: addressData.state,
+      country: addressData.country,
+    });
+  };
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -134,9 +322,10 @@ export function CheckoutContent() {
           })),
           shippingAddress: {
             address1: formData.address,
+            address2: formData.address2,
+            company: formData.company,
             city: formData.city,
             state: formData.state,
-            postalCode: formData.zip,
             country: formData.country,
           },
           customerInfo: {
@@ -144,7 +333,16 @@ export function CheckoutContent() {
             lastName: formData.lastName,
             email: formData.email,
             phone: formData.phone,
+            // Phase 2: Additional fields
+            alternativePhone: formData.alternativePhone,
           },
+          orderNotes: formData.orderNotes,
+          // Phase 2: Additional standard fields
+          deliveryInstructions: formData.deliveryInstructions,
+          giftMessage: formData.giftMessage,
+          deliveryDate: formData.deliveryDate,
+          // Phase 2: Custom fields
+          customFields: customFieldsData,
           isGuest: !session,
           createAccount: !session && createAccount,
           password: !session && createAccount ? password : undefined,
@@ -196,8 +394,123 @@ export function CheckoutContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">{t('cart.checkout')}</h1>
+    <div style={pageStyles}>
+      {/* Phase 5: Countdown Timer */}
+      {checkoutCustomizationEnabled && checkoutSettings?.showCountdownTimer && checkoutSettings.countdownEndDate && (
+        <CountdownTimer
+          endDate={new Date(checkoutSettings.countdownEndDate)}
+          text={checkoutSettings.countdownText || undefined}
+        />
+      )}
+
+      {/* Phase 5: Promotional Banners - Top Position */}
+      {checkoutCustomizationEnabled && checkoutSettings?.promotionalBanners?.filter((b) => b.position === 'top').map((banner) => (
+        <div
+          key={banner.id}
+          className={`p-4 border-b ${banner.type === 'success'
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : banner.type === 'warning'
+              ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+              : banner.type === 'danger'
+                ? 'bg-red-50 border-red-200 text-red-800'
+                : 'bg-blue-50 border-blue-200 text-blue-800'
+            }`}
+        >
+          <div className="container mx-auto px-4 flex items-center justify-between">
+            <p className="text-sm font-medium">{banner.message}</p>
+            {banner.link && banner.linkText && (
+              <Link href={banner.link} className="text-sm font-semibold underline">
+                {banner.linkText}
+              </Link>
+            )}
+          </div>
+        </div>
+      ))}
+
+      <div className={containerClass}>
+        {/* Logo Display - Phase 1 */}
+        {checkoutCustomizationEnabled && checkoutSettings?.logoUrl && (
+          <div className="mb-6 flex justify-center">
+            <Image
+              src={checkoutSettings.logoUrl}
+              alt="Store Logo"
+              width={180}
+              height={60}
+              className="h-12 w-auto object-contain"
+            />
+          </div>
+        )}
+
+        <h1 className="text-3xl font-bold mb-8">{t('cart.checkout')}</h1>
+
+        {/* Phase 4: Trust Rating & Order Count */}
+        {checkoutCustomizationEnabled && (checkoutSettings?.showTrustRating || checkoutSettings?.showOrderCount) && (
+          <div className="mb-6 flex flex-wrap gap-4 justify-center">
+            {checkoutSettings.showTrustRating && checkoutSettings.trustRatingScore && (
+              <TrustRating
+                score={Number(checkoutSettings.trustRatingScore)}
+                count={checkoutSettings.trustRatingCount || undefined}
+              />
+            )}
+            {checkoutSettings.showOrderCount && (
+              <OrderCountTicker text={checkoutSettings.orderCountText || undefined} />
+            )}
+          </div>
+        )}
+
+        {/* Phase 4: Trust Badges - Header Position */}
+        {checkoutCustomizationEnabled && checkoutSettings?.trustBadges && checkoutSettings.trustBadges.length > 0 && (
+          <TrustBadges
+            badges={checkoutSettings.trustBadges.filter((b) => b.position === 'header')}
+          />
+        )}
+
+        {/* Custom Checkout Banner */}
+        {checkoutSettings?.checkoutBanner && (
+          <div
+            className={`mb-6 p-4 rounded-lg border ${checkoutSettings.checkoutBannerType === 'success'
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : checkoutSettings.checkoutBannerType === 'warning'
+                ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                : 'bg-blue-50 border-blue-200 text-blue-800'
+              }`}
+          >
+            <p>{checkoutSettings.checkoutBanner}</p>
+          </div>
+        )}
+
+        {/* Phase 5: Free Shipping Progress Bar */}
+        {checkoutCustomizationEnabled && checkoutSettings?.showFreeShippingBar && checkoutSettings.freeShippingThreshold && (
+          <FreeShippingBar
+            currentAmount={subtotal}
+            threshold={checkoutSettings.freeShippingThreshold}
+            text={checkoutSettings.freeShippingBarText || undefined}
+          />
+        )}
+
+        {/* Phase 5: Promotional Banners - Middle Position */}
+        {checkoutCustomizationEnabled && checkoutSettings?.promotionalBanners?.filter((b) => b.position === 'middle').map((banner) => (
+          <div
+            key={banner.id}
+            className={`mb-6 p-4 rounded-lg border ${banner.type === 'success'
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : banner.type === 'warning'
+                ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                : banner.type === 'danger'
+                  ? 'bg-red-50 border-red-200 text-red-800'
+                  : 'bg-blue-50 border-blue-200 text-blue-800'
+              }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">{banner.message}</p>
+              {banner.link && banner.linkText && (
+                <Link href={banner.link} className="text-sm font-semibold underline ml-4">
+                  {banner.linkText}
+                </Link>
+              )}
+            </div>
+          </div>
+        ))}
 
       <form onSubmit={handleSubmit}>
         <div className="grid lg:grid-cols-3 gap-8">
@@ -220,15 +533,17 @@ export function CheckoutContent() {
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">{t('checkout.email')}</Label>
+                  <Label htmlFor="email">{getFieldLabel('email', t('checkout.email'))}</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
+                    placeholder={getFieldPlaceholder('email')}
                     required
                     readOnly={!!session?.user?.email}
+                    className={buttonClass}
                   />
                 </div>
 
@@ -264,89 +579,405 @@ export function CheckoutContent() {
               </div>
             </div>
 
+            {/* Saved Addresses (for logged-in users) */}
+            {session && savedAddresses.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">Saved Addresses</h2>
+                  {savedAddresses.find(addr => addr.isDefault) && !useNewAddress && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const defaultAddr = savedAddresses.find(addr => addr.isDefault);
+                        if (defaultAddr) handleSelectSavedAddress(defaultAddr.id);
+                      }}
+                      className="gap-2"
+                    >
+                      <Zap className="h-4 w-4" />
+                      Use Default Address
+                    </Button>
+                  )}
+                </div>
+
+                <RadioGroup
+                  value={useNewAddress ? 'new' : selectedAddressId || ''}
+                  onValueChange={(value) => {
+                    if (value === 'new') {
+                      handleUseNewAddress();
+                    } else {
+                      handleSelectSavedAddress(value);
+                    }
+                  }}
+                  className="space-y-3"
+                >
+                  {savedAddresses.map((address) => (
+                    <div
+                      key={address.id}
+                      className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === address.id && !useNewAddress
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      onClick={() => handleSelectSavedAddress(address.id)}
+                    >
+                      <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={address.id} className="font-semibold cursor-pointer">
+                            {address.firstName} {address.lastName}
+                          </Label>
+                          {address.isDefault && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {address.address1}
+                          {address.address2 && `, ${address.address2}`}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {address.city}, {address.state} {address.postalCode}
+                        </p>
+                        {address.phone && (
+                          <p className="text-sm text-gray-600">{address.phone}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div
+                    className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${useNewAddress
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    onClick={handleUseNewAddress}
+                  >
+                    <RadioGroupItem value="new" id="new-address" className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor="new-address" className="font-semibold cursor-pointer flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Use a new address
+                      </Label>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Enter a different shipping address
+                      </p>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+
             {/* Shipping Address */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
               <h2 className="text-xl font-bold mb-4">{t('checkout.shippingAddress')}</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">{t('checkout.firstName')}</Label>
+                  <Label htmlFor="firstName">{getFieldLabel('firstName', t('checkout.firstName'))}</Label>
                   <Input
                     id="firstName"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
+                    placeholder={getFieldPlaceholder('firstName')}
+                    className={buttonClass}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">{t('checkout.lastName')}</Label>
+                  <Label htmlFor="lastName">{getFieldLabel('lastName', t('checkout.lastName'))}</Label>
                   <Input
                     id="lastName"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
+                    placeholder={getFieldPlaceholder('lastName')}
+                    className={buttonClass}
                     required
                   />
                 </div>
+
+                {/* Company Field - Conditional */}
+                {checkoutSettings?.showCompany && (
+                  <div className="col-span-2">
+                    <Label htmlFor="company">{getFieldLabel('company', 'Company (optional)')}</Label>
+                    <Input
+                      id="company"
+                      name="company"
+                      value={formData.company}
+                      onChange={handleChange}
+                      placeholder={getFieldPlaceholder('company')}
+                      className={buttonClass}
+                    />
+                  </div>
+                )}
+
+                {/* Address Field - Conditional based on feature flag */}
                 <div className="col-span-2">
-                  <Label htmlFor="address">{t('checkout.address')}</Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                  />
+                  {checkoutCustomizationEnabled ? (
+                    <AddressAutocomplete
+                      value={formData.address}
+                      onChange={(value) => setFormData({ ...formData, address: value })}
+                      onAddressSelect={handleAddressAutocompleteSelect}
+                      label={t('checkout.address')}
+                      required
+                    />
+                  ) : (
+                    <>
+                      <Label htmlFor="address">{t('checkout.address')}</Label>
+                      <Input
+                        id="address"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        placeholder="Street address"
+                        required
+                      />
+                    </>
+                  )}
                 </div>
+
+                {/* Region Selection - Only shown when autocomplete is disabled */}
+                {!checkoutCustomizationEnabled && (
+                  <div>
+                    <RegionSelect
+                      value={selectedRegionId}
+                      onChange={(value) => {
+                        setSelectedRegionId(value);
+                        // Clear city when region changes
+                        setFormData({ ...formData, city: '', state: value });
+                      }}
+                      label="Region"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* City Field - Conditional based on feature flag */}
                 <div>
-                  <Label htmlFor="city">{t('checkout.city')}</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                  />
+                  {checkoutCustomizationEnabled ? (
+                    <>
+                      <Label htmlFor="city">{t('checkout.city')}</Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        required
+                      />
+                    </>
+                  ) : (
+                    <CitySelect
+                      value={formData.city}
+                      onChange={(value) => setFormData({ ...formData, city: value })}
+                      regionId={selectedRegionId}
+                      label={t('checkout.city')}
+                      required
+                    />
+                  )}
                 </div>
-                <div>
-                  <Label htmlFor="state">{t('checkout.state')}</Label>
-                  <Input
-                    id="state"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="zip">{t('checkout.zip')}</Label>
-                  <Input
-                    id="zip"
-                    name="zip"
-                    value={formData.zip}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="country">{t('checkout.country')}</Label>
-                  <Input
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="phone">{t('checkout.phone')}</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                </div>
+
+                {/* State field - Only shown when autocomplete is enabled */}
+                {checkoutCustomizationEnabled && (
+                  <div>
+                    <Label htmlFor="state">{t('checkout.state')}</Label>
+                    <Input
+                      id="state"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                    />
+                  </div>
+                )}
+
+                {/* Address Line 2 - Conditional */}
+                {checkoutSettings?.showAddressLine2 && (
+                  <div className="col-span-2">
+                    <Label htmlFor="address2">Apartment, suite, etc. (optional)</Label>
+                    <Input
+                      id="address2"
+                      name="address2"
+                      value={formData.address2}
+                      onChange={handleChange}
+                    />
+                  </div>
+                )}
+
+
+                {/* Phone Field - Conditional */}
+                {checkoutSettings?.showPhone && (
+                  <div>
+                    <Label htmlFor="phone">{getFieldLabel('phone', 'Phone Number')}</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder={getFieldPlaceholder('phone')}
+                      className={buttonClass}
+                      required={checkoutSettings?.requirePhone}
+                    />
+                  </div>
+                )}
+
+                {/* Phase 2: Alternative Phone - Conditional */}
+                {checkoutSettings?.showAlternativePhone && (
+                  <div>
+                    <Label htmlFor="alternativePhone">{getFieldLabel('alternativePhone', 'Alternative Phone')}</Label>
+                    <Input
+                      id="alternativePhone"
+                      name="alternativePhone"
+                      type="tel"
+                      value={formData.alternativePhone}
+                      onChange={handleChange}
+                      placeholder={getFieldPlaceholder('alternativePhone')}
+                      className={buttonClass}
+                    />
+                  </div>
+                )}
+
+                {/* Phase 2: Delivery Date - Conditional */}
+                {checkoutSettings?.showDeliveryDate && (
+                  <div className="col-span-2">
+                    <Label htmlFor="deliveryDate">{getFieldLabel('deliveryDate', 'Preferred Delivery Date')}</Label>
+                    <Input
+                      id="deliveryDate"
+                      name="deliveryDate"
+                      type="date"
+                      value={formData.deliveryDate}
+                      onChange={handleChange}
+                      className={buttonClass}
+                    />
+                  </div>
+                )}
+
+                {/* Phase 2: Delivery Instructions - Conditional */}
+                {checkoutSettings?.showDeliveryInstructions && (
+                  <div className="col-span-2">
+                    <Label htmlFor="deliveryInstructions">
+                      {checkoutSettings?.deliveryInstructionsLabel || getFieldLabel('deliveryInstructions', 'Delivery Instructions')}
+                    </Label>
+                    <textarea
+                      id="deliveryInstructions"
+                      name="deliveryInstructions"
+                      value={formData.deliveryInstructions}
+                      onChange={(e) => setFormData({ ...formData, deliveryInstructions: e.target.value })}
+                      className={`w-full min-h-[80px] px-3 py-2 border ${buttonClass}`}
+                      placeholder={getFieldPlaceholder('deliveryInstructions', 'e.g., Leave at front door')}
+                    />
+                  </div>
+                )}
+
+                {/* Phase 2: Gift Message - Conditional */}
+                {checkoutSettings?.showGiftMessage && (
+                  <div className="col-span-2">
+                    <Label htmlFor="giftMessage">
+                      {checkoutSettings?.giftMessageLabel || getFieldLabel('giftMessage', 'Gift Message')}
+                    </Label>
+                    <textarea
+                      id="giftMessage"
+                      name="giftMessage"
+                      value={formData.giftMessage}
+                      onChange={(e) => setFormData({ ...formData, giftMessage: e.target.value })}
+                      className={`w-full min-h-[80px] px-3 py-2 border ${buttonClass}`}
+                      placeholder={getFieldPlaceholder('giftMessage', 'Add a personalized gift message...')}
+                    />
+                  </div>
+                )}
+
+                {/* Order Notes - Conditional */}
+                {checkoutSettings?.enableOrderNotes && (
+                  <div className="col-span-2">
+                    <Label htmlFor="orderNotes">
+                      {checkoutSettings?.orderNotesLabel || getFieldLabel('orderNotes', 'Order notes (optional)')}
+                    </Label>
+                    <textarea
+                      id="orderNotes"
+                      name="orderNotes"
+                      value={formData.orderNotes}
+                      onChange={(e) => setFormData({ ...formData, orderNotes: e.target.value })}
+                      className={`w-full min-h-[80px] px-3 py-2 border ${buttonClass}`}
+                      placeholder={getFieldPlaceholder('orderNotes', 'Any special instructions for your order...')}
+                    />
+                  </div>
+                )}
+
+                {/* Phase 2: Custom Fields */}
+                {checkoutSettings?.customFields && checkoutSettings.customFields.length > 0 && (
+                  <>
+                    {checkoutSettings.customFields.map((field) => (
+                      <div key={field.id} className={field.type === 'textarea' || field.type === 'select' ? 'col-span-2' : ''}>
+                        <Label htmlFor={field.id}>
+                          {field.label}
+                          {field.required && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                        {field.type === 'text' && (
+                          <Input
+                            id={field.id}
+                            value={customFieldsData[field.id] || ''}
+                            onChange={(e) => setCustomFieldsData({ ...customFieldsData, [field.id]: e.target.value })}
+                            placeholder={field.placeholder}
+                            required={field.required}
+                            className={buttonClass}
+                          />
+                        )}
+                        {field.type === 'textarea' && (
+                          <textarea
+                            id={field.id}
+                            value={customFieldsData[field.id] || ''}
+                            onChange={(e) => setCustomFieldsData({ ...customFieldsData, [field.id]: e.target.value })}
+                            placeholder={field.placeholder}
+                            required={field.required}
+                            className={`w-full min-h-[80px] px-3 py-2 border ${buttonClass}`}
+                          />
+                        )}
+                        {field.type === 'select' && (
+                          <select
+                            id={field.id}
+                            value={customFieldsData[field.id] || ''}
+                            onChange={(e) => setCustomFieldsData({ ...customFieldsData, [field.id]: e.target.value })}
+                            required={field.required}
+                            className={`w-full px-3 py-2 border ${buttonClass}`}
+                          >
+                            <option value="">Select an option...</option>
+                            {field.options?.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {field.type === 'checkbox' && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <input
+                              type="checkbox"
+                              id={field.id}
+                              checked={customFieldsData[field.id] || false}
+                              onChange={(e) => setCustomFieldsData({ ...customFieldsData, [field.id]: e.target.checked })}
+                              className="w-4 h-4"
+                              required={field.required}
+                            />
+                            <Label htmlFor={field.id} className="font-normal cursor-pointer">
+                              {field.placeholder || field.label}
+                            </Label>
+                          </div>
+                        )}
+                        {field.type === 'date' && (
+                          <Input
+                            type="date"
+                            id={field.id}
+                            value={customFieldsData[field.id] || ''}
+                            onChange={(e) => setCustomFieldsData({ ...customFieldsData, [field.id]: e.target.value })}
+                            required={field.required}
+                            className={buttonClass}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
 
@@ -361,42 +992,119 @@ export function CheckoutContent() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <h2 className="text-xl font-bold mb-4">{t('cart.orderSummary')}</h2>
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24 space-y-6">
+              {/* Phase 4: Trust Badges - Sidebar Position */}
+              {checkoutCustomizationEnabled && checkoutSettings?.trustBadges && checkoutSettings.trustBadges.length > 0 && (
+                <TrustBadges
+                  badges={checkoutSettings.trustBadges.filter((b) => b.position === 'sidebar')}
+                />
+              )}
+
+              <h2 className="text-xl font-bold">{t('cart.orderSummary')}</h2>
+
+              {/* Phase 5: Scarcity Message */}
+              {checkoutCustomizationEnabled && checkoutSettings?.scarcityMessage && (
+                <div
+                  className={`p-3 rounded-lg border ${checkoutSettings.urgencyBadgeStyle === 'danger'
+                    ? 'bg-red-50 border-red-200 text-red-800'
+                    : checkoutSettings.urgencyBadgeStyle === 'info'
+                      ? 'bg-blue-50 border-blue-200 text-blue-800'
+                      : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                    }`}
+                >
+                  <p className="text-sm font-medium">{checkoutSettings.scarcityMessage}</p>
+                </div>
+              )}
+
+              {/* Phase 4: Security Seals */}
+              {checkoutCustomizationEnabled && checkoutSettings?.showSecuritySeals && (
+                <SecuritySeals />
+              )}
+
+              {/* Phase 4: Customer Service Display */}
+              {checkoutCustomizationEnabled && checkoutSettings?.customerServiceDisplay && (
+                <CustomerServiceDisplay
+                  text={checkoutSettings.customerServiceText || undefined}
+                  phone={checkoutSettings.customerServicePhone || undefined}
+                  email={checkoutSettings.customerServiceEmail || undefined}
+                />
+              )}
 
               {/* Cart Items */}
               <div className="space-y-3 mb-4 border-b pb-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex gap-3">
-                    <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0">
-                      {item.image ? (
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          📦
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{item.name}</p>
-                      <p className="text-sm text-gray-600">{t('checkout.qty')} {item.quantity}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
+                  <div key={item.id}>
+                    <div className="flex gap-3">
+                      <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0">
+                        {item.image ? (
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            📦
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{item.name}</p>
+                        <p className="text-sm text-gray-600">{t('checkout.qty')} {item.quantity}</p>
+
+                        {/* Phase 5: Low Stock Warning */}
+                        {checkoutCustomizationEnabled && checkoutSettings?.showLowStock &&
+                          checkoutSettings.lowStockThreshold &&
+                          item.stock &&
+                          item.stock <= checkoutSettings.lowStockThreshold && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="text-orange-600 text-xs">⚠️</span>
+                              <p className="text-xs text-orange-600 font-medium">
+                                {checkoutSettings.lowStockText?.replace('X', item.stock.toString()) || `Only ${item.stock} left!`}
+                              </p>
+                            </div>
+                          )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Discount Code */}
-              <div className="mb-4 border-b pb-4">
+              {/* Phase 5: Loyalty Points */}
+              {checkoutCustomizationEnabled && checkoutSettings?.showLoyaltyPoints && checkoutSettings.loyaltyPointsText && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-sm text-amber-800">{checkoutSettings.loyaltyPointsText}</p>
+                </div>
+              )}
+
+              {/* Phase 5: Gift with Purchase */}
+              {checkoutCustomizationEnabled && checkoutSettings?.showGiftWithPurchase &&
+                checkoutSettings.giftThreshold &&
+                subtotal >= checkoutSettings.giftThreshold && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <span className="text-purple-600">🎁</span>
+                      <p className="text-sm text-purple-800">{checkoutSettings.giftDescription}</p>
+                    </div>
+                  </div>
+                )}
+
+              {/* Phase 5: Referral Discount */}
+              {checkoutCustomizationEnabled && checkoutSettings?.referralDiscountEnabled && checkoutSettings.referralDiscountText && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                  <p className="text-sm text-indigo-800">{checkoutSettings.referralDiscountText}</p>
+                </div>
+              )}
+
+              {/* Discount Code - Position controlled by Phase 5 settings */}
+              <div className={`border-b pb-4 ${checkoutSettings?.discountFieldPosition === 'top' ? 'order-first' : checkoutSettings?.discountFieldPosition === 'bottom' ? 'order-last' : ''
+                }`}>
                 <Label htmlFor="discountCode" className="mb-2 block">
                   {t('checkout.discountCode')}
                 </Label>
@@ -477,8 +1185,12 @@ export function CheckoutContent() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full"
+                className={`w-full ${buttonClass}`}
                 disabled={isSubmitting}
+                style={{
+                  backgroundColor: checkoutSettings?.primaryColor || undefined,
+                  borderColor: checkoutSettings?.primaryColor || undefined,
+                }}
               >
                 {isSubmitting ? t('checkout.placingOrder') : t('checkout.placeOrder')}
               </Button>
@@ -495,6 +1207,61 @@ export function CheckoutContent() {
           </div>
         </div>
       </form>
+
+      {/* Phase 4: Money-Back Guarantee */}
+      {checkoutCustomizationEnabled && checkoutSettings?.moneyBackGuarantee && (
+        <div className="mt-8">
+          <MoneyBackGuarantee text={checkoutSettings.moneyBackGuarantee} />
+        </div>
+      )}
+
+      {/* Phase 4: Testimonials Carousel */}
+      {checkoutCustomizationEnabled && checkoutSettings?.showTestimonials &&
+        checkoutSettings.testimonials &&
+        checkoutSettings.testimonials.length > 0 && (
+          <div className="mt-8">
+            <TestimonialsCarousel testimonials={checkoutSettings.testimonials} />
+          </div>
+        )}
+
+      {/* Phase 4: Trust Badges - Footer Position */}
+      {checkoutCustomizationEnabled && checkoutSettings?.trustBadges && checkoutSettings.trustBadges.length > 0 && (
+        <div className="mt-8">
+          <TrustBadges
+            badges={checkoutSettings.trustBadges.filter((b) => b.position === 'footer')}
+          />
+        </div>
+      )}
+
+      {/* Phase 5: Promotional Banners - Bottom Position */}
+      {checkoutCustomizationEnabled && checkoutSettings?.promotionalBanners?.filter((b) => b.position === 'bottom').map((banner) => (
+        <div
+          key={banner.id}
+          className={`mt-6 p-4 rounded-lg border ${banner.type === 'success'
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : banner.type === 'warning'
+              ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+              : banner.type === 'danger'
+                ? 'bg-red-50 border-red-200 text-red-800'
+                : 'bg-blue-50 border-blue-200 text-blue-800'
+            }`}
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">{banner.message}</p>
+            {banner.link && banner.linkText && (
+              <Link href={banner.link} className="text-sm font-semibold underline ml-4">
+                {banner.linkText}
+              </Link>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Phase 4: Recent Purchase Popup */}
+    {checkoutCustomizationEnabled && checkoutSettings?.showRecentPurchases && (
+      <RecentPurchasePopup delay={checkoutSettings.recentPurchaseDelay || 5000} />
+    )}
     </div>
   );
 }

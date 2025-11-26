@@ -8,6 +8,13 @@ import { MediaUploader } from '../MediaUploader/MediaUploader';
 import { MediaItem, MediaFilters } from '../types';
 import { Input } from '@/components/ui/input';
 import { Search, Upload, Check } from 'lucide-react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'react-hot-toast';
 
 interface MediaPickerProps {
@@ -25,18 +32,23 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
     multiple = false,
     type
 }) => {
+
     const [items, setItems] = useState<MediaItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedItems, setSelectedItems] = useState<MediaItem[]>([]);
     const [showUploader, setShowUploader] = useState(false);
     const [search, setSearch] = useState('');
 
+    const [filterType, setFilterType] = useState<string>('ALL');
+
     const fetchMedia = async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
             if (search) params.append('search', search);
-            if (type) params.append('type', type);
+            // Use prop type if available, otherwise use local filter
+            const typeToUse = type || (filterType !== 'ALL' ? filterType : undefined);
+            if (typeToUse) params.append('type', typeToUse);
 
             const res = await fetch(`/api/media?${params.toString()}`);
             const data = await res.json();
@@ -56,7 +68,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
             fetchMedia();
             setSelectedItems([]);
         }
-    }, [open, search]);
+    }, [open, search, filterType]); // Add filterType dependency
 
     const handleSelect = (item: MediaItem) => {
         if (multiple) {
@@ -83,13 +95,13 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 gap-0">
-                <DialogHeader className="p-4 border-b">
+            <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
+                <DialogHeader className="p-4 border-b bg-white z-10">
                     <div className="flex items-center justify-between">
-                        <DialogTitle>Select Media</DialogTitle>
+                        <DialogTitle className="text-xl font-semibold">Media Library</DialogTitle>
                         <div className="flex items-center gap-2">
                             <Button
-                                variant={showUploader ? "secondary" : "outline"}
+                                variant={showUploader ? "secondary" : "default"}
                                 size="sm"
                                 onClick={() => setShowUploader(!showUploader)}
                             >
@@ -100,22 +112,37 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="flex-1 overflow-hidden flex flex-col bg-gray-50/50">
                     {!showUploader && (
-                        <div className="p-4 border-b bg-muted/20">
-                            <div className="relative">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <div className="p-4 border-b bg-white flex flex-col sm:flex-row gap-4 items-center">
+                            <div className="relative flex-1 w-full">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Search media..."
-                                    className="pl-8"
+                                    placeholder="Search media files..."
+                                    className="pl-9 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                 />
                             </div>
+                            {!type && (
+                                <div className="w-full sm:w-[200px]">
+                                    <Select value={filterType} onValueChange={setFilterType}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Filter by type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="ALL">All Media</SelectItem>
+                                            <SelectItem value="IMAGE">Images</SelectItem>
+                                            <SelectItem value="VIDEO">Videos</SelectItem>
+                                            <SelectItem value="DOCUMENT">Documents</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex-1 overflow-y-auto p-6">
                         {showUploader ? (
                             <MediaUploader onUploadComplete={handleUploadComplete} />
                         ) : (
@@ -130,15 +157,22 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
                     </div>
                 </div>
 
-                <div className="p-4 border-t bg-muted/20 flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                        {selectedItems.length} item{selectedItems.length !== 1 && 's'} selected
+                <div className="p-4 border-t bg-white flex justify-between items-center z-10">
+                    <div className="flex items-center gap-4">
+                        <div className="text-sm text-muted-foreground">
+                            {selectedItems.length} item{selectedItems.length !== 1 && 's'} selected
+                        </div>
+                        {selectedItems.length > 0 && (
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedItems([])} className="text-muted-foreground hover:text-foreground">
+                                Clear selection
+                            </Button>
+                        )}
                     </div>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={() => onOpenChange(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={handleConfirm} disabled={selectedItems.length === 0}>
+                        <Button onClick={handleConfirm} disabled={selectedItems.length === 0} className="px-8">
                             <Check className="mr-2 h-4 w-4" />
                             Insert Selected
                         </Button>

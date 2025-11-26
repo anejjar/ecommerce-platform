@@ -14,6 +14,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { slug: true, updatedAt: true },
   });
 
+  const blogPosts = await prisma.blogPost.findMany({
+    where: { published: true },
+    select: { slug: true, updatedAt: true },
+  });
+
   const generateLocalizedUrls = (
     path: string,
     lastModified: Date,
@@ -46,6 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...generateLocalizedUrls('/shop', new Date(), 'daily', 0.9),
     ...generateLocalizedUrls('/cart', new Date(), 'weekly', 0.6),
     ...generateLocalizedUrls('/account', new Date(), 'weekly', 0.5),
+    ...generateLocalizedUrls('/blog', new Date(), 'daily', 0.8),
   ];
 
   const productPages = products.flatMap((product) =>
@@ -56,5 +62,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     generateLocalizedUrls(`/shop?category=${category.slug}`, category.updatedAt, 'weekly', 0.7)
   );
 
-  return [...staticPages, ...productPages, ...categoryPages];
+  const blogPages = blogPosts.flatMap((post) =>
+    generateLocalizedUrls(`/blog/${post.slug}`, post.updatedAt, 'weekly', 0.7)
+  );
+
+  return [...staticPages, ...productPages, ...categoryPages, ...blogPages];
 }

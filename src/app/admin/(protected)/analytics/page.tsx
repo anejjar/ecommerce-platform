@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Analytics & Reports</h1>

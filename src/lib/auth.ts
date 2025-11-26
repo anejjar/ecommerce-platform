@@ -53,7 +53,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         return {
           ...token,
@@ -61,9 +61,42 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
         };
       }
+
+      // Validate session hasn't been invalidated
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { sessionsInvalidatedAt: true, role: true },
+        });
+
+        if (dbUser) {
+          // Check if JWT was issued before sessions were invalidated
+          if (dbUser.sessionsInvalidatedAt) {
+            const tokenIssuedAt = token.iat ? token.iat * 1000 : 0; // Convert to milliseconds
+            const invalidatedAt = new Date(dbUser.sessionsInvalidatedAt).getTime();
+
+            if (tokenIssuedAt < invalidatedAt) {
+              // Session has been invalidated - return null to force re-login
+              return null as any;
+            }
+          }
+
+          // Update role in token if it changed
+          token.role = dbUser.role;
+        } else {
+          // User no longer exists
+          return null as any;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
+      // If token is null, session is invalid
+      if (!token) {
+        return null as any;
+      }
+
       return {
         ...session,
         user: {

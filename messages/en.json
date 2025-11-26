@@ -323,7 +323,13 @@
     "signInPrompt": "Sign in to checkout",
     "or": "or",
     "continueAsGuest": "Continue as Guest",
-    "createAccount": "Create an account with this information"
+    "createAccount": "Create an account with this information",
+    "contactInfo": "Contact Information",
+    "qty": "Qty:",
+    "discountCode": "Discount Code",
+    "enterCode": "Enter code",
+    "apply": "Apply",
+    "remove": "Remove"
   },
   "auth": {
     "signIn": "Sign In",

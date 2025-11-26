@@ -34,6 +34,7 @@ import {
   Megaphone,
   FileText,
   ExternalLink,
+  Database,
 } from "lucide-react"
 
 interface NavItem {
@@ -57,6 +58,7 @@ const navigation: NavItem[] = [
     name: "Analytics",
     href: "/admin/analytics",
     icon: BarChart3,
+    featureFlag: "analytics_dashboard",
   },
   {
     name: "Catalog",
@@ -77,8 +79,11 @@ const navigation: NavItem[] = [
   },
   {
     name: "Customers",
-    href: "/admin/customers",
     icon: Users,
+    children: [
+      { name: "All Customers", href: "/admin/customers" },
+      { name: "Deletion Requests", href: "/admin/customers/deletion-requests" },
+    ],
   },
   {
     name: "Reviews",
@@ -86,10 +91,22 @@ const navigation: NavItem[] = [
     icon: Star,
   },
   {
+    name: "Inventory",
+    icon: Package2,
+    featureFlag: "inventory_management",
+    children: [
+      { name: "Dashboard", href: "/admin/inventory" },
+      { name: "Stock History", href: "/admin/inventory/stock-history" },
+      { name: "Suppliers", href: "/admin/inventory/suppliers" },
+      { name: "Purchase Orders", href: "/admin/inventory/purchase-orders" },
+      { name: "Bulk Update", href: "/admin/inventory/bulk-update" },
+      { name: "Low Stock Alerts", href: "/admin/inventory/alerts" },
+    ],
+  },
+  {
     name: "Alerts",
     icon: AlertTriangle,
     children: [
-      { name: "Stock Alerts", href: "/admin/stock-alerts" },
       { name: "Newsletter", href: "/admin/newsletter" },
     ],
   },
@@ -98,6 +115,7 @@ const navigation: NavItem[] = [
     icon: Megaphone,
     children: [
       { name: "Abandoned Carts", href: "/admin/abandoned-carts" },
+      { name: "Popups", href: "/admin/popups" },
       { name: "Email Campaigns", href: "/admin/marketing/email-campaigns" },
     ],
   },
@@ -115,6 +133,21 @@ const navigation: NavItem[] = [
       { name: "Blog Posts", href: "/admin/cms/posts" },
       { name: "Pages", href: "/admin/cms/pages" },
       { name: "Categories & Tags", href: "/admin/cms/categories" },
+    ],
+  },
+  {
+    name: "Templates",
+    href: "/admin/templates",
+    icon: FileText,
+    featureFlag: "template_manager",
+  },
+  {
+    name: "Backup & Export",
+    icon: Database,
+    featureFlag: "backup_export",
+    children: [
+      { name: "Backups", href: "/admin/backup" },
+      { name: "Data Export", href: "/admin/export" },
     ],
   },
   {
@@ -218,9 +251,12 @@ export function AdminSidebar() {
       <ScrollArea className="flex-1 px-3">
         <nav className="grid items-start gap-2 text-sm font-medium py-4">
           {navigation.filter(item => {
+            // SUPERADMIN-only features
             if (item.name === 'Features' && (session?.user?.role as string) !== 'SUPERADMIN') return false;
-            if (item.name === 'Analytics' && !enabledFeatures.includes('analytics_dashboard')) return false;
-            if (item.name === 'Marketing' && !enabledFeatures.includes('email_campaigns')) return false;
+
+            // PRO features - check feature flags
+            if (item.featureFlag && !enabledFeatures.includes(item.featureFlag)) return false;
+
             return true;
           }).map((item) => {
             // Filter children based on feature flags
@@ -228,7 +264,9 @@ export function AdminSidebar() {
             if (item.children) {
               filteredItem.children = item.children.filter(child => {
                 if (child.name === 'Refunds' && !enabledFeatures.includes('refund_management')) return false;
-                if (child.name === 'Templates' && !enabledFeatures.includes('template_manager')) return false;
+                if (child.name === 'Abandoned Carts' && !enabledFeatures.includes('abandoned_cart')) return false;
+                if (child.name === 'Popups' && !enabledFeatures.includes('exit_intent_popups')) return false;
+                if (child.name === 'Email Campaigns' && !enabledFeatures.includes('email_campaigns')) return false;
                 return true;
               });
               // Hide parent if no children remain

@@ -41,6 +41,7 @@ export default function FeaturesPage() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, ACTIVE, INACTIVE
+  const [buildStatusFilter, setBuildStatusFilter] = useState('ALL'); // ALL, COMPLETED, PARTIAL, PENDING
 
   // Redirect if not SUPERADMIN
   useEffect(() => {
@@ -120,9 +121,17 @@ export default function FeaturesPage() {
         (statusFilter === 'ACTIVE' && feature.enabled) ||
         (statusFilter === 'INACTIVE' && !feature.enabled);
 
-      return matchesSearch && matchesStatus;
+      const featureDoc = getFeatureDoc(feature.name);
+      const buildStatus = featureDoc?.status || 'pending';
+      const matchesBuildStatus =
+        buildStatusFilter === 'ALL' ||
+        (buildStatusFilter === 'COMPLETED' && buildStatus === 'completed') ||
+        (buildStatusFilter === 'PARTIAL' && buildStatus === 'partial') ||
+        (buildStatusFilter === 'PENDING' && buildStatus === 'pending');
+
+      return matchesSearch && matchesStatus && matchesBuildStatus;
     });
-  }, [features, searchQuery, statusFilter]);
+  }, [features, searchQuery, statusFilter, buildStatusFilter]);
 
   const groupedFeatures = useMemo(() => {
     return filteredFeatures.reduce((acc, feature) => {
@@ -189,6 +198,17 @@ export default function FeaturesPage() {
               <SelectItem value="INACTIVE">Inactive</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={buildStatusFilter} onValueChange={setBuildStatusFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Build Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Features</SelectItem>
+              <SelectItem value="COMPLETED">Built ✓</SelectItem>
+              <SelectItem value="PARTIAL">Partially Built</SelectItem>
+              <SelectItem value="PENDING">Not Built Yet</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -233,6 +253,31 @@ function FeatureCategoryGroup({
 }: any) {
   const [isOpen, setIsOpen] = useState(true);
 
+  const getBuildStatusBadge = (featureName: string) => {
+    const featureDoc = getFeatureDoc(featureName);
+    const buildStatus = featureDoc?.status || 'pending';
+
+    if (buildStatus === 'completed') {
+      return (
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-900">
+          Built ✓
+        </Badge>
+      );
+    } else if (buildStatus === 'partial') {
+      return (
+        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-200 dark:border-yellow-900">
+          Partially Built
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="bg-gray-500/10 text-gray-600 border-gray-200 dark:border-gray-700">
+          Not Built Yet
+        </Badge>
+      );
+    }
+  };
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-2">
       <div className="flex items-center justify-between px-1">
@@ -276,12 +321,13 @@ function FeatureCategoryGroup({
                 <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">
                   {feature.description || 'No description available.'}
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
                   {feature.enabled && (
                     <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200 dark:border-green-900">
                       Active
                     </Badge>
                   )}
+                  {getBuildStatusBadge(feature.name)}
                 </div>
                 <div className="mt-3 flex gap-2">
                   <Link href={`/admin/features/docs/${feature.name}`} className="flex-1">

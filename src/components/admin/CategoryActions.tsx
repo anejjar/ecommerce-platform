@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,13 +28,14 @@ export function CategoryActions({ categoryId }: { categoryId: string }) {
       });
 
       if (response.ok) {
+        toast.success('Category deleted successfully');
         router.refresh();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to delete category');
+        toast.error(error.error || 'Failed to delete category');
       }
     } catch (error) {
-      alert('An error occurred while deleting the category');
+      toast.error('An error occurred while deleting the category');
     } finally {
       setIsDeleting(false);
     }

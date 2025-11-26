@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -64,12 +65,12 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       if (response.ok) {
         const updated = await response.json();
         setCustomer(updated);
-        alert('Notes saved successfully');
+        toast.success('Notes saved successfully');
       } else {
-        alert('Failed to save notes');
+        toast.error('Failed to save notes');
       }
     } catch (error) {
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsSaving(false);
     }

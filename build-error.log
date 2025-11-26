@@ -1,0 +1,83 @@
+
+> ecommerce-platform@0.1.0 build
+> next build
+
+   Γû▓ Next.js 16.0.3 (Turbopack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 2 errors:
+./src/app/admin/(protected)/inventory/bulk-update/page.tsx:26:1
+Module not found: Can't resolve '@/components/ui/popover'
+  24 |   CommandItem,
+  25 | } from '@/components/ui/command';
+> 26 | import {
+     | ^^^^^^^^
+> 27 |   Popover,
+     | ^^^^^^^^^^
+> 28 |   PopoverContent,
+     | ^^^^^^^^^^
+> 29 |   PopoverTrigger,
+     | ^^^^^^^^^^
+> 30 | } from '@/components/ui/popover';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  31 | import { Badge } from '@/components/ui/badge';
+  32 | import { ArrowLeft, Plus, Trash2, Upload, FileText, Check, Search, AlertCircle } from 'lucide-react';
+  33 | import toast from 'react-hot-toast';
+
+Import map: aliased to relative './src/components/ui/popover' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/admin/(protected)/inventory/bulk-update/page.tsx [Client Component Browser]
+    ./src/app/admin/(protected)/inventory/bulk-update/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/admin/(protected)/inventory/bulk-update/page.tsx [Client Component SSR]
+    ./src/app/admin/(protected)/inventory/bulk-update/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./src/components/admin/PurchaseOrderForm.tsx:17:1
+Module not found: Can't resolve '@/components/ui/popover'
+  15 |   CommandItem,
+  16 | } from '@/components/ui/command';
+> 17 | import {
+     | ^^^^^^^^
+> 18 |   Popover,
+     | ^^^^^^^^^^
+> 19 |   PopoverContent,
+     | ^^^^^^^^^^
+> 20 |   PopoverTrigger,
+     | ^^^^^^^^^^
+> 21 | } from '@/components/ui/popover';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  22 | import { Plus, Trash2, Search, Check } from 'lucide-react';
+  23 | import toast from 'react-hot-toast';
+  24 |
+
+Import map: aliased to relative './src/components/ui/popover' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/admin/PurchaseOrderForm.tsx [Client Component Browser]
+    ./src/app/admin/(protected)/inventory/purchase-orders/new/page.tsx [Client Component Browser]
+    ./src/app/admin/(protected)/inventory/purchase-orders/new/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/admin/PurchaseOrderForm.tsx [Client Component SSR]
+    ./src/app/admin/(protected)/inventory/purchase-orders/new/page.tsx [Client Component SSR]
+    ./src/app/admin/(protected)/inventory/purchase-orders/new/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./src/app/admin/(protected)/inventory/bulk-update/page.tsx:26:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./src/components/admin/PurchaseOrderForm.tsx:17:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

@@ -10,6 +10,8 @@ import { ImageUpload } from '@/components/admin/ImageUpload';
 import { ProductVariants } from '@/components/admin/ProductVariants';
 import { StockAlertConfig } from '@/components/admin/StockAlertConfig';
 import { ProductTranslationManager } from '@/components/admin/ProductTranslationManager';
+import { ProductCustomizationFields } from '@/components/admin/ProductCustomizationFields';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -139,18 +141,27 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Edit Product</h1>
         <p className="text-gray-600 mt-2">Update product details</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <Tabs defaultValue="details" className="w-full">
+        <TabsList>
+          <TabsTrigger value="details">Product Details</TabsTrigger>
+          <TabsTrigger value="customization">Customization</TabsTrigger>
+          <TabsTrigger value="variants">Variants</TabsTrigger>
+          <TabsTrigger value="translations">Translations</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name *</Label>
               <Input
@@ -310,11 +321,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
       {/* Stock Alert Configuration */}
       <StockAlertConfig productId={id} currentStock={parseInt(formData.stock) || 0} />
+        </TabsContent>
 
-      {/* Product Variants Section */}
-      {/* Product Translations */}
-      <ProductTranslationManager productId={id} productName={formData.name} />
-      <ProductVariants productId={id} basePrice={parseFloat(formData.price) || 0} />
+        <TabsContent value="customization" className="space-y-6">
+          <ProductCustomizationFields productId={id} />
+        </TabsContent>
+
+        <TabsContent value="variants" className="space-y-6">
+          <ProductVariants productId={id} basePrice={parseFloat(formData.price) || 0} />
+        </TabsContent>
+
+        <TabsContent value="translations" className="space-y-6">
+          <ProductTranslationManager productId={id} productName={formData.name} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

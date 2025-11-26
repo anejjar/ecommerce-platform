@@ -1,0 +1,24 @@
+
+> ecommerce-platform@0.1.0 build
+> next build
+
+   Γû▓ Next.js 16.0.3 (Turbopack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 21.0s
+   Running TypeScript ...
+Failed to compile.
+
+./src/app/admin/(protected)/popups/[id]/analytics/page.tsx:245:58
+Type error: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+
+  243 |                 <div
+  244 |                   className="h-full bg-green-500"
+> 245 |                   style={{ width: `${Math.min(parseFloat(rates.ctr) * 10, 100)}%` }}
+      |                                                          ^
+  246 |                 />
+  247 |               </div>
+  248 |               <span className="text-sm font-medium">{rates.ctr}%</span>
+Next.js build worker exited with code: 1 and signal: null

@@ -22,6 +22,7 @@ export default function SEOSettingsPage() {
     seo_twitter_handle: '',
     seo_google_analytics_id: '',
     seo_google_search_console_id: '',
+    seo_robots_txt: '',
   });
 
   useEffect(() => {
@@ -215,6 +216,32 @@ export default function SEOSettingsPage() {
                 onChange={handleChange}
                 placeholder="verification code"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Robots.txt */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Robots.txt Configuration</CardTitle>
+            <CardDescription>Control which pages search engines can crawl</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="seo_robots_txt">Custom Robots.txt Rules</Label>
+              <Textarea
+                id="seo_robots_txt"
+                name="seo_robots_txt"
+                value={settings.seo_robots_txt}
+                onChange={handleChange}
+                rows={10}
+                placeholder={`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /account/`}
+                className="font-mono text-sm"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Enter valid robots.txt rules. These will override the default rules.
+                Leave empty to use defaults.
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -7,9 +7,18 @@ import { uploadToCloudinary } from '@/lib/cloudinary';
 export async function POST(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-
         if (!session || !['ADMIN', 'SUPERADMIN', 'MANAGER', 'EDITOR'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Verify user exists in database (handles stale sessions after DB resets)
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+        });
+        console.log(user)
+
+        if (!user) {
+            return NextResponse.json({ error: 'User record not found. Please login again.' }, { status: 401 });
         }
 
         const formData = await req.formData();

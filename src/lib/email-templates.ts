@@ -190,7 +190,7 @@ export function lowStockAlertEmail(products: Array<{ name: string; sku: string |
       `).join('')}
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/stock-alerts" class="button">
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/settings/stock-alerts" class="button">
       View Stock Alerts
     </a>
 
@@ -371,12 +371,12 @@ export function adminNewReviewEmail(
         <div style="margin-bottom: 10px;">
           <strong>Reviewer:</strong> ${customerName}<br>
           <strong>Submitted:</strong> ${new Date(review.createdAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })}
         </div>
 
         ${review.title ? `
@@ -414,12 +414,12 @@ export function customerOrderNoteEmail(
     <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
       <div style="margin-bottom: 10px; font-size: 12px; color: #1e40af;">
         <strong>${addedBy}</strong> • ${new Date(addedAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })}
       </div>
       <div style="color: #1e3a8a; line-height: 1.6;">
         ${note}

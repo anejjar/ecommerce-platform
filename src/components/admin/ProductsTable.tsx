@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import {
   Table,
   TableBody,
@@ -70,14 +71,15 @@ export function ProductsTable({ products }: ProductsTableProps) {
       });
 
       if (response.ok) {
+        toast.success(`Successfully deleted ${selectedIds.length} product(s)`);
         setSelectedIds([]);
         router.refresh();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to delete products');
+        toast.error(error.error || 'Failed to delete products');
       }
     } catch (error) {
-      alert('An error occurred while deleting products');
+      toast.error('An error occurred while deleting products');
     } finally {
       setIsProcessing(false);
     }
@@ -98,14 +100,15 @@ export function ProductsTable({ products }: ProductsTableProps) {
       });
 
       if (response.ok) {
+        toast.success(`Successfully ${publish ? 'published' : 'unpublished'} ${selectedIds.length} product(s)`);
         setSelectedIds([]);
         router.refresh();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to update products');
+        toast.error(error.error || 'Failed to update products');
       }
     } catch (error) {
-      alert('An error occurred while updating products');
+      toast.error('An error occurred while updating products');
     } finally {
       setIsProcessing(false);
     }
@@ -126,14 +129,15 @@ export function ProductsTable({ products }: ProductsTableProps) {
       });
 
       if (response.ok) {
+        toast.success(`Successfully ${featured ? 'featured' : 'unfeatured'} ${selectedIds.length} product(s)`);
         setSelectedIds([]);
         router.refresh();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to update products');
+        toast.error(error.error || 'Failed to update products');
       }
     } catch (error) {
-      alert('An error occurred while updating products');
+      toast.error('An error occurred while updating products');
     } finally {
       setIsProcessing(false);
     }

@@ -326,7 +326,13 @@
     "signInPrompt": "Connectez-vous pour passer la commande",
     "or": "ou",
     "continueAsGuest": "Continuer en tant qu'invité",
-    "createAccount": "Créer un compte avec ces informations"
+    "createAccount": "Créer un compte avec ces informations",
+    "contactInfo": "Informations de contact",
+    "qty": "Qté :",
+    "discountCode": "Code de réduction",
+    "apply": "Appliquer",
+    "remove": "Retirer",
+    "enterCode": "Entrer le code"
   },
   "auth": {
     "signIn": "Se connecter",

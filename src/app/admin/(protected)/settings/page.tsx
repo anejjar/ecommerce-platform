@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ChangePasswordDialog } from '@/components/admin/ChangePasswordDialog';
 import {
     Settings,
     Users,
@@ -13,7 +15,11 @@ import {
     Truck,
     Share2,
     Palette,
-    Languages
+    Languages,
+    Lock,
+    User,
+    ShoppingCart,
+    AlertTriangle
 } from 'lucide-react';
 
 interface FeatureFlags {
@@ -24,6 +30,7 @@ interface FeatureFlags {
 export default function SettingsPage() {
     const [enabledFeatures, setEnabledFeatures] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
     useEffect(() => {
         const fetchFeatures = async () => {
@@ -49,7 +56,8 @@ export default function SettingsPage() {
             description: "Configure general store settings, currency, and timezone.",
             href: "/admin/settings/general",
             icon: Settings,
-            visible: true
+            visible: true,
+            premium: false
         },
         {
             title: "Admin Users",
@@ -87,6 +95,14 @@ export default function SettingsPage() {
             visible: enabledFeatures.includes('template_manager')
         },
         {
+            title: "Checkout Settings",
+            description: "Customize checkout fields, messages, and region/city management. Premium features include branding, trust elements, and marketing tools.",
+            href: "/admin/settings/checkout",
+            icon: ShoppingCart,
+            visible: true,
+            premium: false
+        },
+        {
             title: "Shipping & Tax",
             description: "Configure shipping zones, rates, and tax rules.",
             href: "/admin/settings/shipping",
@@ -112,6 +128,13 @@ export default function SettingsPage() {
             description: "Manage languages and translations.",
             href: "/admin/settings/translations",
             icon: Languages,
+            visible: true
+        },
+        {
+            title: "Stock Alerts",
+            description: "Monitor low stock products and configure alert thresholds.",
+            href: "/admin/settings/stock-alerts",
+            icon: AlertTriangle,
             visible: true
         }
     ];
@@ -142,11 +165,44 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Profile & Security Card */}
+                <Card className="h-full transition-all hover:shadow-md hover:border-primary/50">
+                    <CardHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                <User className="w-5 h-5" />
+                            </div>
+                            <CardTitle className="text-lg">Profile & Security</CardTitle>
+                        </div>
+                        <CardDescription>
+                            Manage your account password and security settings.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => setChangePasswordOpen(true)}
+                        >
+                            <Lock className="w-4 h-4 mr-2" />
+                            Change Password
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                {/* Other Settings Cards */}
                 {settingsItems.filter(item => item.visible).map((item) => {
                     const Icon = item.icon;
                     return (
                         <Link key={item.href} href={item.href} className="block h-full">
-                            <Card className="h-full transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">
+                            <Card className="h-full transition-all hover:shadow-md hover:border-primary/50 cursor-pointer relative">
+                                {item.premium && (
+                                    <div className="absolute top-3 right-3">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                                            PREMIUM
+                                        </span>
+                                    </div>
+                                )}
                                 <CardHeader>
                                     <div className="flex items-center gap-3 mb-2">
                                         <div className="p-2 rounded-lg bg-primary/10 text-primary">
@@ -163,6 +219,12 @@ export default function SettingsPage() {
                     );
                 })}
             </div>
+
+            {/* Change Password Dialog */}
+            <ChangePasswordDialog
+                open={changePasswordOpen}
+                onOpenChange={setChangePasswordOpen}
+            />
         </div>
     );
 }

@@ -70,7 +70,14 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({ onUploadComplete, 
                     if (xhr.status >= 200 && xhr.status < 300) {
                         resolve(JSON.parse(xhr.responseText));
                     } else {
-                        reject(new Error('Upload failed'));
+                        let errorMessage = 'Upload failed';
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.error) errorMessage = response.error;
+                        } catch {
+                            // ignore json parse error
+                        }
+                        reject(new Error(errorMessage));
                     }
                 };
                 xhr.onerror = () => reject(new Error('Upload failed'));
@@ -85,8 +92,9 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({ onUploadComplete, 
                 prev.map((u) => (u.id === upload.id ? { ...u, progress: 100, status: 'completed' } : u))
             );
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed';
             setUploads((prev) =>
-                prev.map((u) => (u.id === upload.id ? { ...u, status: 'error', error: 'Failed' } : u))
+                prev.map((u) => (u.id === upload.id ? { ...u, status: 'error', error: errorMessage } : u))
             );
         }
     };
@@ -185,9 +193,9 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({ onUploadComplete, 
                                         </div>
                                     )}
                                     {upload.status === 'error' && (
-                                        <div className="flex items-center text-red-600">
+                                        <div className="flex items-center text-red-600" title={upload.error}>
                                             <AlertCircle className="mr-1 h-4 w-4" />
-                                            <span className="text-xs">Error</span>
+                                            <span className="text-xs max-w-[150px] truncate">{upload.error || 'Error'}</span>
                                         </div>
                                     )}
                                     {upload.status === 'pending' && (

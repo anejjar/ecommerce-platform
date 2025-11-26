@@ -13,17 +13,20 @@ export default async function OrderConfirmationPage({
 }) {
   const { orderNumber } = await params;
 
-  const order = await prisma.order.findUnique({
-    where: { orderNumber },
-    include: {
-      items: {
-        include: {
-          product: true,
+  const [order, checkoutSettings] = await Promise.all([
+    prisma.order.findUnique({
+      where: { orderNumber },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
         },
+        shippingAddress: true,
       },
-      shippingAddress: true,
-    },
-  });
+    }),
+    prisma.checkoutSettings.findFirst(),
+  ]);
 
   if (!order) {
     notFound();
@@ -38,9 +41,9 @@ export default async function OrderConfirmationPage({
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
               <h1 className="text-3xl font-bold mb-2">Order Confirmed!</h1>
-              <p className="text-gray-600 mb-6">
-                Thank you for your purchase. Your order has been received and is
-                being processed.
+              <p className="text-gray-600 mb-6 whitespace-pre-wrap">
+                {checkoutSettings?.thankYouMessage ||
+                  'Thank you for your purchase. Your order has been received and is being processed.'}
               </p>
 
               <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">

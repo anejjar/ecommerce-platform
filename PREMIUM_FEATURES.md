@@ -439,29 +439,6 @@ Enhanced inventory tracking and management tools.
 
 **Location:** `/admin/stock-alerts`
 
----
-
-### 16. Customer Support Ticket System
-**Feature ID:** `support_tickets`
-**Tier:** PRO
-**Status:** ⏳ Pending
-
-**Description:**
-Built-in helpdesk for managing customer inquiries.
-
-**Planned Features:**
-- Customers submit tickets from account page
-- Ticket status tracking (Open, In Progress, Resolved, Closed)
-- Admin dashboard to manage tickets
-- Internal notes and customer replies
-- Email notifications
-- Ticket assignment to admins
-- Ticket priority levels
-- SLA tracking
-- Canned responses
-
----
-
 ### 17. Template Manager
 **Feature ID:** `template_manager`
 **Tier:** PRO

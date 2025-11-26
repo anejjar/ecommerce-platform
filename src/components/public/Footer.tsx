@@ -169,7 +169,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/cart" className="hover:text-amber-300 transition-colors">
-                  {t('header.cart')}
+                  {t('header.cart.title')}
                 </Link>
               </li>
             </ul>

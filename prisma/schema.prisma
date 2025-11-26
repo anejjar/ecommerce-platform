@@ -44,6 +44,11 @@ model User {
   password      String?
   role          UserRole  @default(CUSTOMER)
   adminNotes    String?   @db.Text
+  sessionsInvalidatedAt DateTime?
+
+  // Communication preferences (JSON: {emailMarketing, smsMarketing, orderUpdates, promotions})
+  communicationPreferences String? @db.Text
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -62,6 +67,13 @@ model User {
   blogPosts    BlogPost[]
   uploadedMedia MediaLibrary[]
   abandonedCarts AbandonedCart[]
+  paymentMethods PaymentMethod[]
+  accountDeletionRequest AccountDeletionRequest?
+  stockHistory StockHistory[]
+  purchaseOrdersCreated PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
+  backups Backup[]
+  dataExports DataExport[]
+  dataImports DataImport[]
 }
 
 model Account {
@@ -125,6 +137,8 @@ model Product {
   stockAlert     StockAlert?
   wishlistItems  WishlistItem[]
   translations   ProductTranslation[]
+  customizationFields ProductCustomizationField[]
+  stockHistory   StockHistory[]
 }
 
 model ProductImage {
@@ -198,6 +212,8 @@ model CartItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  customizations CartItemCustomization[]
+
   @@unique([cartId, productId, variantId])
 }
 
@@ -264,6 +280,14 @@ model Order {
   discountCodeId String?
   discountCode   DiscountCode? @relation(fields: [discountCodeId], references: [id])
   discountAmount Decimal       @default(0) @db.Decimal(10, 2)
+
+  // Enhanced tracking
+  trackingNumber    String?
+  carrier           String? // "UPS", "FedEx", "USPS", "DHL", etc.
+  estimatedDelivery DateTime?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -291,6 +315,8 @@ model OrderItem {
   variantId String?
   variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
+
+  customizations OrderItemCustomization[]
 }
 
 model Address {
@@ -356,6 +382,131 @@ model StockAlert {
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// ============================================
+// INVENTORY MANAGEMENT
+// ============================================
+
+enum StockChangeType {
+  SALE              // Stock decreased due to sale
+  REFUND            // Stock increased due to refund
+  RESTOCK           // Stock increased from supplier
+  ADJUSTMENT        // Manual adjustment
+  DAMAGE            // Stock decreased due to damage
+  RETURN            // Stock increased from customer return
+  TRANSFER          // Stock transferred between locations
+}
+
+model StockHistory {
+  id            String          @id @default(cuid())
+  productId     String?
+  product       Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId     String?
+
+  changeType    StockChangeType
+  quantityBefore Int
+  quantityAfter  Int
+  quantityChange Int            // Can be positive or negative
+
+  reason        String?         @db.Text
+  notes         String?         @db.Text
+
+  // References
+  orderId       String?         // If related to sale/refund
+  supplierId    String?         // If related to restock
+  supplier      Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  userId        String?         // Who made the change
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime        @default(now())
+
+  @@index([productId])
+  @@index([variantId])
+  @@index([changeType])
+  @@index([createdAt])
+}
+
+model Supplier {
+  id              String    @id @default(cuid())
+  name            String
+  contactName     String?
+  email           String?
+  phone           String?
+  address         String?   @db.Text
+  website         String?
+  notes           String?   @db.Text
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  stockHistory    StockHistory[]
+  purchaseOrders  PurchaseOrder[]
+
+  @@index([isActive])
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  SHIPPED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id              String              @id @default(cuid())
+  orderNumber     String              @unique
+  supplierId      String
+  supplier        Supplier            @relation(fields: [supplierId], references: [id])
+
+  status          PurchaseOrderStatus @default(DRAFT)
+
+  orderDate       DateTime            @default(now())
+  expectedDate    DateTime?
+  receivedDate    DateTime?
+
+  subtotal        Decimal             @db.Decimal(10, 2)
+  tax             Decimal             @default(0) @db.Decimal(10, 2)
+  shipping        Decimal             @default(0) @db.Decimal(10, 2)
+  total           Decimal             @db.Decimal(10, 2)
+
+  notes           String?             @db.Text
+
+  createdById     String?
+  createdBy       User?               @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  items           PurchaseOrderItem[]
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  productId       String
+  variantId       String?
+
+  quantity        Int
+  unitCost        Decimal       @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+
+  receivedQuantity Int          @default(0)
+
+  createdAt       DateTime      @default(now())
+
+  @@index([purchaseOrderId])
+  @@index([productId])
 }
 
 model PasswordReset {
@@ -453,6 +604,147 @@ model FeatureFlag {
 
   @@index([category])
   @@index([enabled])
+}
+
+// ============================================
+// REGION & CITY MANAGEMENT
+// ============================================
+
+model Region {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "Casablanca-Settat", "Rabat-Salé-Kénitra"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cities      City[]
+
+  @@index([isActive])
+}
+
+model City {
+  id          String   @id @default(cuid())
+  name        String
+  regionId    String
+  region      Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name, regionId])
+  @@index([regionId])
+  @@index([isActive])
+}
+
+model CheckoutSettings {
+  id        String   @id @default(cuid())
+
+  // Field visibility toggles
+  showPhone           Boolean  @default(true)
+  showCompany         Boolean  @default(false)
+  showAddressLine2    Boolean  @default(true)
+  requirePhone        Boolean  @default(false)
+
+  // Custom messages
+  thankYouMessage     String?  @db.Text
+  checkoutBanner      String?  @db.Text
+  checkoutBannerType  String?  // 'info', 'warning', 'success'
+
+  // Additional customizations
+  enableGuestCheckout Boolean  @default(true)
+  enableOrderNotes    Boolean  @default(true)
+  orderNotesLabel     String?
+
+  // Shipping options
+  freeShippingThreshold Decimal? @db.Decimal(10, 2)
+  defaultShippingCost   Decimal  @default(10) @db.Decimal(10, 2)
+
+  // ===== PHASE 1: VISUAL & BRANDING =====
+  // Branding
+  logoUrl             String?
+  primaryColor        String?  @default("#000000")
+  secondaryColor      String?  @default("#666666")
+  buttonStyle         String?  @default("rounded") // 'rounded', 'square', 'pill'
+  fontFamily          String?  @default("system") // 'system', 'inter', 'roboto', 'opensans'
+  pageWidth           String?  @default("normal") // 'narrow', 'normal', 'wide'
+
+  // Layout Options
+  checkoutLayout      String?  @default("single") // 'single', 'multi-step'
+  progressStyle       String?  @default("steps") // 'steps', 'bar', 'none'
+  orderSummaryPosition String? @default("right") // 'right', 'top', 'collapsible'
+
+  // ===== PHASE 2: FIELD CUSTOMIZATION =====
+  // Enhanced Field Controls
+  fieldLabels         Json?    // Custom labels for all fields
+  fieldPlaceholders   Json?    // Custom placeholders
+  fieldOrder          Json?    // Array of field names in desired order
+
+  // Additional Standard Fields
+  showDeliveryInstructions Boolean @default(false)
+  deliveryInstructionsLabel String?
+  showAlternativePhone  Boolean @default(false)
+  showGiftMessage       Boolean @default(false)
+  giftMessageLabel      String?
+  showDeliveryDate      Boolean @default(false)
+
+  // Custom Fields (up to 5)
+  customFields        Json?    // Array of custom field definitions
+
+  // ===== PHASE 4: TRUST & SECURITY =====
+  // Trust Badges
+  trustBadges         Json?    // Array of trust badge objects {url, alt, position}
+  showSecuritySeals   Boolean  @default(true)
+  moneyBackGuarantee  String?  @db.Text
+  customerServiceDisplay Boolean @default(false)
+  customerServiceText String?  @db.Text
+  customerServicePhone String?
+  customerServiceEmail String?
+
+  // Social Proof
+  showOrderCount      Boolean  @default(false)
+  orderCountText      String?  // e.g., "X orders placed today"
+  showRecentPurchases Boolean  @default(false)
+  recentPurchaseDelay Int?     @default(5000) // milliseconds between popups
+  showTestimonials    Boolean  @default(false)
+  testimonials        Json?    // Array of testimonial objects {name, text, rating, image}
+  showTrustRating     Boolean  @default(false)
+  trustRatingScore    Decimal? @db.Decimal(2, 1) // e.g., 4.8
+  trustRatingCount    Int?     // e.g., 2,453 reviews
+
+  // ===== PHASE 5: MARKETING & CONVERSION =====
+  // Promotional Features
+  promotionalBanners  Json?    // Array of banner objects with scheduling
+  showCountdownTimer  Boolean  @default(false)
+  countdownEndDate    DateTime?
+  countdownText       String?
+  showFreeShippingBar Boolean  @default(false)
+  freeShippingBarText String?  // e.g., "Add {amount} more for free shipping!"
+  showUpsells         Boolean  @default(false)
+  upsellProducts      Json?    // Array of product IDs to show as upsells
+  upsellTitle         String?
+  upsellPosition      String?  @default("cart") // 'cart', 'below-form', 'modal'
+
+  // Urgency Elements
+  showLowStock        Boolean  @default(false)
+  lowStockThreshold   Int?     @default(5)
+  lowStockText        String?  // e.g., "Only X left in stock!"
+  scarcityMessage     String?  @db.Text
+  urgencyBadgeStyle   String?  @default("warning") // 'warning', 'danger', 'info'
+
+  // Incentives
+  discountFieldPosition String? @default("top") // 'top', 'bottom', 'floating'
+  showLoyaltyPoints   Boolean  @default(false)
+  loyaltyPointsText   String?
+  showGiftWithPurchase Boolean @default(false)
+  giftThreshold       Decimal? @db.Decimal(10, 2)
+  giftDescription     String?  @db.Text
+  referralDiscountEnabled Boolean @default(false)
+  referralDiscountText String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("checkout_settings")
 }
 
 enum RefundStatus {
@@ -875,4 +1167,653 @@ model MediaVariant {
 
   @@unique([mediaId, name])
   @@index([mediaId])
+}
+
+// ============================================
+// EXIT-INTENT POPUPS & OVERLAYS
+// ============================================
+
+enum PopupType {
+  EXIT_INTENT       // Triggers when mouse leaves viewport
+  TIMED             // Triggers after X seconds
+  SCROLL_BASED      // Triggers at X% scroll
+  PAGE_LOAD         // Triggers on page load
+  CLICK_TRIGGER     // Triggers on specific element click
+}
+
+enum PopupTarget {
+  ALL_PAGES         // Show on all pages
+  HOMEPAGE          // Show on homepage only
+  PRODUCT_PAGES     // Show on product pages
+  CART_PAGE         // Show on cart page
+  CHECKOUT          // Show on checkout
+  BLOG              // Show on blog pages
+  CUSTOM_URL        // Show on specific URLs
+}
+
+enum PopupPosition {
+  CENTER            // Center of screen
+  TOP               // Top bar
+  BOTTOM            // Bottom bar
+  TOP_LEFT          // Top left corner
+  TOP_RIGHT         // Top right corner
+  BOTTOM_LEFT       // Bottom left corner
+  BOTTOM_RIGHT      // Bottom right corner
+}
+
+model Popup {
+  id                String        @id @default(cuid())
+
+  // Basic Info
+  name              String        // Internal name
+  title             String?       // Popup title
+  content           String        @db.Text // HTML content
+
+  // Type & Trigger
+  type              PopupType     @default(EXIT_INTENT)
+  triggerValue      Int?          // Seconds for TIMED, % for SCROLL_BASED
+
+  // Targeting
+  target            PopupTarget   @default(ALL_PAGES)
+  customUrls        String?       @db.Text // JSON array of URLs
+
+  // Display Settings
+  position          PopupPosition @default(CENTER)
+  width             Int           @default(500) // pixels
+  height            Int?          // pixels (null = auto)
+
+  // Design
+  backgroundColor   String        @default("#ffffff")
+  textColor         String        @default("#000000")
+  buttonText        String        @default("Get Offer")
+  buttonColor       String        @default("#000000")
+  buttonTextColor   String        @default("#ffffff")
+  showCloseButton   Boolean       @default(true)
+  overlayColor      String        @default("rgba(0,0,0,0.5)")
+
+  // Image/Media
+  imageUrl          String?
+
+  // Behavior
+  frequency         String        @default("once_per_session") // once_per_session, once_per_day, once_per_week, always
+  delaySeconds      Int           @default(0) // Delay before showing
+
+  // CTA
+  ctaType           String        @default("link") // link, email_capture, discount_code
+  ctaUrl            String?       // For link type
+  discountCode      String?       // For discount type
+
+  // Status & Scheduling
+  isActive          Boolean       @default(false)
+  startDate         DateTime?
+  endDate           DateTime?
+
+  // Priority (higher number = higher priority if multiple popups match)
+  priority          Int           @default(0)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  analytics         PopupAnalytics[]
+
+  @@index([isActive])
+  @@index([type])
+  @@index([target])
+}
+
+model PopupAnalytics {
+  id            String   @id @default(cuid())
+  popupId       String
+  popup         Popup    @relation(fields: [popupId], references: [id], onDelete: Cascade)
+
+  // Event tracking
+  views         Int      @default(0) // How many times shown
+  clicks        Int      @default(0) // How many times CTA clicked
+  dismissals    Int      @default(0) // How many times dismissed/closed
+  conversions   Int      @default(0) // How many led to desired action
+
+  // Date tracking (for daily aggregation)
+  date          DateTime @db.Date
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([popupId, date])
+  @@index([popupId])
+  @@index([date])
+}
+
+// ============================================
+// CUSTOMER ACCOUNT FEATURES
+// ============================================
+
+// Saved payment methods (tokenized - NEVER store actual card data)
+model PaymentMethod {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Payment processor info (always use tokenization)
+  provider      String   // "stripe", "paypal", etc.
+  providerToken String   // Token from payment processor
+
+  type          String   // "card", "paypal", "bank_account"
+
+  // Card info (for display only - NOT actual card data)
+  cardLast4     String?
+  cardBrand     String?  // "visa", "mastercard", "amex", "discover"
+  cardExpMonth  Int?
+  cardExpYear   Int?
+
+  // Other payment method info
+  email         String?  // For PayPal
+  bankName      String?  // For bank accounts
+
+  isDefault     Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isDefault])
+}
+
+// GDPR-compliant account deletion requests
+model AccountDeletionRequest {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  reason        String?   @db.Text
+  status        String    @default("pending") // pending, approved, processing, completed, cancelled
+
+  // Deletion timing
+  requestedAt   DateTime  @default(now())
+  scheduledAt   DateTime? // When deletion will occur (e.g., 30 days from request)
+  completedAt   DateTime?
+
+  // Admin review
+  adminNotes    String?   @db.Text
+  reviewedById  String?
+  reviewedAt    DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// ============================================
+// PRODUCT CUSTOMIZATION & ADVANCED OPTIONS
+// ============================================
+
+enum CustomizationFieldType {
+  TEXT              // Short text input
+  TEXTAREA          // Long text area
+  NUMBER            // Number input
+  DROPDOWN          // Select from options
+  RADIO             // Radio buttons
+  CHECKBOX          // Multiple checkboxes
+  COLOR             // Color picker
+  FILE              // File upload (images for custom designs)
+  DATE              // Date picker
+}
+
+model ProductCustomizationField {
+  id            String                   @id @default(cuid())
+  productId     String
+  product       Product                  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // Field Configuration
+  type          CustomizationFieldType
+  label         String                   // Display label (e.g., "Engraving Text")
+  placeholder   String?                  // Placeholder text
+  helpText      String?                  // Help text for customers
+  required      Boolean                  @default(false)
+  position      Int                      @default(0) // Display order
+
+  // Validation
+  minLength     Int?                     // For text fields
+  maxLength     Int?                     // For text fields
+  minValue      Float?                   // For number fields
+  maxValue      Float?                   // For number fields
+  pattern       String?                  // Regex pattern for validation
+
+  // File Upload Settings (for FILE type)
+  maxFileSize   Int?                     // Max file size in KB
+  allowedTypes  String?                  // Comma-separated MIME types
+
+  // Pricing
+  priceModifier Decimal                  @default(0) @db.Decimal(10, 2) // Fixed price to add
+  priceModifierType String               @default("fixed") // "fixed" or "percentage"
+
+  // Relations
+  options       ProductCustomizationOption[]
+  cartItemCustomizations CartItemCustomization[]
+  orderItemCustomizations OrderItemCustomization[]
+
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@index([productId])
+  @@index([position])
+}
+
+model ProductCustomizationOption {
+  id            String                      @id @default(cuid())
+  fieldId       String
+  field         ProductCustomizationField   @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  // Option Configuration
+  label         String                      // Display label (e.g., "Gold")
+  value         String                      // Actual value
+  position      Int                         @default(0)
+
+  // Pricing (overrides field-level pricing if set)
+  priceModifier Decimal?                    @db.Decimal(10, 2)
+
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+
+  @@index([fieldId])
+  @@index([position])
+}
+
+// Stores customer customization selections in cart
+model CartItemCustomization {
+  id          String                     @id @default(cuid())
+  cartItemId  String
+  cartItem    CartItem                   @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+
+  fieldId     String
+  field       ProductCustomizationField  @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  // Customer Input
+  value       String?                    @db.Text // Text value or selected option value
+  fileUrl     String?                    // Cloudinary URL for uploaded files
+  fileName    String?                    // Original filename
+
+  // Price Calculation
+  priceModifier Decimal                  @default(0) @db.Decimal(10, 2)
+
+  createdAt   DateTime                   @default(now())
+  updatedAt   DateTime                   @updatedAt
+
+  @@index([cartItemId])
+  @@index([fieldId])
+}
+
+// Permanent record of customizations in completed orders
+model OrderItemCustomization {
+  id          String                     @id @default(cuid())
+  orderItemId String
+  orderItem   OrderItem                  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  // Field Info (stored permanently even if field is deleted)
+  fieldId     String?
+  field       ProductCustomizationField? @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  fieldLabel  String                     // Stored label in case field is deleted
+  fieldType   String                     // Stored type
+
+  // Customer Input
+  value       String?                    @db.Text
+  fileUrl     String?                    // Cloudinary URL for uploaded files
+  fileName    String?                    // Original filename
+
+  // Price Modifier
+  priceModifier Decimal                  @default(0) @db.Decimal(10, 2)
+
+  createdAt   DateTime                   @default(now())
+
+  @@index([orderItemId])
+}
+
+// ============================================
+// BACKUP & EXPORT/IMPORT
+// ============================================
+
+enum BackupType {
+  MANUAL
+  SCHEDULED
+  AUTO
+}
+
+enum BackupStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Backup {
+  id            String        @id @default(cuid())
+  filename      String
+  fileSize      Int           // Size in bytes
+  type          BackupType
+  status        BackupStatus  @default(PENDING)
+
+  // Backup contents
+  includeProducts    Boolean  @default(true)
+  includeOrders      Boolean  @default(true)
+  includeCustomers   Boolean  @default(true)
+  includeMedia       Boolean  @default(false)
+  includeSettings    Boolean  @default(true)
+
+  // Storage
+  fileUrl       String?       // URL to backup file (Cloudinary or S3)
+  localPath     String?       // Local file path if stored locally
+
+  // Metadata
+  recordCount   Int?          // Total records backed up
+  errorMessage  String?       @db.Text
+
+  createdById   String?
+  createdBy     User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  completedAt   DateTime?
+  createdAt     DateTime      @default(now())
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum ExportStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ExportFormat {
+  CSV
+  JSON
+  XLSX
+}
+
+enum ExportType {
+  PRODUCTS
+  ORDERS
+  CUSTOMERS
+  CATEGORIES
+  INVENTORY
+  CUSTOM
+}
+
+model DataExport {
+  id            String        @id @default(cuid())
+  type          ExportType
+  format        ExportFormat  @default(CSV)
+  status        ExportStatus  @default(PENDING)
+
+  // Filters (JSON string)
+  filters       String?       @db.Text
+
+  // Output
+  filename      String?
+  fileUrl       String?       // Cloudinary or local URL
+  fileSize      Int?          // Size in bytes
+  recordCount   Int?          // Number of records exported
+
+  errorMessage  String?       @db.Text
+
+  createdById   String?
+  createdBy     User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  completedAt   DateTime?
+  expiresAt     DateTime?     // Auto-delete after X days
+  createdAt     DateTime      @default(now())
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+enum ImportStatus {
+  PENDING
+  VALIDATING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum ImportMode {
+  CREATE          // Only create new records
+  UPDATE          // Only update existing records
+  UPSERT          // Create or update
+}
+
+model DataImport {
+  id            String        @id @default(cuid())
+  type          ExportType    // Same types as export
+  format        ExportFormat  @default(CSV)
+  mode          ImportMode    @default(CREATE)
+  status        ImportStatus  @default(PENDING)
+
+  // Input
+  filename      String
+  fileUrl       String        // Uploaded file URL
+  fileSize      Int           // Size in bytes
+
+  // Results
+  totalRows     Int?          // Total rows in file
+  successCount  Int?          // Successfully imported
+  failedCount   Int?          // Failed to import
+  skippedCount  Int?          // Skipped (duplicates, etc.)
+
+  // Error details (JSON array)
+  errors        String?       @db.Text
+
+  // Preview mode (don't actually import)
+  isPreview     Boolean       @default(false)
+
+  createdById   String?
+  createdBy     User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  completedAt   DateTime?
+  createdAt     DateTime      @default(now())
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ============================================
+// SEO ADVANCED FEATURES
+// ============================================
+
+enum RedirectType {
+  PERMANENT_301
+  TEMPORARY_302
+}
+
+model UrlRedirect {
+  id            String       @id @default(cuid())
+  fromPath      String       @unique
+  toPath        String
+  type          RedirectType @default(PERMANENT_301)
+  isActive      Boolean      @default(true)
+  hitCount      Int          @default(0)
+  lastHitAt     DateTime?
+  notes         String?      @db.Text
+  createdById   String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([fromPath])
+  @@index([isActive])
+}
+
+enum SchemaType {
+  ORGANIZATION
+  PRODUCT
+  BREADCRUMB
+  FAQ
+  ARTICLE
+  REVIEW
+  LOCAL_BUSINESS
+  EVENT
+  RECIPE
+  VIDEO
+}
+
+model SchemaMarkup {
+  id            String      @id @default(cuid())
+  name          String
+  type          SchemaType
+  isActive      Boolean     @default(true)
+  schemaData    String      @db.Text
+  applyToAll    Boolean     @default(false)
+  targetPages   String?     @db.Text
+  priority      Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+}
+
+// ============================================
+// EMAIL MARKETING CAMPAIGNS
+// ============================================
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PAUSED
+  CANCELLED
+}
+
+enum CampaignType {
+  NEWSLETTER
+  PROMOTIONAL
+  TRANSACTIONAL
+  ANNOUNCEMENT
+  CUSTOM
+}
+
+model EmailCampaign {
+  id              String         @id @default(cuid())
+  name            String
+  subject         String
+  preheader       String?
+  type            CampaignType   @default(NEWSLETTER)
+  status          CampaignStatus @default(DRAFT)
+  
+  // Content
+  htmlContent     String         @db.Text
+  textContent     String?        @db.Text
+  templateId      String?
+  
+  // Scheduling
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  
+  // Targeting
+  sendToAll       Boolean        @default(false)
+  recipientCount  Int            @default(0)
+  
+  // Sender info
+  fromName        String?
+  fromEmail       String?
+  replyTo         String?
+  
+  // Analytics
+  totalSent       Int            @default(0)
+  totalOpened     Int            @default(0)
+  totalClicked    Int            @default(0)
+  totalBounced    Int            @default(0)
+  totalUnsubscribed Int          @default(0)
+  
+  createdById     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  recipients      CampaignRecipient[]
+  analytics       CampaignAnalytics[]
+  
+  @@index([status])
+  @@index([type])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+model CampaignRecipient {
+  id              String          @id @default(cuid())
+  campaignId      String
+  campaign        EmailCampaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  email           String
+  name            String?
+  userId          String?
+  
+  // Tracking
+  sent            Boolean         @default(false)
+  sentAt          DateTime?
+  opened          Boolean         @default(false)
+  openedAt        DateTime?
+  clicked         Boolean         @default(false)
+  clickedAt       DateTime?
+  bounced         Boolean         @default(false)
+  unsubscribed    Boolean         @default(false)
+  
+  // Unique tracking token
+  trackingToken   String          @unique
+  
+  createdAt       DateTime        @default(now())
+  
+  @@index([campaignId])
+  @@index([email])
+  @@index([trackingToken])
+}
+
+model CampaignAnalytics {
+  id              String        @id @default(cuid())
+  campaignId      String
+  campaign        EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  // Event tracking
+  eventType       String        // "open", "click", "bounce", "unsubscribe"
+  recipientEmail  String
+  ipAddress       String?
+  userAgent       String?       @db.Text
+  clickedUrl      String?       @db.Text
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([campaignId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model EmailTemplate {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?       @db.Text
+  category        String?       // "newsletter", "promotional", "transactional"
+  
+  // Content
+  subject         String
+  preheader       String?
+  htmlContent     String        @db.Text
+  textContent     String?       @db.Text
+  thumbnailUrl    String?
+  
+  // Metadata
+  isPublic        Boolean       @default(false)
+  usageCount      Int           @default(0)
+  
+  createdById     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([category])
+  @@index([isPublic])
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -78,11 +79,12 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
       if (response.ok) {
         const { url } = await response.json();
         setImageUrl(url);
+        toast.success('Image uploaded successfully');
       } else {
-        alert('Failed to upload image');
+        toast.error('Failed to upload image');
       }
     } catch (error) {
-      alert('An error occurred while uploading');
+      toast.error('An error occurred while uploading');
     } finally {
       setUploadingImage(false);
     }
@@ -112,14 +114,15 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
       });
 
       if (response.ok) {
+        toast.success(`Category ${mode === 'create' ? 'created' : 'updated'} successfully`);
         router.push('/admin/categories');
         router.refresh();
       } else {
         const error = await response.json();
-        alert(error.error || `Failed to ${mode} category`);
+        toast.error(error.error || `Failed to ${mode} category`);
       }
     } catch (error) {
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsLoading(false);
     }

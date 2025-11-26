@@ -543,7 +543,7 @@ export function DashboardContent() {
               You have {data.summary.lowStockProducts} product{data.summary.lowStockProducts !== 1 ? 's' : ''} with low inventory.
             </p>
             <Link
-              href="/admin/stock-alerts"
+              href="/admin/settings/stock-alerts"
               className="inline-block mt-3 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600"
             >
               View Stock Alerts

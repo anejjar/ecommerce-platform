@@ -14,6 +14,9 @@ export type PermissionResource =
   | 'STOCK_ALERT'
   | 'NEWSLETTER'
   | 'REFUND'
+  | 'INVENTORY'
+  | 'SUPPLIER'
+  | 'PURCHASE_ORDER'
 
 export type PermissionAction =
   | 'VIEW'
@@ -42,8 +45,11 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'STOCK_ALERT:MANAGE',
     'NEWSLETTER:MANAGE',
     'REFUND:MANAGE',
+    'INVENTORY:MANAGE',
+    'SUPPLIER:MANAGE',
+    'PURCHASE_ORDER:MANAGE',
   ],
-  
+
   ADMIN: [
     // Has all permissions EXCEPT feature management
     'PRODUCT:MANAGE',
@@ -58,6 +64,9 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'STOCK_ALERT:MANAGE',
     'NEWSLETTER:MANAGE',
     'REFUND:MANAGE',
+    'INVENTORY:MANAGE',
+    'SUPPLIER:MANAGE',
+    'PURCHASE_ORDER:MANAGE',
   ],
 
   MANAGER: [
@@ -74,6 +83,9 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'STOCK_ALERT:VIEW',
     'REFUND:VIEW',
     'REFUND:UPDATE',
+    'INVENTORY:MANAGE',
+    'SUPPLIER:VIEW',
+    'PURCHASE_ORDER:MANAGE',
   ],
 
   EDITOR: [

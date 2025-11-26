@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -33,13 +34,14 @@ export function ProductActions({ productId }: { productId: string }) {
       });
 
       if (response.ok) {
+        toast.success('Product deleted successfully');
         router.refresh();
         setShowDeleteDialog(false);
       } else {
-        alert('Failed to delete product');
+        toast.error('Failed to delete product');
       }
     } catch (error) {
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsDeleting(false);
     }

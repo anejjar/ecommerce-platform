@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -159,12 +160,12 @@ export default function CreateOrderPage() {
     e.preventDefault();
 
     if (!selectedCustomer) {
-      alert('Please select a customer');
+      toast.error('Please select a customer');
       return;
     }
 
     if (orderItems.length === 0) {
-      alert('Please add at least one product');
+      toast.error('Please add at least one product');
       return;
     }
 
@@ -195,14 +196,14 @@ export default function CreateOrderPage() {
 
       if (response.ok) {
         const order = await response.json();
-        alert('Order created successfully');
+        toast.success('Order created successfully');
         router.push(`/admin/orders/${order.id}`);
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to create order');
+        toast.error(error.error || 'Failed to create order');
       }
     } catch (error) {
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsSubmitting(false);
     }

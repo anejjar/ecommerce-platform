@@ -76,7 +76,11 @@ export async function PATCH(request: NextRequest, context: RouteParams) {
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
     if (email !== undefined) updateData.email = email
-    if (role !== undefined) updateData.role = role
+    if (role !== undefined) {
+      updateData.role = role
+      // Invalidate all sessions when role changes (force re-login)
+      updateData.sessionsInvalidatedAt = new Date()
+    }
 
     const user = await prisma.user.update({
       where: { id },

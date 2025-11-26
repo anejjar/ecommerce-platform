@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -12,7 +13,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  requiresFeature?: string;
+}
+
+const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/admin/dashboard' },
   { name: 'Products', href: '/admin/products' },
   { name: 'Orders', href: '/admin/orders' },
@@ -20,7 +27,8 @@ const navigation = [
   { name: 'Categories', href: '/admin/categories' },
   { name: 'Reviews', href: '/admin/reviews' },
   { name: 'Discounts', href: '/admin/discounts' },
-  { name: 'Stock Alerts', href: '/admin/stock-alerts' },
+  { name: 'Email Campaigns', href: '/admin/marketing/email-campaigns', requiresFeature: 'email_campaigns' },
+  { name: 'SEO Tools', href: '/admin/seo-tools', requiresFeature: 'seo_toolkit' },
 ];
 
 const settingsPages = [
@@ -31,10 +39,45 @@ const settingsPages = [
   { name: 'Shipping', href: '/admin/settings/shipping' },
   { name: 'Social Media', href: '/admin/settings/social' },
   { name: 'Appearance', href: '/admin/settings/appearance' },
+  { name: 'Stock Alerts', href: '/admin/settings/stock-alerts' },
 ];
 
 export function AdminNav() {
   const pathname = usePathname();
+  const [enabledFeatures, setEnabledFeatures] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const checkFeatures = async () => {
+      const featuresToCheck = navigation
+        .filter(item => item.requiresFeature)
+        .map(item => item.requiresFeature!);
+
+      if (featuresToCheck.length === 0) return;
+
+      const results = await Promise.all(
+        featuresToCheck.map(async (feature) => {
+          try {
+            const response = await fetch(`/api/features/check?feature=${feature}`);
+            const data = await response.json();
+            return { feature, enabled: data.enabled };
+          } catch (error) {
+            return { feature, enabled: false };
+          }
+        })
+      );
+
+      const enabled = new Set(
+        results.filter(r => r.enabled).map(r => r.feature)
+      );
+      setEnabledFeatures(enabled);
+    };
+
+    checkFeatures();
+  }, []);
+
+  const visibleNavigation = navigation.filter(item =>
+    !item.requiresFeature || enabledFeatures.has(item.requiresFeature)
+  );
 
   return (
     <nav className="border-b bg-white">
@@ -47,15 +90,15 @@ export function AdminNav() {
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navigation.map((item) => {
+              {visibleNavigation.map((item) => {
                 const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${isActive
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-blue-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                       }`}
                   >
                     {item.name}
@@ -68,8 +111,8 @@ export function AdminNav() {
                 <DropdownMenuTrigger asChild>
                   <button
                     className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium gap-1 ${pathname?.startsWith('/admin/settings')
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-blue-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                       }`}
                   >
                     Settings

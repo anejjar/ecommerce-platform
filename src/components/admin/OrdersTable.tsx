@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import {
   Table,
   TableBody,
@@ -101,14 +102,15 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       });
 
       if (response.ok) {
+        toast.success(`Successfully updated ${selectedIds.length} order(s)`);
         setSelectedIds([]);
         router.refresh();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to update orders');
+        toast.error(error.error || 'Failed to update orders');
       }
     } catch (error) {
-      alert('An error occurred while updating orders');
+      toast.error('An error occurred while updating orders');
     } finally {
       setIsProcessing(false);
     }
