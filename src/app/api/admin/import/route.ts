@@ -150,9 +150,9 @@ export async function POST(request: NextRequest) {
     // Create import record
     const dataImport = await prisma.dataImport.create({
       data: {
-        type,
+        type: type as any,
         format,
-        mode,
+        mode: mode as any,
         status: 'PENDING',
         filename,
         fileUrl: uploadResult.secure_url,

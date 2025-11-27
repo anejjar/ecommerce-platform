@@ -13,6 +13,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   try {
     // Check authentication
     const session = await getServerSession(authOptions)
@@ -25,7 +27,6 @@ export async function POST(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = await params
 
     // Get import record
     const dataImport = await prisma.dataImport.findUnique({

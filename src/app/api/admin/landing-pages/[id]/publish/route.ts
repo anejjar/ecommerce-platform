@@ -15,6 +15,8 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
+
     try {
         const session = await getServerSession(authOptions);
 
@@ -35,7 +37,7 @@ export async function POST(
 
         // Check if page exists
         const page = await prisma.landingPage.findUnique({
-            where: { id: id },
+            where: { id },
             include: {
                 _count: {
                     select: { blocks: true },
@@ -59,7 +61,7 @@ export async function POST(
 
         // Update page status
         const updated = await prisma.landingPage.update({
-            where: { id: id },
+            where: { id },
             data: {
                 status: scheduledPublishAt ? PageStatus.SCHEDULED : PageStatus.PUBLISHED,
                 publishedAt: scheduledPublishAt ? null : new Date(),

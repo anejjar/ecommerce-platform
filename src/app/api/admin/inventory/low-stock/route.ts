@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
         },
       },
       include: {
+        stockAlert: true,
         category: {
           select: {
             id: true,
