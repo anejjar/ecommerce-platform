@@ -66,6 +66,7 @@
     "react-redux": "^9.2.0",
     "recharts": "^2.15.4",
     "redux-persist": "^6.0.0",
+    "swr": "^2.3.6",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.1.12"
   },
