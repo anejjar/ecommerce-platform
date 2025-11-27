@@ -27,10 +27,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Plus, Search, Copy, Edit, Trash2, Eye, Globe, GlobeOff } from 'lucide-react';
+import { MoreVertical, Plus, Search, Copy, Edit, Trash2, Eye, Globe, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 
 const STATUS_COLORS: Record<PageStatus, string> = {
@@ -195,21 +195,6 @@ export default function LandingPagesPage() {
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => router.push(`/admin/cms/landing-pages/${page.id}/edit`)}>
-                                                        <Edit className="mr-2 h-4 w-4" />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    {page.status === 'PUBLISHED' ? (
-                                                        <DropdownMenuItem onClick={() => handleUnpublish(page.id)}>
-                                                            <GlobeOff className="mr-2 h-4 w-4" />
-                                                            Unpublish
-                                                        </DropdownMenuItem>
-                                                    ) : (
-                                                        <DropdownMenuItem onClick={() => handlePublish(page.id)}>
-                                                            <Globe className="mr-2 h-4 w-4" />
-                                                            Publish
-                                                        </DropdownMenuItem>
-                                                    )}
                                                     <DropdownMenuItem onClick={() => handleDuplicate(page.id, page.title)}>
                                                         <Copy className="mr-2 h-4 w-4" />
                                                         Duplicate
