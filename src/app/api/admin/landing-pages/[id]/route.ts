@@ -27,6 +27,8 @@ export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
+
     try {
         const session = await getServerSession(authOptions);
 
@@ -38,7 +40,7 @@ export async function GET(
         const includeBlocks = searchParams.get('includeBlocks') !== 'false';
 
         const page = await prisma.landingPage.findUnique({
-            where: { id: id },
+            where: { id },
             include: {
                 author: {
                     select: {
@@ -78,6 +80,8 @@ export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
+
     try {
         const session = await getServerSession(authOptions);
 
@@ -98,7 +102,7 @@ export async function PUT(
 
         // Check if page exists
         const existing = await prisma.landingPage.findUnique({
-            where: { id: id },
+            where: { id },
         });
 
         if (!existing) {
@@ -160,6 +164,8 @@ export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
+
     try {
         const session = await getServerSession(authOptions);
 
@@ -169,7 +175,7 @@ export async function DELETE(
 
         // Check if page exists
         const page = await prisma.landingPage.findUnique({
-            where: { id: id },
+            where: { id },
             include: {
                 _count: {
                     select: { blocks: true },
