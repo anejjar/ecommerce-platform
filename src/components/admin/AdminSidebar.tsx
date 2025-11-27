@@ -152,6 +152,14 @@ const navigation: NavItem[] = [
     ],
   },
   {
+    name: "Page Builder",
+    icon: Sparkles,
+    children: [
+      { name: "Landing Pages", href: "/admin/cms/landing-pages" },
+      { name: "Block Templates", href: "/admin/cms/templates" },
+    ],
+  },
+  {
     name: "Templates",
     href: "/admin/templates",
     icon: FileText,
