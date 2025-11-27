@@ -15,7 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { X } from 'lucide-react';
+import { X, Image as ImageIcon } from 'lucide-react';
+import { MediaPicker } from '@/components/media-manager/MediaPicker/MediaPicker';
+import { MediaItem } from '@/components/media-manager/types';
 
 interface CategoryFormProps {
   category?: {
@@ -34,7 +36,7 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [imageUrl, setImageUrl] = useState(category?.image || '');
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [formData, setFormData] = useState({
     name: category?.name || '',
     slug: category?.slug || '',
@@ -62,31 +64,10 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const { url } = await response.json();
-        setImageUrl(url);
-        toast.success('Image uploaded successfully');
-      } else {
-        toast.error('Failed to upload image');
-      }
-    } catch (error) {
-      toast.error('An error occurred while uploading');
-    } finally {
-      setUploadingImage(false);
+  const handleMediaSelect = (selectedMedia: MediaItem[]) => {
+    if (selectedMedia.length > 0) {
+      setImageUrl(selectedMedia[0].url);
+      toast.success('Image selected');
     }
   };
 
@@ -235,21 +216,21 @@ export function CategoryForm({ category, mode }: CategoryFormProps) {
               <Button
                 type="button"
                 variant="outline"
-                disabled={uploadingImage}
-                onClick={() => document.getElementById('category-image')?.click()}
+                onClick={() => setShowMediaPicker(true)}
               >
-                {uploadingImage ? 'Uploading...' : imageUrl ? 'Change Image' : 'Upload Image'}
+                <ImageIcon className="w-4 h-4 mr-2" />
+                {imageUrl ? 'Change Image' : 'Select Image'}
               </Button>
-              <input
-                id="category-image"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageUpload}
-                disabled={uploadingImage}
-              />
             </div>
           </div>
+
+          <MediaPicker
+            open={showMediaPicker}
+            onOpenChange={setShowMediaPicker}
+            onSelect={handleMediaSelect}
+            multiple={false}
+            type="IMAGE"
+          />
 
           <div className="flex gap-4 pt-4">
             <Button type="submit" disabled={isLoading}>

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 export async function POST(req: NextRequest) {
     try {
@@ -66,6 +67,17 @@ export async function POST(req: NextRequest) {
             // or just rely on Cloudinary's dynamic transformation URLs.
             // For now, we'll just store the main image.
         }
+
+        // Log activity
+        await logActivity({
+            userId: session.user.id,
+            action: 'MEDIA_UPLOADED',
+            entityType: 'media',
+            entityId: media.id,
+            details: `Uploaded media file: ${file.name} (${mediaType}, ${(result.bytes / 1024).toFixed(2)} KB)`,
+            ipAddress: getClientIp(req),
+            userAgent: getUserAgent(req),
+        });
 
         return NextResponse.json(media);
     } catch (error) {

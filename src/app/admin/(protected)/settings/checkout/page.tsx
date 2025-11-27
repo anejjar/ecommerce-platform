@@ -28,7 +28,8 @@ import {
     GripVertical,
     RotateCcw,
     Shield,
-    Megaphone
+    Megaphone,
+    Image as ImageIcon
 } from 'lucide-react';
 import {
     Dialog,
@@ -42,6 +43,8 @@ import { CheckoutPreview } from '@/components/admin/CheckoutPreview';
 import { CheckoutSettings, CustomField, DEFAULT_FIELD_ORDER, FIELD_DISPLAY_NAMES } from '@/types/checkout-settings';
 import { Phase4Tab } from '@/components/admin/Phase4Tab';
 import { Phase5Tab } from '@/components/admin/Phase5Tab';
+import { MediaPicker } from '@/components/media-manager/MediaPicker/MediaPicker';
+import { MediaItem } from '@/components/media-manager/types';
 
 interface Region {
     id: string;
@@ -82,7 +85,7 @@ export default function CheckoutSettingsEnhancedPage() {
     const [addingCity, setAddingCity] = useState(false);
 
     // Logo upload
-    const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [showLogoMediaPicker, setShowLogoMediaPicker] = useState(false);
 
     // Check feature flag
     useEffect(() => {
@@ -213,37 +216,10 @@ export default function CheckoutSettingsEnhancedPage() {
         }
     };
 
-    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please upload an image file');
-            return;
-        }
-
-        setUploadingLogo(true);
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('folder', 'checkout-branding');
-
-        try {
-            const response = await fetch('/api/media/upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setSettings({ ...settings!, logoUrl: data.url });
-                toast.success('Logo uploaded successfully!');
-            } else {
-                throw new Error('Upload failed');
-            }
-        } catch (error) {
-            toast.error('Failed to upload logo');
-        } finally {
-            setUploadingLogo(false);
+    const handleLogoSelect = (selectedMedia: MediaItem[]) => {
+        if (selectedMedia.length > 0) {
+            setSettings({ ...settings!, logoUrl: selectedMedia[0].url });
+            toast.success('Logo selected successfully!');
         }
     };
 
@@ -530,20 +506,28 @@ export default function CheckoutSettingsEnhancedPage() {
                                 <div className="space-y-2">
                                     <Label>Checkout Logo</Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Upload your store logo to display at the top of the checkout page
+                                        Select your store logo to display at the top of the checkout page
                                     </p>
                                     {settings.logoUrl && (
                                         <div className="mb-2 p-4 border rounded-lg bg-muted/50 flex items-center justify-center">
                                             <img src={settings.logoUrl} alt="Logo" className="h-12 object-contain" />
                                         </div>
                                     )}
-                                    <Input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleLogoUpload}
-                                        disabled={uploadingLogo}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setShowLogoMediaPicker(true)}
+                                    >
+                                        <ImageIcon className="w-4 h-4 mr-2" />
+                                        {settings.logoUrl ? 'Change Logo' : 'Select Logo'}
+                                    </Button>
+                                    <MediaPicker
+                                        open={showLogoMediaPicker}
+                                        onOpenChange={setShowLogoMediaPicker}
+                                        onSelect={handleLogoSelect}
+                                        multiple={false}
+                                        type="IMAGE"
                                     />
-                                    {uploadingLogo && <p className="text-sm text-muted-foreground">Uploading...</p>}
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-6">

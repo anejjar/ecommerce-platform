@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Upload, GripVertical } from 'lucide-react';
+import { X, Image as ImageIcon, GripVertical } from 'lucide-react';
+import { MediaPicker } from '@/components/media-manager/MediaPicker/MediaPicker';
+import { MediaItem } from '@/components/media-manager/types';
 
 interface ProductImage {
   id: string;
@@ -19,42 +21,25 @@ interface ImageUploadProps {
 
 export function ImageUpload({ productId, initialImages = [], onImagesChange }: ImageUploadProps) {
   const [images, setImages] = useState<ProductImage[]>(initialImages);
-  const [uploading, setUploading] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   useEffect(() => {
     setImages(initialImages);
   }, [initialImages]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    setUploading(true);
-
+  const handleMediaSelect = async (selectedMedia: MediaItem[]) => {
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        // Upload to Cloudinary via API
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!uploadRes.ok) {
-          throw new Error('Failed to upload image');
-        }
-
-        const { url } = await uploadRes.json();
-
-        // If productId exists, save to database
+      const newImagesPromises = selectedMedia.map(async (media, index) => {
+        // If productId exists, save to database immediately
         if (productId) {
           const imageRes = await fetch(`/api/products/${productId}/images`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url, alt: file.name }),
+            body: JSON.stringify({
+              url: media.url,
+              alt: media.alt || media.filename
+            }),
           });
 
           if (!imageRes.ok) {
@@ -66,22 +51,20 @@ export function ImageUpload({ productId, initialImages = [], onImagesChange }: I
           // For new products, just return temporary image object
           return {
             id: `temp-${Date.now()}-${Math.random()}`,
-            url,
-            alt: file.name,
-            position: images.length,
+            url: media.url,
+            alt: media.alt || media.filename,
+            position: images.length + index,
           };
         }
       });
 
-      const uploadedImages = await Promise.all(uploadPromises);
-      const newImages = [...images, ...uploadedImages];
-      setImages(newImages);
-      onImagesChange?.(newImages);
+      const newProductImages = await Promise.all(newImagesPromises);
+      const updatedImages = [...images, ...newProductImages];
+      setImages(updatedImages);
+      onImagesChange?.(updatedImages);
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload images');
-    } finally {
-      setUploading(false);
+      console.error('Error adding images:', error);
+      alert('Failed to add images');
     }
   };
 
@@ -165,21 +148,11 @@ export function ImageUpload({ productId, initialImages = [], onImagesChange }: I
           <Button
             type="button"
             variant="outline"
-            disabled={uploading}
-            onClick={() => document.getElementById('image-upload')?.click()}
+            onClick={() => setShowMediaPicker(true)}
           >
-            <Upload className="w-4 h-4 mr-2" />
-            {uploading ? 'Uploading...' : 'Upload Images'}
+            <ImageIcon className="w-4 h-4 mr-2" />
+            Add Images
           </Button>
-          <input
-            id="image-upload"
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleFileSelect}
-            disabled={uploading}
-          />
           <span className="text-sm text-gray-500">
             Drag images to reorder. First image is the primary image.
           </span>
@@ -195,9 +168,8 @@ export function ImageUpload({ productId, initialImages = [], onImagesChange }: I
               onDragStart={() => handleDragStart(index)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDragEnd={handleDragEnd}
-              className={`relative group border-2 rounded-lg overflow-hidden cursor-move ${
-                index === 0 ? 'border-blue-500' : 'border-gray-200'
-              } ${draggedIndex === index ? 'opacity-50' : ''}`}
+              className={`relative group border-2 rounded-lg overflow-hidden cursor-move ${index === 0 ? 'border-blue-500' : 'border-gray-200'
+                } ${draggedIndex === index ? 'opacity-50' : ''}`}
             >
               <div className="aspect-square relative">
                 <img
@@ -229,6 +201,14 @@ export function ImageUpload({ productId, initialImages = [], onImagesChange }: I
           ))}
         </div>
       )}
+
+      <MediaPicker
+        open={showMediaPicker}
+        onOpenChange={setShowMediaPicker}
+        onSelect={handleMediaSelect}
+        multiple={true}
+        type="IMAGE"
+      />
     </div>
   );
 }
