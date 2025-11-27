@@ -97,9 +97,9 @@ export async function POST(request: NextRequest) {
     const existingAbandoned = await prisma.abandonedCart.findFirst({
       where: {
         OR: [
-          userId ? { userId, status: 'ABANDONED' } : {},
-          guestEmail ? { guestEmail, status: 'ABANDONED' } : {},
-        ].filter(obj => Object.keys(obj).length > 0),
+          userId ? { userId, status: 'ABANDONED' as const } : {},
+          guestEmail ? { guestEmail, status: 'ABANDONED' as const } : {},
+        ].filter(obj => Object.keys(obj).length > 0) as any,
       },
     });
 

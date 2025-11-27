@@ -12,7 +12,7 @@ import { Decimal } from '@prisma/client/runtime/library'
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -26,7 +26,7 @@ export async function POST(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Get import record
     const dataImport = await prisma.dataImport.findUnique({
@@ -162,7 +162,7 @@ export async function POST(
     // Update status to failed
     try {
       await prisma.dataImport.update({
-        where: { id: params.id },
+        where: { id: id },
         data: {
           status: 'FAILED',
           errors: JSON.stringify({

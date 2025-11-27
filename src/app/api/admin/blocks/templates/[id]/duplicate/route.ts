@@ -13,7 +13,7 @@ const duplicateSchema = z.object({
 // POST /api/admin/blocks/templates/:id/duplicate - Duplicate block template
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -22,13 +22,14 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
 
         // Validate request body
         const validationResult = duplicateSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Validation failed', details: validationResult.error.errors },
+                { error: 'Validation failed', details: validationResult.error.issues },
                 { status: 400 }
             );
         }
@@ -37,7 +38,7 @@ export async function POST(
 
         // Check if original template exists
         const original = await prisma.blockTemplate.findUnique({
-            where: { id: params.id },
+            where: { id },
         });
 
         if (!original) {

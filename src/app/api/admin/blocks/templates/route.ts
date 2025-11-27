@@ -13,8 +13,8 @@ const blockTemplateSchema = z.object({
     category: z.nativeEnum(BlockCategory),
     thumbnail: z.string().url().optional().nullable(),
     previewUrl: z.string().url().optional().nullable(),
-    defaultConfig: z.record(z.any()),
-    configSchema: z.record(z.any()),
+    defaultConfig: z.record(z.string(), z.any()),
+    configSchema: z.record(z.string(), z.any()),
     componentCode: z.string().min(1),
     htmlTemplate: z.string().optional().nullable(),
     cssStyles: z.string().optional().nullable(),
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         const validationResult = blockTemplateSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Validation failed', details: validationResult.error.errors },
+                { error: 'Validation failed', details: validationResult.error.issues },
                 { status: 400 }
             );
         }

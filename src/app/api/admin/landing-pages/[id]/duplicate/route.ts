@@ -14,7 +14,7 @@ const duplicateSchema = z.object({
 // POST /api/admin/landing-pages/:id/duplicate - Duplicate landing page
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -29,7 +29,7 @@ export async function POST(
         const validationResult = duplicateSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Validation failed', details: validationResult.error.errors },
+                { error: 'Validation failed', details: validationResult.error.issues },
                 { status: 400 }
             );
         }
@@ -38,7 +38,7 @@ export async function POST(
 
         // Check if original page exists
         const original = await prisma.landingPage.findUnique({
-            where: { id: params.id },
+            where: { id: id },
             include: {
                 blocks: {
                     orderBy: { order: 'asc' },

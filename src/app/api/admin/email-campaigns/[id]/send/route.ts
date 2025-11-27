@@ -169,7 +169,7 @@ export async function POST(
 
         // Mark as bounced
         const recipient = await prisma.campaignRecipient.findFirst({
-          where: { campaignId: params.id, email },
+          where: { campaignId: id, email },
         });
 
         if (recipient) {
@@ -203,7 +203,7 @@ export async function POST(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }

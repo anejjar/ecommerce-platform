@@ -17,7 +17,7 @@ const createLandingPageSchema = z.object({
     ogTitle: z.string().optional().nullable(),
     ogDescription: z.string().optional().nullable(),
     status: z.nativeEnum(PageStatus).optional(),
-    layoutConfig: z.record(z.any()).optional().nullable(),
+    layoutConfig: z.record(z.string(), z.any()).optional().nullable(),
     customCss: z.string().optional().nullable(),
     customJs: z.string().optional().nullable(),
     templateId: z.string().optional().nullable(),
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
         const validationResult = createLandingPageSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Validation failed', details: validationResult.error.errors },
+                { error: 'Validation failed', details: validationResult.error.issues },
                 { status: 400 }
             );
         }

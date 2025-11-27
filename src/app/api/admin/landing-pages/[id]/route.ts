@@ -17,7 +17,7 @@ const updateLandingPageSchema = z.object({
     ogTitle: z.string().optional().nullable(),
     ogDescription: z.string().optional().nullable(),
     status: z.nativeEnum(PageStatus).optional(),
-    layoutConfig: z.record(z.any()).optional().nullable(),
+    layoutConfig: z.record(z.string(), z.any()).optional().nullable(),
     customCss: z.string().optional().nullable(),
     customJs: z.string().optional().nullable(),
 });
@@ -25,7 +25,7 @@ const updateLandingPageSchema = z.object({
 // GET /api/admin/landing-pages/:id - Get single landing page
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -38,7 +38,7 @@ export async function GET(
         const includeBlocks = searchParams.get('includeBlocks') !== 'false';
 
         const page = await prisma.landingPage.findUnique({
-            where: { id: params.id },
+            where: { id: id },
             include: {
                 author: {
                     select: {
@@ -76,7 +76,7 @@ export async function GET(
 // PUT /api/admin/landing-pages/:id - Update landing page
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -91,14 +91,14 @@ export async function PUT(
         const validationResult = updateLandingPageSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Validation failed', details: validationResult.error.errors },
+                { error: 'Validation failed', details: validationResult.error.issues },
                 { status: 400 }
             );
         }
 
         // Check if page exists
         const existing = await prisma.landingPage.findUnique({
-            where: { id: params.id },
+            where: { id: id },
         });
 
         if (!existing) {
@@ -123,7 +123,7 @@ export async function PUT(
 
         // Update page
         const page = await prisma.landingPage.update({
-            where: { id: params.id },
+            where: { id: id },
             data,
             include: {
                 author: {
@@ -158,7 +158,7 @@ export async function PUT(
 // DELETE /api/admin/landing-pages/:id - Delete landing page
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -169,7 +169,7 @@ export async function DELETE(
 
         // Check if page exists
         const page = await prisma.landingPage.findUnique({
-            where: { id: params.id },
+            where: { id: id },
             include: {
                 _count: {
                     select: { blocks: true },
@@ -185,12 +185,12 @@ export async function DELETE(
 
         // Delete page (blocks will be cascade deleted)
         await prisma.landingPage.delete({
-            where: { id: params.id },
+            where: { id: id },
         });
 
         return NextResponse.json({
             message: 'Landing page deleted successfully',
-            deletedId: params.id,
+            deletedId: id,
             deletedBlocksCount,
         });
     } catch (error) {

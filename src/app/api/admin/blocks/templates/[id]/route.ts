@@ -13,8 +13,8 @@ const updateBlockTemplateSchema = z.object({
     category: z.nativeEnum(BlockCategory).optional(),
     thumbnail: z.string().url().optional().nullable(),
     previewUrl: z.string().url().optional().nullable(),
-    defaultConfig: z.record(z.any()).optional(),
-    configSchema: z.record(z.any()).optional(),
+    defaultConfig: z.record(z.string(), z.any()).optional(),
+    configSchema: z.record(z.string(), z.any()).optional(),
     componentCode: z.string().min(1).optional(),
     htmlTemplate: z.string().optional().nullable(),
     cssStyles: z.string().optional().nullable(),
@@ -25,7 +25,7 @@ const updateBlockTemplateSchema = z.object({
 // GET /api/admin/blocks/templates/:id - Get single block template
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -34,8 +34,10 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
+
         const template = await prisma.blockTemplate.findUnique({
-            where: { id: params.id },
+            where: { id },
         });
 
         if (!template) {
@@ -52,7 +54,7 @@ export async function GET(
 // PUT /api/admin/blocks/templates/:id - Update block template
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -61,20 +63,21 @@ export async function PUT(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
 
         // Validate request body
         const validationResult = updateBlockTemplateSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Validation failed', details: validationResult.error.errors },
+                { error: 'Validation failed', details: validationResult.error.issues },
                 { status: 400 }
             );
         }
 
         // Check if template exists
         const existing = await prisma.blockTemplate.findUnique({
-            where: { id: params.id },
+            where: { id },
         });
 
         if (!existing) {
@@ -107,7 +110,7 @@ export async function PUT(
 
         // Update template
         const template = await prisma.blockTemplate.update({
-            where: { id: params.id },
+            where: { id },
             data,
         });
 
@@ -121,7 +124,7 @@ export async function PUT(
 // DELETE /api/admin/blocks/templates/:id - Delete block template
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -130,9 +133,11 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
+
         // Check if template exists
         const template = await prisma.blockTemplate.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 _count: {
                     select: { instances: true },
@@ -162,12 +167,12 @@ export async function DELETE(
 
         // Delete template
         await prisma.blockTemplate.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         return NextResponse.json({
             message: 'Template deleted successfully',
-            deletedId: params.id,
+            deletedId: id,
         });
     } catch (error) {
         console.error('Error deleting block template:', error);

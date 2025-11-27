@@ -9,7 +9,7 @@ import { getExportColumns } from '@/lib/export-utils'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { type: string } }
+  { params }: { params: Promise<{ type: string }> }
 ) {
   try {
     // Check authentication
@@ -23,7 +23,7 @@ export async function GET(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { type } = params
+    const { type } = await params
     const exportType = type.toUpperCase()
 
     // Validate type

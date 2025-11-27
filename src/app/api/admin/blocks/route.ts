@@ -10,7 +10,7 @@ const createBlockSchema = z.object({
     pageId: z.string().optional(),
     postId: z.string().optional(),
     landingPageId: z.string().optional(),
-    config: z.record(z.any()),
+    config: z.record(z.string(), z.any()),
     customCss: z.string().optional().nullable(),
     customClasses: z.string().optional().nullable(),
     order: z.number().int().min(0).optional(),
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         const validationResult = createBlockSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Validation failed', details: validationResult.error.errors },
+                { error: 'Validation failed', details: validationResult.error.issues },
                 { status: 400 }
             );
         }

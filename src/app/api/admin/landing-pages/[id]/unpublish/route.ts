@@ -7,7 +7,7 @@ import { PageStatus } from '@prisma/client';
 // POST /api/admin/landing-pages/:id/unpublish - Unpublish landing page
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -18,7 +18,7 @@ export async function POST(
 
         // Check if page exists
         const page = await prisma.landingPage.findUnique({
-            where: { id: params.id },
+            where: { id: id },
         });
 
         if (!page) {
@@ -27,7 +27,7 @@ export async function POST(
 
         // Update page status to DRAFT
         const updated = await prisma.landingPage.update({
-            where: { id: params.id },
+            where: { id: id },
             data: {
                 status: PageStatus.DRAFT,
                 publishedAt: null,

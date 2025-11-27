@@ -12,7 +12,7 @@ import { PurchaseOrderStatus } from '@prisma/client'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -26,7 +26,7 @@ export async function GET(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Get purchase order with all related data
     const purchaseOrder = await prisma.purchaseOrder.findUnique({
@@ -80,7 +80,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -94,7 +94,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Verify purchase order exists
     const existingPO = await prisma.purchaseOrder.findUnique({
@@ -225,7 +225,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -239,7 +239,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Verify purchase order exists
     const purchaseOrder = await prisma.purchaseOrder.findUnique({

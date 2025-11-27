@@ -485,7 +485,7 @@ export default function CheckoutSettingsEnhancedPage() {
                                     </TabsTrigger>
                                 </>
                             ) : (
-                                <TabsTrigger disabled className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+                                <TabsTrigger value="premium-locked" disabled className="flex items-center gap-2 opacity-50 cursor-not-allowed">
                                     <span>🔒</span>
                                     <span>Premium Features</span>
                                     <Badge variant="outline" className="ml-1 text-xs">Upgrade to PRO</Badge>
