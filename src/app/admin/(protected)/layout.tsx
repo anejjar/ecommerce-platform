@@ -2,6 +2,8 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { AdminSidebarProvider } from '@/components/admin/AdminSidebarContext';
+import { AdminMainContent } from '@/components/admin/AdminMainContent';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SessionProvider } from '@/components/SessionProvider';
 
@@ -24,14 +26,14 @@ export default async function AdminLayout({
         enableSystem
         disableTransitionOnChange
       >
-        <div className="min-h-screen bg-background flex">
-          <AdminSidebar />
-          <main className="flex-1 p-8 lg:p-10 overflow-x-hidden">
-            <div className="max-w-7xl mx-auto">
+        <AdminSidebarProvider>
+          <div className="min-h-screen bg-background">
+            <AdminSidebar />
+            <AdminMainContent>
               {children}
-            </div>
-          </main>
-        </div>
+            </AdminMainContent>
+          </div>
+        </AdminSidebarProvider>
       </ThemeProvider>
     </SessionProvider>
   );

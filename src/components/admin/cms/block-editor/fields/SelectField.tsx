@@ -38,16 +38,21 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                 {label}
                 {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
-            <Select value={value} onValueChange={onChange}>
+            <Select value={value || undefined} onValueChange={onChange}>
                 <SelectTrigger className={error ? 'border-red-500' : ''}>
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent>
-                    {options.map((option) => (
-                        <SelectItem key={option.value} value={String(option.value)}>
-                            {option.label}
-                        </SelectItem>
-                    ))}
+                    {options
+                        .filter(option => {
+                            const optionValue = String(option.value);
+                            return optionValue && optionValue.trim() !== '';
+                        })
+                        .map((option) => (
+                            <SelectItem key={option.value} value={String(option.value)}>
+                                {option.label}
+                            </SelectItem>
+                        ))}
                 </SelectContent>
             </Select>
             {error && <p className="text-sm text-red-500">{error}</p>}

@@ -11,8 +11,8 @@ export async function GET(
 
         const page = await prisma.landingPage.findUnique({
             where: {
-                slug,
-                status: 'PUBLISHED' // Only return published pages
+                slug
+                // Removed status filter to allow previewing draft pages
             },
             include: {
                 blocks: {

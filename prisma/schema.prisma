@@ -76,6 +76,7 @@ model User {
   dataImports            DataImport[]
   landingPages           LandingPage[]
   landingPageTemplates   LandingPageTemplate[]
+  landingPageRevisions   LandingPageRevision[]
 }
 
 model Account {
@@ -1845,6 +1846,13 @@ enum BlockCategory {
   FAQ
   GALLERY
   VIDEO
+  NAVIGATION
+  HEADER
+  FOOTER
+  SOCIAL
+  BREADCRUMBS
+  DIVIDER
+  SPACER
   CUSTOM
 }
 
@@ -1979,6 +1987,9 @@ model LandingPage {
   // Content
   blocks ContentBlock[]
 
+  // Revisions
+  revisions LandingPageRevision[]
+
   // Author
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
@@ -2031,4 +2042,43 @@ model LandingPageTemplate {
 
   @@index([slug])
   @@index([category])
+}
+
+model LandingPageRevision {
+  id String @id @default(cuid())
+
+  // Page Reference
+  pageId String
+  page   LandingPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  // Snapshot Data
+  title       String
+  slug        String
+  description String? @db.Text
+  seoTitle    String?
+  seoDescription String? @db.Text
+  seoKeywords String?
+  ogImage     String?
+  ogTitle     String?
+  ogDescription String?
+  status      PageStatus
+  layoutConfig Json?
+  customCss   String? @db.Text
+  customJs    String? @db.Text
+
+  // Blocks Snapshot (JSON array)
+  blocksSnapshot Json
+
+  // Metadata
+  revisionNumber Int
+  note           String? @db.Text
+  createdById    String
+  createdBy      User   @relation(fields: [createdById], references: [id])
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([pageId])
+  @@index([createdAt])
+  @@index([revisionNumber])
 }

@@ -199,6 +199,21 @@ export default function LandingPagesPage() {
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View Details
                                                     </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => router.push(`/admin/cms/landing-pages/${page.id}/editor`)}>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                    {page.status === 'PUBLISHED' ? (
+                                                        <DropdownMenuItem onClick={() => handleUnpublish(page.id)}>
+                                                            <XCircle className="mr-2 h-4 w-4" />
+                                                            Unpublish
+                                                        </DropdownMenuItem>
+                                                    ) : (
+                                                        <DropdownMenuItem onClick={() => handlePublish(page.id)}>
+                                                            <Globe className="mr-2 h-4 w-4" />
+                                                            Publish
+                                                        </DropdownMenuItem>
+                                                    )}
                                                     <DropdownMenuItem onClick={() => handleDuplicate(page.id, page.title)}>
                                                         <Copy className="mr-2 h-4 w-4" />
                                                         Duplicate

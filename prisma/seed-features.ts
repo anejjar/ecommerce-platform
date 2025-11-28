@@ -163,7 +163,7 @@ const features = [
   {
     name: 'cms',
     displayName: 'Content Management System',
-    description: 'Full-featured CMS with blog posts, custom pages, landing page builder, dynamic blocks, FAQ builder, testimonials, video embed, content scheduling, and version history',
+    description: 'Complete CMS with drag-and-drop landing page builder, block templates, blog management, custom pages, media library, SEO tools, and content scheduling',
     category: 'marketing',
     tier: 'PRO' as const,
     enabled: false,

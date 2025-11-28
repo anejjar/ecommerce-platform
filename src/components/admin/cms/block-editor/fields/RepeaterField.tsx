@@ -19,28 +19,37 @@ interface RepeaterFieldProps {
 
 export const RepeaterField: React.FC<RepeaterFieldProps> = ({
     label,
-    value = [],
+    value,
     onChange,
     fields,
     itemLabel = 'Item'
 }) => {
+    // Ensure value is always an array
+    const arrayValue = Array.isArray(value) ? value : (value ? [value] : []);
+
     const handleAdd = () => {
         // Create empty object based on fields
         const newItem: any = {};
         fields.forEach(field => {
-            newItem[field.name] = field.default || '';
+            if (field.type === 'checkbox') {
+                newItem[field.name] = field.default || false;
+            } else if (field.type === 'repeater') {
+                newItem[field.name] = [];
+            } else {
+                newItem[field.name] = field.default || '';
+            }
         });
-        onChange([...value, newItem]);
+        onChange([...arrayValue, newItem]);
     };
 
     const handleRemove = (index: number) => {
-        const newValue = [...value];
+        const newValue = [...arrayValue];
         newValue.splice(index, 1);
         onChange(newValue);
     };
 
     const handleChange = (index: number, itemData: any) => {
-        const newValue = [...value];
+        const newValue = [...arrayValue];
         newValue[index] = itemData;
         onChange(newValue);
     };
@@ -48,12 +57,12 @@ export const RepeaterField: React.FC<RepeaterFieldProps> = ({
     const handleMove = (index: number, direction: 'up' | 'down') => {
         if (
             (direction === 'up' && index === 0) ||
-            (direction === 'down' && index === value.length - 1)
+            (direction === 'down' && index === arrayValue.length - 1)
         ) {
             return;
         }
 
-        const newValue = [...value];
+        const newValue = [...arrayValue];
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
         [newValue[index], newValue[targetIndex]] = [newValue[targetIndex], newValue[index]];
         onChange(newValue);
@@ -70,7 +79,7 @@ export const RepeaterField: React.FC<RepeaterFieldProps> = ({
             </div>
 
             <div className="space-y-2">
-                {value.map((item, index) => (
+                {arrayValue.map((item, index) => (
                     <RepeaterItem
                         key={index}
                         index={index}
@@ -82,11 +91,11 @@ export const RepeaterField: React.FC<RepeaterFieldProps> = ({
                         onMoveUp={() => handleMove(index, 'up')}
                         onMoveDown={() => handleMove(index, 'down')}
                         isFirst={index === 0}
-                        isLast={index === value.length - 1}
+                        isLast={index === arrayValue.length - 1}
                     />
                 ))}
 
-                {value.length === 0 && (
+                {arrayValue.length === 0 && (
                     <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground bg-gray-50">
                         No items yet. Click "Add {itemLabel}" to start.
                     </div>

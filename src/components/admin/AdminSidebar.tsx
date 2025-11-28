@@ -57,6 +57,7 @@ import {
   Moon,
   Laptop
 } from "lucide-react"
+import { useAdminSidebar } from "./AdminSidebarContext"
 
 interface NavItem {
   name: string
@@ -148,15 +149,9 @@ const navigation: NavItem[] = [
       { name: "Media Library", href: "/admin/media" },
       { name: "Blog Posts", href: "/admin/cms/posts" },
       { name: "Pages", href: "/admin/cms/pages" },
-      { name: "Categories & Tags", href: "/admin/cms/categories" },
-    ],
-  },
-  {
-    name: "Page Builder",
-    icon: Sparkles,
-    children: [
       { name: "Landing Pages", href: "/admin/cms/landing-pages" },
       { name: "Block Templates", href: "/admin/cms/templates" },
+      { name: "Categories & Tags", href: "/admin/cms/categories" },
     ],
   },
   {
@@ -185,7 +180,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { setTheme } = useTheme()
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const { isCollapsed, setIsCollapsed } = useAdminSidebar()
   const [openMenus, setOpenMenus] = useState<string[]>([])
   const [enabledFeatures, setEnabledFeatures] = useState<string[]>([])
 
@@ -312,7 +307,10 @@ export function AdminSidebar() {
                       )}
                       title={isCollapsed ? item.name : ""}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "flex items-center",
+                        isCollapsed ? "justify-center" : "gap-3"
+                      )}>
                         <Icon className="h-4 w-4" />
                         {!isCollapsed && <span>{item.name}</span>}
                       </div>
@@ -360,11 +358,14 @@ export function AdminSidebar() {
                 <Button
                   variant={active ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start cursor-pointer",
-                    isCollapsed && "justify-center px-2"
+                    "w-full cursor-pointer",
+                    isCollapsed ? "justify-center px-2" : "justify-start"
                   )}
                 >
-                  <Icon className="h-4 w-4 mr-2" />
+                  <Icon className={cn(
+                    "h-4 w-4",
+                    !isCollapsed && "mr-2"
+                  )} />
                   {!isCollapsed && <span>{item.name}</span>}
                 </Button>
               </Link>
@@ -469,7 +470,7 @@ export function AdminSidebar() {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden border-r bg-background lg:block transition-all duration-300 sticky top-0 h-screen relative group",
+          "hidden border-r bg-background lg:block transition-all duration-300 fixed top-0 left-0 h-screen group z-30",
           isCollapsed ? "w-[70px]" : "w-[240px]"
         )}
       >

@@ -8,8 +8,32 @@ import { HeroSplitLayout } from './blocks/HeroSplitLayout';
 import { HeroMinimal } from './blocks/HeroMinimal';
 import { HeroGradient } from './blocks/HeroGradient';
 import { FeaturesGrid } from './blocks/FeaturesGrid';
+import { FeaturesAlternating } from './blocks/FeaturesAlternating';
+import { FeaturesIconBoxes } from './blocks/FeaturesIconBoxes';
+import { FeaturesScreenshots } from './blocks/FeaturesScreenshots';
 import { CTABanner } from './blocks/CTABanner';
+import { CTACard } from './blocks/CTACard';
+import { CTASplit } from './blocks/CTASplit';
 import { TestimonialsCarousel } from './blocks/TestimonialsCarousel';
+import { TestimonialsGrid } from './blocks/TestimonialsGrid';
+import { PricingTable } from './blocks/PricingTable';
+import { PricingComparison } from './blocks/PricingComparison';
+import { TeamGrid } from './blocks/TeamGrid';
+import { StatsShowcase } from './blocks/StatsShowcase';
+import { LogoGrid } from './blocks/LogoGrid';
+import { NewsletterSignup } from './blocks/NewsletterSignup';
+import { ContactForm } from './blocks/ContactForm';
+import { FAQAccordion } from './blocks/FAQAccordion';
+import { GalleryGrid } from './blocks/GalleryGrid';
+import { NavigationBar } from './blocks/NavigationBar';
+import { PageHeader } from './blocks/PageHeader';
+import { Footer } from './blocks/Footer';
+import { SocialLinks } from './blocks/SocialLinks';
+import { Breadcrumbs } from './blocks/Breadcrumbs';
+import { Divider } from './blocks/Divider';
+import { Spacer } from './blocks/Spacer';
+import { VideoPlayer } from './blocks/VideoPlayer';
+import { TextContent } from './blocks/TextContent';
 
 interface BlockRendererProps {
   block: {
@@ -65,15 +89,96 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({ block }) => {
       case 'features-3-column-grid':
       case 'features-grid':
         return <FeaturesGrid config={block.config} />;
+      case 'features-alternating':
+        return <FeaturesAlternating config={block.config} />;
+      case 'features-icon-boxes':
+        return <FeaturesIconBoxes config={block.config} />;
+      case 'features-screenshots':
+        return <FeaturesScreenshots config={block.config} />;
 
       // CTA blocks
-      case 'cta-full-width-banner':
+      case 'cta-full-width':
       case 'cta-banner':
         return <CTABanner config={block.config} />;
+      case 'cta-card':
+        return <CTACard config={block.config} />;
+      case 'cta-split':
+        return <CTASplit config={block.config} />;
 
       // Social proof blocks
       case 'testimonials-carousel':
         return <TestimonialsCarousel config={block.config} />;
+      case 'testimonials-grid':
+        return <TestimonialsGrid config={block.config} />;
+
+      // Pricing blocks
+      case 'pricing-table':
+      case 'pricing-3-tier':
+        return <PricingTable config={block.config} />;
+      case 'pricing-comparison':
+        return <PricingComparison config={block.config} />;
+
+      // Team block
+      case 'team-grid':
+        return <TeamGrid config={block.config} />;
+
+      // Stats block
+      case 'stats-showcase':
+        return <StatsShowcase config={block.config} />;
+
+      // Logo grid
+      case 'logo-grid':
+        return <LogoGrid config={block.config} />;
+
+      // Form blocks
+      case 'newsletter-signup':
+        return <NewsletterSignup config={block.config} />;
+      case 'contact-form':
+        return <ContactForm config={block.config} />;
+
+      // FAQ block
+      case 'faq-accordion':
+        return <FAQAccordion config={block.config} />;
+
+      // Gallery block
+      case 'gallery-grid':
+        return <GalleryGrid config={block.config} />;
+
+      // Navigation block
+      case 'navigation-bar':
+        return <NavigationBar config={block.config} />;
+
+      // Header block
+      case 'page-header':
+        return <PageHeader config={block.config} />;
+
+      // Footer block
+      case 'footer':
+        return <Footer config={block.config} />;
+
+      // Social links block
+      case 'social-links':
+        return <SocialLinks config={block.config} />;
+
+      // Breadcrumbs block
+      case 'breadcrumbs':
+        return <Breadcrumbs config={block.config} />;
+
+      // Divider block
+      case 'divider':
+        return <Divider config={block.config} />;
+
+      // Spacer block
+      case 'spacer':
+        return <Spacer config={block.config} />;
+
+      // Video player block
+      case 'video-player':
+        return <VideoPlayer config={block.config} />;
+
+      // Text content block
+      case 'text-content':
+        return <TextContent config={block.config} />;
 
       // Default fallback: render from componentCode
       default:

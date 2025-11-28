@@ -554,13 +554,15 @@ Advanced email marketing tools with campaign management.
 **Status:** ✅ Completed
 
 **Description:**
-Manage website content without developer assistance.
+Manage website content and build landing pages without developer assistance.
 
 **Implemented Features:**
+- ✅ Drag-and-drop Landing Page Builder
+- ✅ Block Template System
 - ✅ Blog/articles management
 - ✅ Custom page builder
 - ✅ Rich text editor (TipTap WYSIWYG)
-- ✅ Image upload and management
+- ✅ Image upload and management (Media Library)
 - ✅ SEO metadata per page
 - ✅ Draft/publish/archived workflow
 - ✅ Page categories and tags
@@ -574,10 +576,12 @@ Manage website content without developer assistance.
 **Location:** `/admin/cms`
 
 **Pages Supported:**
+- Landing Pages (Visual Builder)
 - Blog posts
 - Custom pages
 - Categories management
 - Tags management
+- Block Templates
 
 **Database Schema:**
 ```prisma

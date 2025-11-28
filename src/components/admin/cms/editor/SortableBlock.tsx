@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Trash2, Settings, Move, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { BlockPreview } from '../block-editor/BlockPreview';
@@ -11,7 +11,9 @@ interface SortableBlockProps {
     block: any;
     isSelected: boolean;
     onSelect: () => void;
+    onToggleSettings?: () => void;
     onRemove: () => void;
+    onDuplicate?: () => void;
 }
 
 export const SortableBlock: React.FC<SortableBlockProps> = ({
@@ -19,7 +21,9 @@ export const SortableBlock: React.FC<SortableBlockProps> = ({
     block,
     isSelected,
     onSelect,
-    onRemove
+    onToggleSettings,
+    onRemove,
+    onDuplicate
 }) => {
     const {
         attributes,
@@ -42,57 +46,109 @@ export const SortableBlock: React.FC<SortableBlockProps> = ({
             ref={setNodeRef}
             style={style}
             className={cn(
-                "relative group border-2 rounded-lg transition-all mb-4 bg-white",
-                isSelected ? "border-primary ring-2 ring-primary/20" : "border-transparent hover:border-gray-300"
+                "relative group transition-all mb-4",
+                isSelected ? "ring-2 ring-primary ring-offset-2 rounded-lg" : ""
             )}
             onClick={(e) => {
                 e.stopPropagation();
                 onSelect();
             }}
         >
-            {/* Drag Handle & Actions - Visible on Hover or Selected */}
+            {/* Hover Actions Overlay */}
             <div className={cn(
-                "absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-white shadow-sm border rounded-full px-2 py-1 transition-opacity z-10",
-                isSelected || isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                "absolute -top-3 right-4 flex items-center gap-1 bg-white shadow-md border rounded-lg p-1 transition-all z-20",
+                isSelected || isDragging ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto"
             )}>
                 <div
                     {...attributes}
                     {...listeners}
-                    className="cursor-move p-1 hover:bg-gray-100 rounded"
+                    className="cursor-move p-1.5 hover:bg-gray-100 rounded-md text-gray-500 hover:text-gray-900 transition-colors"
+                    title="Drag to reorder"
                 >
-                    <GripVertical className="h-4 w-4 text-gray-500" />
+                    <Move className="h-3.5 w-3.5" />
                 </div>
-                <div className="w-px h-4 bg-gray-200 mx-1" />
-                <span className="text-xs font-medium px-1 text-gray-600">
-                    {block.template?.name || 'Block'}
-                </span>
-                <div className="w-px h-4 bg-gray-200 mx-1" />
+
+                <div className="w-px h-4 bg-gray-200" />
+
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className={cn(
+                        "h-7 w-7 transition-colors",
+                        isSelected ? "text-primary bg-primary/10" : "text-gray-500 hover:text-primary hover:bg-primary/5"
+                    )}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (onToggleSettings) {
+                            onToggleSettings();
+                        } else {
+                            onSelect();
+                        }
+                    }}
+                    title={isSelected ? "Close Settings" : "Open Settings"}
+                >
+                    <Settings className="h-3.5 w-3.5" />
+                </Button>
+
+                <div className="w-px h-4 bg-gray-200" />
+
+                {onDuplicate && (
+                    <>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDuplicate();
+                            }}
+                            title="Duplicate block"
+                        >
+                            <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                        <div className="w-px h-4 bg-gray-200" />
+                    </>
+                )}
+
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-gray-500 hover:text-red-600 hover:bg-red-50"
                     onClick={(e) => {
                         e.stopPropagation();
                         onRemove();
                     }}
+                    title="Remove block"
                 >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                 </Button>
             </div>
 
-            {/* Block Content Preview */}
-            <div className="pointer-events-none p-4 min-h-[100px]">
-                {block.template ? (
-                    <BlockPreview
-                        template={block.template}
-                        config={block.config}
-                    />
-                ) : (
-                    <div className="flex items-center justify-center h-24 bg-gray-50 text-gray-400 rounded">
-                        Unknown Block Template
-                    </div>
-                )}
+            {/* Block Content */}
+            <div className={cn(
+                "bg-white rounded-lg border shadow-sm overflow-hidden transition-all",
+                isSelected ? "border-primary/20" : "border-gray-200 hover:border-gray-300"
+            )}>
+                <div className="pointer-events-none min-h-[100px]">
+                    {block.template ? (
+                        <BlockPreview
+                            template={block.template}
+                            config={block.config}
+                        />
+                    ) : (
+                        <div className="flex items-center justify-center h-24 bg-gray-50 text-gray-400">
+                            Unknown Block Template
+                        </div>
+                    )}
+                </div>
             </div>
+
+            {/* Selection Label */}
+            {isSelected && (
+                <div className="absolute -top-3 left-4 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-20 uppercase tracking-wider">
+                    {block.template?.name}
+                </div>
+            )}
         </div>
     );
 };
