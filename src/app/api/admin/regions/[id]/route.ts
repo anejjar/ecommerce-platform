@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // PATCH update region
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -15,7 +15,7 @@ export async function PATCH(
         }
 
         const data = await request.json();
-        const regionId = params.id;
+        const regionId = id;
 
         const region = await prisma.region.update({
             where: { id: regionId },
@@ -38,7 +38,7 @@ export async function PATCH(
 // DELETE region
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -46,7 +46,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const regionId = params.id;
+        const regionId = id;
 
         // Delete region (cities will be cascaded)
         await prisma.region.delete({

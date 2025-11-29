@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
@@ -262,8 +262,14 @@ export function HomePageContent({
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.slice(0, 4).map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {featuredProducts.slice(0, 4).map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           </div>
@@ -287,8 +293,14 @@ export function HomePageContent({
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {displayProducts.slice(0, 8).map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {displayProducts.slice(0, 8).map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           </div>

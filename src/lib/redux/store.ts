@@ -3,16 +3,18 @@ import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // localStorage
 import cartReducer from './features/cartSlice';
 import wishlistReducer from './features/wishlistSlice';
+import posReducer from './features/posSlice';
 
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['cart'], // Only persist cart state (wishlist fetched from server)
+  whitelist: ['cart', 'pos'], // Persist cart and POS state
 };
 
 const rootReducer = combineReducers({
   cart: cartReducer,
   wishlist: wishlistReducer,
+  pos: posReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

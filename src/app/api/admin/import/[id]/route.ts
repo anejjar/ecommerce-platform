@@ -11,7 +11,7 @@ import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Get import
     const dataImport = await prisma.dataImport.findUnique({
@@ -73,7 +73,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -87,7 +87,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Get import
     const dataImport = await prisma.dataImport.findUnique({

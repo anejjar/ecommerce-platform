@@ -19,7 +19,8 @@ import {
     Lock,
     User,
     ShoppingCart,
-    AlertTriangle
+    AlertTriangle,
+    Image
 } from 'lucide-react';
 
 interface FeatureFlags {
@@ -116,18 +117,19 @@ export default function SettingsPage() {
             icon: Share2,
             visible: true
         },
-        {
-            title: "Appearance",
-            description: "Customize the look and feel of your store.",
-            href: "/admin/settings/appearance",
-            icon: Palette,
-            visible: true
-        },
+
         {
             title: "Translations",
             description: "Manage languages and translations.",
             href: "/admin/settings/translations",
             icon: Languages,
+            visible: true
+        },
+        {
+            title: "Media Library",
+            description: "View and manage all uploaded media files.",
+            href: "/admin/settings/media",
+            icon: Image,
             visible: true
         },
         {

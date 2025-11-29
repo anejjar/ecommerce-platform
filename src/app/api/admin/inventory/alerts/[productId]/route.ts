@@ -11,7 +11,7 @@ import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log'
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     // Check authentication
@@ -25,7 +25,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { productId } = params
+    const { productId } = await params
 
     // Verify product exists
     const product = await prisma.product.findUnique({
@@ -92,7 +92,7 @@ export async function PATCH(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     // Check authentication
@@ -106,7 +106,7 @@ export async function POST(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { productId } = params
+    const { productId } = await params
 
     // Verify product exists
     const product = await prisma.product.findUnique({
@@ -178,7 +178,7 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     // Check authentication
@@ -192,7 +192,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { productId } = params
+    const { productId } = await params
 
     // Verify product and alert exist
     const product = await prisma.product.findUnique({

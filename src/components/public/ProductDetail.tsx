@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/navigation';
 import { Star, ShoppingCart, Minus, Plus, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch } from '@/lib/redux/hooks';
 import { addToCart, openCart } from '@/lib/redux/features/cartSlice';
+import { ProductCard } from '@/components/public/ProductCard';
 import { ProductReviews } from '@/components/public/ProductReviews';
 import { WishlistButton } from '@/components/public/WishlistButton';
+import { ProductImageGallery } from '@/components/public/ProductImageGallery';
+import { VariantSelector } from '@/components/public/VariantSelector';
+import { ProductTabs } from '@/components/public/ProductTabs';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 
@@ -62,7 +66,6 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
   // Track selected option values for each variant option
@@ -117,7 +120,8 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
     return product.stock;
   }, [selectedVariant, product.variants, product.stock, hasVariants]);
 
-  const currentImage = selectedVariant?.image || product.images[selectedImage]?.url;
+  // Get image for cart (variant image or first product image)
+  const currentImage = selectedVariant?.image || product.images[0]?.url;
 
   const discount =
     currentComparePrice && currentComparePrice > currentPrice
@@ -228,62 +232,17 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Image Gallery */}
             <div>
-              {/* Main Image */}
-              <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-                {currentImage ? (
-                  <Image
-                    src={currentImage}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : product.images.length > 0 ? (
-                  <Image
-                    src={product.images[selectedImage].url}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <span className="text-6xl">📦</span>
-                  </div>
-                )}
-                {product.featured && (
-                  <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-current" />
-                    {t('product.featured')}
-                  </div>
-                )}
-                {discount && (
-                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    {discount}% {t('product.off')}
-                  </div>
-                )}
-              </div>
-
-              {/* Thumbnail Gallery */}
-              {product.images.length > 1 && (
-                <div className="grid grid-cols-5 gap-2">
-                  {product.images.map((image, index) => (
-                    <button
-                      key={image.id}
-                      onClick={() => setSelectedImage(index)}
-                      className={`relative aspect-square rounded-lg overflow-hidden ${selectedImage === index
-                          ? 'ring-2 ring-blue-600'
-                          : 'ring-1 ring-gray-200'
-                        }`}
-                    >
-                      <Image
-                        src={image.url}
-                        alt={image.alt || product.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
+              <ProductImageGallery
+                images={product.images.map(img => ({
+                  id: img.id,
+                  url: img.url,
+                  alt: img.alt,
+                }))}
+                productName={product.name}
+                variantImage={selectedVariant?.image || null}
+                featured={product.featured}
+                discount={discount}
+              />
             </div>
 
             {/* Product Info */}
@@ -329,16 +288,6 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 )}
               </div>
 
-              {/* Description */}
-              {product.description && (
-                <div className="mb-6">
-                  <h2 className="font-semibold text-lg mb-2">{t('product.description')}</h2>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {product.description}
-                  </p>
-                </div>
-              )}
-
               {/* SKU */}
               {product.sku && (
                 <p className="text-sm text-gray-600 mb-6">
@@ -348,42 +297,18 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
 
               {/* Variant Options */}
               {hasVariants && (
-                <div className="mb-6 space-y-4">
-                  {product.variantOptions.map((option) => (
-                    <div key={option.id}>
-                      <label className="block font-semibold mb-2">{option.name}</label>
-                      <div className="flex flex-wrap gap-2">
-                        {option.values.map((value) => {
-                          const isSelected = selectedOptions[option.id] === value.value;
-
-                          // Check if this option value is available in any variant
-                          const isAvailable = product.variants.some((variant) => {
-                            const variantValues = JSON.parse(variant.optionValues);
-                            const optionIndex = product.variantOptions.findIndex(
-                              (o) => o.id === option.id
-                            );
-                            return variantValues[optionIndex] === value.value && variant.stock > 0;
-                          });
-
-                          return (
-                            <button
-                              key={value.id}
-                              onClick={() => handleOptionChange(option.id, value.value)}
-                              disabled={!isAvailable}
-                              className={`px-4 py-2 border rounded-lg transition-colors ${isSelected
-                                  ? 'border-blue-600 bg-blue-50 text-blue-600 font-medium'
-                                  : isAvailable
-                                    ? 'border-gray-300 hover:border-blue-600'
-                                    : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through'
-                                }`}
-                            >
-                              {value.value}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                <div className="mb-6">
+                  <VariantSelector
+                    options={product.variantOptions}
+                    variants={product.variants.map(v => ({
+                      id: v.id,
+                      stock: v.stock,
+                      optionValues: v.optionValues,
+                    }))}
+                    selectedOptions={selectedOptions}
+                    onOptionChange={handleOptionChange}
+                    disabled={currentStock === 0}
+                  />
                 </div>
               )}
 
@@ -458,9 +383,12 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
           </div>
         </div>
 
-        {/* Product Reviews */}
-        <div className="mb-8">
-          <ProductReviews productId={product.id} />
+        {/* Product Tabs (Description, Specs, Reviews) */}
+        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-8">
+          <ProductTabs
+            description={product.description}
+            productId={product.id}
+          />
         </div>
 
         {/* Related Products */}
@@ -468,46 +396,14 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
           <div>
             <h2 className="text-2xl font-bold mb-6">{t('product.relatedProducts')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <Link
+              {relatedProducts.map((relatedProduct, index) => (
+                <div
                   key={relatedProduct.id}
-                  href={`/product/${relatedProduct.slug}`}
-                  className="group"
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="bg-white rounded-lg overflow-hidden border hover:shadow-lg transition-shadow">
-                    <div className="relative aspect-square bg-gray-100">
-                      {relatedProduct.images[0] ? (
-                        <Image
-                          src={relatedProduct.images[0].url}
-                          alt={relatedProduct.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <span className="text-4xl">📦</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600">
-                        {relatedProduct.name}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-gray-900">
-                          ${Number(relatedProduct.price).toFixed(2)}
-                        </span>
-                        {relatedProduct.comparePrice &&
-                          Number(relatedProduct.comparePrice) >
-                          Number(relatedProduct.price) && (
-                            <span className="text-sm text-gray-500 line-through">
-                              ${Number(relatedProduct.comparePrice).toFixed(2)}
-                            </span>
-                          )}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                  <ProductCard product={relatedProduct} />
+                </div>
               ))}
             </div>
           </div>

@@ -83,7 +83,7 @@ export const MediaSidebar: React.FC<MediaSidebarProps> = ({ item, onClose, onUpd
         <div className="fixed inset-y-0 right-0 z-50 w-80 border-l bg-background shadow-lg sm:w-96 overflow-y-auto">
             <div className="flex items-center justify-between border-b p-4">
                 <h3 className="font-semibold">Media Details</h3>
-                <Button variant="ghost" size="icon" onClick={onClose}>
+                <Button variant="ghost" size="icon" onClick={onClose} className="cursor-pointer">
                     <X className="h-4 w-4" />
                 </Button>
             </div>
@@ -129,7 +129,7 @@ export const MediaSidebar: React.FC<MediaSidebarProps> = ({ item, onClose, onUpd
                     </div>
 
                     <div className="pt-2">
-                        <Button variant="outline" size="sm" className="w-full" onClick={copyUrl}>
+                        <Button variant="outline" size="sm" className="w-full cursor-pointer" onClick={copyUrl}>
                             <Copy className="mr-2 h-3 w-3" /> Copy URL
                         </Button>
                     </div>
@@ -188,10 +188,10 @@ export const MediaSidebar: React.FC<MediaSidebarProps> = ({ item, onClose, onUpd
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-2">
-                    <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting}>
+                    <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting} className="cursor-pointer">
                         <Trash2 className="mr-2 h-4 w-4" /> Delete
                     </Button>
-                    <Button onClick={handleSave} disabled={isSaving}>
+                    <Button onClick={handleSave} disabled={isSaving} className="cursor-pointer">
                         <Save className="mr-2 h-4 w-4" /> Save
                     </Button>
                 </div>

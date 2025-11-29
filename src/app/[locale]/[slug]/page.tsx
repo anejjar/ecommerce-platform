@@ -1,73 +1,103 @@
-import { Metadata } from 'next';
+import React from 'react';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { Header } from '@/components/public/Header';
-import { Footer } from '@/components/public/Footer';
+import { BlockRenderer } from '@/components/blocks/BlockRenderer';
+import { Metadata } from 'next';
 
-interface Props {
-    params: Promise<{ slug: string }>;
+interface LandingPageProps {
+    params: Promise<{
+        locale: string;
+        slug: string;
+    }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: LandingPageProps): Promise<Metadata> {
     const { slug } = await params;
-    const page = await prisma.page.findUnique({
-        where: { slug },
+
+    const page = await prisma.landingPage.findUnique({
+        where: {
+            slug,
+            status: 'PUBLISHED'
+        },
+        select: {
+            title: true,
+            seoTitle: true,
+            seoDescription: true,
+            seoKeywords: true,
+            ogImage: true,
+            ogTitle: true,
+            ogDescription: true,
+        }
     });
 
     if (!page) {
         return {
-            title: 'Page Not Found',
+            title: 'Page Not Found'
         };
     }
 
     return {
         title: page.seoTitle || page.title,
-        description: page.seoDescription,
+        description: page.seoDescription || undefined,
+        keywords: page.seoKeywords || undefined,
+        openGraph: {
+            title: page.ogTitle || page.seoTitle || page.title,
+            description: page.ogDescription || page.seoDescription || undefined,
+            images: page.ogImage ? [page.ogImage] : undefined,
+        }
     };
 }
 
-export default async function DynamicPage({ params }: Props) {
+export default async function LandingPage({ params }: LandingPageProps) {
     const { slug } = await params;
 
-    // Skip if slug is reserved (e.g. 'blog', 'admin', etc)
-    if (['blog', 'admin', 'api'].includes(slug)) {
-        notFound();
-    }
-
-    const page = await prisma.page.findUnique({
-        where: { slug },
+    const page = await prisma.landingPage.findUnique({
+        where: {
+            slug,
+            status: 'PUBLISHED'
+        },
+        include: {
+            blocks: {
+                include: {
+                    template: true
+                },
+                orderBy: {
+                    order: 'asc'
+                }
+            }
+        }
     });
 
-    if (!page || page.status !== 'PUBLISHED') {
+    if (!page) {
         notFound();
     }
 
-    const Content = () => (
-        <div className="container mx-auto px-4 py-12">
-            <div className="max-w-4xl mx-auto space-y-8">
-                <div className="text-center space-y-4">
-                    <h1 className="text-4xl font-bold tracking-tight">{page.title}</h1>
-                </div>
+    // Increment view count
+    await prisma.landingPage.update({
+        where: { id: page.id },
+        data: {
+            viewCount: {
+                increment: 1
+            }
+        }
+    });
 
-                <div
-                    className="prose prose-lg dark:prose-invert mx-auto max-w-none"
-                    dangerouslySetInnerHTML={{ __html: page.content }}
-                />
-            </div>
+    return (
+        <div className="min-h-screen">
+            {/* Custom CSS */}
+            {page.customCss && (
+                <style dangerouslySetInnerHTML={{ __html: page.customCss }} />
+            )}
+
+            {/* Render blocks */}
+            {page.blocks.map((block) => (
+                <BlockRenderer key={block.id} block={block} landingPageId={page.id} />
+            ))}
+
+            {/* Custom JS */}
+            {page.customJs && (
+                <script dangerouslySetInnerHTML={{ __html: page.customJs }} />
+            )}
         </div>
     );
-
-    if (page.useStorefrontLayout) {
-        return (
-            <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className="flex-1">
-                    <Content />
-                </main>
-                <Footer />
-            </div>
-        );
-    }
-
-    return <Content />;
 }

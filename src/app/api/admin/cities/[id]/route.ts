@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // PATCH update city
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -14,8 +14,9 @@ export async function PATCH(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
         const data = await request.json();
-        const cityId = params.id;
+        const cityId = id;
 
         const city = await prisma.city.update({
             where: { id: cityId },
@@ -47,7 +48,7 @@ export async function PATCH(
 // DELETE city
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -55,7 +56,8 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const cityId = params.id;
+        const { id } = await params;
+        const cityId = id;
 
         await prisma.city.delete({
             where: { id: cityId },

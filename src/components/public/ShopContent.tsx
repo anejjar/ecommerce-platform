@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import Image from 'next/image';
 import { Search, Filter, X, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { WishlistButton } from '@/components/public/WishlistButton';
+import { ProductCard } from '@/components/public/ProductCard';
+import { FilterSidebar } from '@/components/public/FilterSidebar';
+import { SearchAutocomplete } from '@/components/public/SearchAutocomplete';
 import { useTranslations } from 'next-intl';
 
 interface Product {
@@ -117,16 +120,18 @@ export function ShopContent({
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <form onSubmit={handleSearch} className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder={t('shop.searchPlaceholder')}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            <SearchAutocomplete
+              value={search}
+              onChange={setSearch}
+              onSubmit={(value) => {
+                const params: Record<string, string> = { search: value };
+                if (initialCategory) params.category = initialCategory;
+                if (initialFeatured) params.featured = 'true';
+                if (initialSort !== 'newest') params.sort = initialSort;
+                applyFilters(params);
+              }}
+              placeholder={t('shop.searchPlaceholder')}
+            />
           </form>
 
           {/* Sort */}
@@ -145,7 +150,7 @@ export function ShopContent({
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="md:hidden"
+            className="md:hidden min-h-[44px]"
           >
             <Filter className="w-4 h-4 mr-2" />
             {t('shop.filters')}
@@ -200,54 +205,30 @@ export function ShopContent({
       </div>
 
       <div className="flex gap-6">
-        {/* Sidebar Filters */}
-        <aside className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 flex-shrink-0`}>
-          <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-            <h2 className="font-bold text-lg mb-4">{t('shop.filters')}</h2>
-
-            {/* Featured Toggle */}
-            <div className="mb-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={initialFeatured}
-                  onChange={handleFeaturedToggle}
-                  className="w-4 h-4"
-                />
-                <Star className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm">{t('shop.filterFeatured')}</span>
-              </label>
-            </div>
-
-            {/* Categories */}
-            <div>
-              <h3 className="font-semibold mb-3">{t('shop.categories')}</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => handleCategoryFilter('')}
-                  className={`block w-full text-left px-3 py-2 rounded text-sm ${!initialCategory
-                    ? 'bg-blue-100 text-blue-800 font-medium'
-                    : 'hover:bg-gray-100'
-                    }`}
-                >
-                  {t('shop.allCategories')}
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleCategoryFilter(category.slug)}
-                    className={`block w-full text-left px-3 py-2 rounded text-sm ${initialCategory === category.slug
-                      ? 'bg-blue-100 text-blue-800 font-medium'
-                      : 'hover:bg-gray-100'
-                      }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </aside>
+        {/* Filter Sidebar */}
+        <FilterSidebar
+          categories={categories}
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          onApplyFilters={(filters) => {
+            const params: Record<string, string> = {};
+            if (filters.category) params.category = filters.category;
+            if (filters.featured) params.featured = 'true';
+            if (filters.priceRange[0] > 0 || filters.priceRange[1] < 1000) {
+              params.priceMin = filters.priceRange[0].toString();
+              params.priceMax = filters.priceRange[1].toString();
+            }
+            if (filters.inStock === true) params.inStock = 'true';
+            if (search) params.search = search;
+            if (initialSort !== 'newest') params.sort = initialSort;
+            applyFilters(params);
+          }}
+          initialFilters={{
+            category: initialCategory,
+            featured: initialFeatured,
+          }}
+          priceRange={{ min: 0, max: 1000 }}
+        />
 
         {/* Products Grid */}
         <div className="flex-1">
@@ -262,73 +243,14 @@ export function ShopContent({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <div key={product.id} className="group">
-                  <div className="bg-white rounded-lg overflow-hidden border hover:shadow-lg transition-shadow">
-                    {/* Product Image */}
-                    <Link href={`/product/${product.slug}`}>
-                      <div className="relative aspect-square bg-gray-100">
-                        {product.images[0] ? (
-                          <Image
-                            src={product.images[0].url}
-                            alt={product.name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <span className="text-4xl">📦</span>
-                          </div>
-                        )}
-                        {product.featured && (
-                          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-current" />
-                            {t('product.featured')}
-                          </div>
-                        )}
-                        {product.comparePrice &&
-                          Number(product.comparePrice) > Number(product.price) && (
-                            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                              {t('common.save')}
-                            </div>
-                          )}
-                        <div className="absolute bottom-2 right-2">
-                          <div className="bg-white rounded-full p-2 shadow-md">
-                            <WishlistButton productId={product.id} />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-
-                    {/* Product Info */}
-                    <Link href={`/product/${product.slug}`}>
-                      <div className="p-4">
-                        {product.category && (
-                          <p className="text-xs text-gray-500 mb-1">
-                            {product.category.name}
-                          </p>
-                        )}
-                        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-gray-900">
-                            ${Number(product.price).toFixed(2)}
-                          </span>
-                          {product.comparePrice &&
-                            Number(product.comparePrice) > Number(product.price) && (
-                              <span className="text-sm text-gray-500 line-through">
-                                ${Number(product.comparePrice).toFixed(2)}
-                              </span>
-                            )}
-                        </div>
-                        {product.stock === 0 && (
-                          <p className="text-xs text-red-600 mt-2">{t('product.outOfStock')}</p>
-                        )}
-                      </div>
-                    </Link>
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {products.map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ProductCard product={product} />
                 </div>
               ))}
             </div>

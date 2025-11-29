@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { deleteFromCloudinary } from '@/lib/cloudinary';
+import { logActivity, getClientIp, getUserAgent } from '@/lib/activity-log';
 
 export async function GET(
     req: NextRequest,
@@ -73,6 +74,17 @@ export async function PATCH(
             },
         });
 
+        // Log activity
+        await logActivity({
+            userId: session.user.id,
+            action: 'MEDIA_UPDATED',
+            entityType: 'media',
+            entityId: id,
+            details: `Updated media metadata: ${media.filename}`,
+            ipAddress: getClientIp(req),
+            userAgent: getUserAgent(req),
+        });
+
         return NextResponse.json(media);
     } catch (error) {
         console.error('Update media error:', error);
@@ -106,6 +118,17 @@ export async function DELETE(
         // Delete from database
         await prisma.mediaLibrary.delete({
             where: { id },
+        });
+
+        // Log activity
+        await logActivity({
+            userId: session.user.id,
+            action: 'MEDIA_DELETED',
+            entityType: 'media',
+            entityId: id,
+            details: `Deleted media file: ${media.filename}`,
+            ipAddress: getClientIp(req),
+            userAgent: getUserAgent(req),
         });
 
         return NextResponse.json({ success: true });

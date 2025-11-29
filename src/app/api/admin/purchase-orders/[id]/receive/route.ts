@@ -16,7 +16,7 @@ interface ReceiveItem {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -31,7 +31,7 @@ export async function POST(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Verify purchase order exists
     const purchaseOrder = await prisma.purchaseOrder.findUnique({

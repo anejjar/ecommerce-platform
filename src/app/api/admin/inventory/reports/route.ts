@@ -133,6 +133,7 @@ export async function GET(request: NextRequest) {
             stock: { lte: defaultThreshold },
           },
           include: {
+            stockAlert: true,
             category: {
               select: {
                 id: true,

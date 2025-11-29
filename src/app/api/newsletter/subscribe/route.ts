@@ -6,7 +6,7 @@ import { newsletterWelcomeEmail } from '@/lib/email-templates';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { email, name, source } = body;
+        const { email, name, source, landingPageId } = body;
 
         if (!email) {
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
@@ -38,6 +38,7 @@ export async function POST(req: Request) {
                         unsubscribedAt: null,
                         name: name || existing.name,
                         source: source || existing.source,
+                        landingPageId: landingPageId || existing.landingPageId,
                     },
                 });
 
@@ -68,6 +69,7 @@ export async function POST(req: Request) {
                 email,
                 name: name || null,
                 source: source || 'unknown',
+                landingPageId: landingPageId || null,
                 isActive: true,
             },
         });
@@ -90,10 +92,18 @@ export async function POST(req: Request) {
                 name: subscriber.name,
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Newsletter subscription error:', error);
+        console.error('Error details:', {
+            message: error?.message,
+            code: error?.code,
+            meta: error?.meta,
+        });
         return NextResponse.json(
-            { error: 'Failed to subscribe to newsletter' },
+            { 
+                error: 'Failed to subscribe to newsletter',
+                details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+            },
             { status: 500 }
         );
     }

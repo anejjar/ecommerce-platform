@@ -9,13 +9,23 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-hot-toast';
-import { Search, Filter, ChevronDown, ChevronRight, FileText, BookOpen } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronRight, FileText, BookOpen, Trash2 } from 'lucide-react';
 import { FeatureStats } from '@/components/admin/FeatureStats';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { FeatureDocModal } from '@/components/admin/FeatureDocModal';
 import { getFeatureDoc, FeatureDocumentation } from '@/lib/feature-docs';
 import Link from 'next/link';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface FeatureFlag {
   id: string;
@@ -37,6 +47,8 @@ export default function FeaturesPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [selectedFeatureDoc, setSelectedFeatureDoc] = useState<FeatureDocumentation | null>(null);
   const [docModalOpen, setDocModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [featureToDelete, setFeatureToDelete] = useState<FeatureFlag | null>(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -105,6 +117,36 @@ export default function FeaturesPage() {
     if (doc) {
       setSelectedFeatureDoc(doc);
       setDocModalOpen(true);
+    }
+  };
+
+  const handleDeleteClick = (feature: FeatureFlag) => {
+    setFeatureToDelete(feature);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!featureToDelete) return;
+
+    const featureName = featureToDelete.name;
+
+    try {
+      const response = await fetch(`/api/features/${featureToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete feature');
+
+      setFeatures((prev) => prev.filter((f) => f.id !== featureToDelete.id));
+      toast.success(
+        `${featureToDelete.displayName} deleted. Run: npx tsx scripts/remove-feature-from-seed.ts ${featureName}`,
+        { duration: 8000 }
+      );
+      setDeleteDialogOpen(false);
+      setFeatureToDelete(null);
+    } catch (error) {
+      console.error('Error deleting feature:', error);
+      toast.error('Failed to delete feature');
     }
   };
 
@@ -228,6 +270,7 @@ export default function FeaturesPage() {
               getCategoryIcon={getCategoryIcon}
               toggleFeature={toggleFeature}
               onViewDocs={handleViewDocs}
+              onDelete={handleDeleteClick}
               updating={updating}
             />
           ))}
@@ -239,6 +282,35 @@ export default function FeaturesPage() {
         onOpenChange={setDocModalOpen}
         feature={selectedFeatureDoc}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Feature Flag</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Are you sure you want to delete <strong>{featureToDelete?.displayName}</strong>?
+              </p>
+              <p>
+                This will permanently remove the feature flag from the database. This action cannot be undone.
+              </p>
+              <div className="bg-muted p-3 rounded-md">
+                <p className="text-sm font-semibold mb-1">📝 Next step:</p>
+                <p className="text-sm mb-2">After deletion, run this command to remove it from the seed file:</p>
+                <code className="text-xs bg-background px-2 py-1 rounded block font-mono">
+                  npx tsx scripts/remove-feature-from-seed.ts {featureToDelete?.name}
+                </code>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -249,6 +321,7 @@ function FeatureCategoryGroup({
   getCategoryIcon,
   toggleFeature,
   onViewDocs,
+  onDelete,
   updating
 }: any) {
   const [isOpen, setIsOpen] = useState(true);
@@ -343,6 +416,15 @@ function FeatureCategoryGroup({
                     title="Quick view documentation"
                   >
                     <FileText className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(feature)}
+                    title="Delete feature"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </CardContent>

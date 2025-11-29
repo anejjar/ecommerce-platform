@@ -935,8 +935,8 @@ CREATE TABLE `_MediaLibraryToMediaTag` (
 -- CreateIndex
 CREATE UNIQUE INDEX `CartItem_cartId_productId_variantId_key` ON `CartItem`(`cartId`, `productId`, `variantId`);
 
--- AddForeignKey
-ALTER TABLE `ProductImage` ADD CONSTRAINT `ProductImage_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+-- AddForeignKey (skipped - constraint already exists from previous migration)
+-- ALTER TABLE `ProductImage` ADD CONSTRAINT `ProductImage_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `VariantOption` ADD CONSTRAINT `VariantOption_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

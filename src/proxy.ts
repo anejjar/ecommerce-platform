@@ -1,18 +1,27 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { NextRequest, NextResponse } from 'next/server';
+import { locales, defaultLocale } from './i18n';
 import { prisma } from '@/lib/prisma';
 
-export async function proxy(request: NextRequest) {
+// Create next-intl middleware
+const intlMiddleware = createMiddleware({
+  locales,
+  defaultLocale,
+  // Don't prefix default locale (en)
+  localePrefix: 'as-needed'
+});
+
+async function handleUrlRedirects(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Skip middleware for static files, API routes, and admin routes
+  // Skip for static files, API routes, and admin routes
   if (
     path.startsWith('/_next') ||
     path.startsWith('/api') ||
     path.startsWith('/admin') ||
     path.includes('.') // Skip files with extensions
   ) {
-    return NextResponse.next();
+    return null;
   }
 
   try {
@@ -48,17 +57,44 @@ export async function proxy(request: NextRequest) {
     // Continue to the next middleware/handler if there's an error
   }
 
-  return NextResponse.next();
+  return null;
+}
+
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Skip middleware for static files, API routes, admin routes, and auth routes
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/auth') ||
+    pathname.includes('.') // Skip files with extensions
+  ) {
+    return NextResponse.next();
+  }
+
+  // First, handle URL redirects from database
+  const redirectResponse = await handleUrlRedirects(request);
+  if (redirectResponse && redirectResponse.status >= 300 && redirectResponse.status < 400) {
+    return redirectResponse;
+  }
+
+  // Then, handle locale routing with next-intl
+  return intlMiddleware(request);
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - admin (admin routes)
+     * - auth (auth routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|admin|auth).*)',
   ],
 };

@@ -38,22 +38,16 @@ interface DashboardData {
     totalProducts: number;
     lowStockCount: number;
     outOfStockCount: number;
-    totalInventoryValue: number;
+    inventoryValue: number;
   };
-  recentStockChanges: Array<{
+  recentChanges: Array<{
     id: string;
     changeType: string;
     quantityChange: number;
     createdAt: string;
-    product: {
-      name: string;
-      sku: string;
-      slug: string;
-    } | null;
-    user: {
-      name: string | null;
-      email: string;
-    } | null;
+    productName: string;
+    productSku: string;
+    createdBy: string;
   }>;
   lowStockAlerts: Array<{
     id: string;
@@ -99,8 +93,13 @@ export default function InventoryDashboardPage() {
     try {
       const response = await fetch('/api/admin/inventory/reports?type=dashboard');
       if (response.ok) {
-        const dashboardData = await response.json();
-        setData(dashboardData);
+        const responseData = await response.json();
+        if (responseData.report) {
+          setData(responseData.report);
+        } else {
+          // Fallback if API changes or returns different structure
+          setData(responseData);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch inventory dashboard:', error);
@@ -141,7 +140,7 @@ export default function InventoryDashboardPage() {
     },
     {
       name: 'Inventory Value',
-      value: `$${data.summary.totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `$${data.summary.inventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: DollarSign,
       className: 'text-green-500 dark:text-green-400',
       change: 'Total worth',
@@ -295,23 +294,20 @@ export default function InventoryDashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {data.recentStockChanges.length === 0 ? (
+            {data.recentChanges.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">No recent changes</p>
             ) : (
               <div className="space-y-4">
-                {data.recentStockChanges.map((change) => (
+                {data.recentChanges.map((change) => (
                   <div key={change.id} className="flex items-center justify-between border-b pb-3 last:border-0 border-border">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <Link
-                          href={`/admin/products/${change.product?.slug}`}
-                          className="font-medium hover:text-primary hover:underline"
-                        >
-                          {change.product?.name || 'Unknown Product'}
-                        </Link>
+                        <span className="font-medium">
+                          {change.productName || 'Unknown Product'}
+                        </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        SKU: {change.product?.sku || 'N/A'}
+                        SKU: {change.productSku || 'N/A'}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(change.createdAt).toLocaleString()}

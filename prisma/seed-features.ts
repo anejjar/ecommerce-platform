@@ -7,7 +7,7 @@ const features = [
   {
     name: 'analytics_dashboard',
     displayName: 'Analytics & Reporting Dashboard',
-    description: 'Advanced analytics with charts, sales reports, customer insights, and exportable reports',
+    description: 'Comprehensive analytics platform with real-time charts, sales reports, customer insights, conversion funnels, traffic sources, goal tracking, custom date ranges, scheduled reports, and exportable data',
     category: 'analytics',
     tier: 'PRO' as const,
     enabled: false,
@@ -49,7 +49,7 @@ const features = [
   {
     name: 'refund_management',
     displayName: 'Refund & Return Management',
-    description: 'Complete refund workflow with customer requests, admin approval, and automatic stock restoration',
+    description: 'Advanced refund system with partial refunds, store credit, RMA generation, return labels, refund analytics, automated approval, and restocking fees',
     category: 'operations',
     tier: 'PRO' as const,
     enabled: false,
@@ -57,7 +57,7 @@ const features = [
   {
     name: 'bulk_operations',
     displayName: 'Bulk Operations',
-    description: 'Bulk actions for orders, products, customers, and reviews to save time on repetitive tasks',
+    description: 'Advanced bulk editing with price updates, inventory adjustments, tags, CSV imports, image optimization, scheduled operations, and undo functionality',
     category: 'operations',
     tier: 'PRO' as const,
     enabled: false,
@@ -73,7 +73,7 @@ const features = [
   {
     name: 'multi_admin',
     displayName: 'Multi-Admin User Management',
-    description: 'Create multiple admin accounts with role-based permissions and granular access control',
+    description: 'Complete admin management with role-based permissions, permission templates, activity logs, login history, 2FA, IP whitelist, session timeout, and admin approval',
     category: 'operations',
     tier: 'ENTERPRISE' as const,
     enabled: false,
@@ -147,7 +147,7 @@ const features = [
   {
     name: 'abandoned_cart',
     displayName: 'Abandoned Cart Recovery',
-    description: 'Automated email reminders to recover abandoned carts with recovery rate tracking',
+    description: 'Comprehensive recovery system with automated email reminders, SMS notifications, progressive discounts, abandoned browse tracking, Facebook retargeting, push notifications, and A/B testing',
     category: 'marketing',
     tier: 'PRO' as const,
     enabled: false,
@@ -163,7 +163,7 @@ const features = [
   {
     name: 'cms',
     displayName: 'Content Management System',
-    description: 'Manage blog posts, custom pages, and website content without developer assistance',
+    description: 'Complete CMS with drag-and-drop landing page builder, block templates, blog management, custom pages, media library, SEO tools, and content scheduling',
     category: 'marketing',
     tier: 'PRO' as const,
     enabled: false,
@@ -224,7 +224,7 @@ const features = [
   {
     name: 'advanced_reviews',
     displayName: 'Advanced Product Reviews',
-    description: 'Photo/video reviews, review voting, admin replies, and review rewards program',
+    description: 'Comprehensive review system with photo/video uploads, review voting, admin replies, purchase verification, Q&A section, review templates, incentivized reviews, moderation queue, and SEO schema',
     category: 'customer_experience',
     tier: 'PRO' as const,
     enabled: false,
@@ -232,7 +232,7 @@ const features = [
   {
     name: 'wishlist',
     displayName: 'Wishlist Management',
-    description: 'Customer wishlists with sale alerts, sharing capabilities, and wishlist analytics',
+    description: 'Advanced wishlist features with multiple lists, public/private settings, shareable links, gift registry, price drop alerts, back-in-stock alerts, and bulk add to cart',
     category: 'customer_experience',
     tier: 'PRO' as const,
     enabled: false,
@@ -240,7 +240,7 @@ const features = [
   {
     name: 'loyalty_program',
     displayName: 'Loyalty & Rewards Program',
-    description: 'Points system for purchases, reviews, and referrals with tiered rewards and redemption',
+    description: 'Complete loyalty system with points, VIP tiers (Bronze/Silver/Gold), action-based rewards, birthday bonuses, points expiry, multiple redemption options, and gamification',
     category: 'customer_experience',
     tier: 'PRO' as const,
     enabled: false,
@@ -287,80 +287,15 @@ const features = [
     tier: 'ENTERPRISE' as const,
     enabled: false,
   },
+  {
+    name: 'pos_system',
+    displayName: 'POS (Point of Sale) System',
+    description: 'Complete point of sale system for retail and restaurant businesses. Features include multi-location support, cashier management, customer search, hold orders, discount codes, order modifications, receipt printing, real-time analytics, and seamless integration with main order system.',
+    category: 'operations',
+    tier: 'PRO' as const,
+    enabled: false,
+  },
 
-  // Enhanced Existing Features
-  {
-    name: 'analytics_dashboard_enhanced',
-    displayName: 'Enhanced Analytics Dashboard',
-    description: 'Real-time updates, custom date ranges, conversion funnels, exit pages, traffic sources, goal tracking, saved views, scheduled reports',
-    category: 'analytics',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'cms_enhanced',
-    displayName: 'Enhanced CMS',
-    description: 'Landing page builder, dynamic blocks, FAQ builder, testimonials, video embed, content scheduling, version history',
-    category: 'marketing',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'abandoned_cart_enhanced',
-    displayName: 'Powerful Abandoned Cart Recovery',
-    description: 'SMS recovery, progressive discounts, abandoned browse tracking, Facebook retargeting, push notifications, A/B testing',
-    category: 'marketing',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'wishlist_enhanced',
-    displayName: 'Advanced Wishlist',
-    description: 'Public/private lists, shareable links, gift registry, price drop alerts, back-in-stock alerts, multiple lists',
-    category: 'customer_experience',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'bulk_operations_enhanced',
-    displayName: 'Bulk Operations Enhancement',
-    description: 'Bulk editing (prices, inventory, tags), CSV updates, image optimization, schedule operations, undo actions',
-    category: 'operations',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'refund_management_enhanced',
-    displayName: 'Advanced Refund System',
-    description: 'Partial refunds, store credit, RMA generation, return labels, refund analytics, automated approval, restocking fees',
-    category: 'operations',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'advanced_reviews_enhanced',
-    displayName: 'Enhanced Product Reviews',
-    description: 'Purchase verification, Q&A section, review templates, incentivized reviews, moderation queue, SEO schema',
-    category: 'customer_experience',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'loyalty_program_enhanced',
-    displayName: 'Loyalty Program Enhancement',
-    description: 'VIP tiers (Bronze/Silver/Gold), action-based points, birthday bonuses, points expiry, redemption options, gamification',
-    category: 'customer_experience',
-    tier: 'PRO' as const,
-    enabled: false,
-  },
-  {
-    name: 'multi_admin_enhanced',
-    displayName: 'Multi-Admin Improvements',
-    description: 'Permission templates, activity log per admin, login history, 2FA, IP whitelist, session timeout, admin approval',
-    category: 'operations',
-    tier: 'ENTERPRISE' as const,
-    enabled: false,
-  },
 ];
 
 async function main() {
