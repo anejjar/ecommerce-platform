@@ -8,6 +8,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { SessionProvider } from '@/components/SessionProvider';
 import { StoreProvider } from '@/lib/redux/StoreProvider';
 
+import { SettingsProvider } from '@/contexts/SettingsContext';
+
 export default async function AdminLayout({
   children,
 }: {
@@ -22,21 +24,23 @@ export default async function AdminLayout({
   return (
     <SessionProvider>
       <StoreProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AdminSidebarProvider>
-            <div className="min-h-screen bg-background">
-              <AdminSidebar />
-              <AdminMainContent>
-                {children}
-              </AdminMainContent>
-            </div>
-          </AdminSidebarProvider>
-        </ThemeProvider>
+        <SettingsProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AdminSidebarProvider>
+              <div className="min-h-screen bg-background">
+                <AdminSidebar />
+                <AdminMainContent>
+                  {children}
+                </AdminMainContent>
+              </div>
+            </AdminSidebarProvider>
+          </ThemeProvider>
+        </SettingsProvider>
       </StoreProvider>
     </SessionProvider>
   );

@@ -135,6 +135,7 @@ export async function POST(
         isGuest: !customerEmail,
         guestEmail: customerEmail || null,
         isPosOrder: true,
+        posOrderId: id,
         shippingAddressId: address.id,
         items: {
           create: items.map((item: any) => ({

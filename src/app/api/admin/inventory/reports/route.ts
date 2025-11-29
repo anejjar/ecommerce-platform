@@ -446,8 +446,11 @@ export async function GET(request: NextRequest) {
             id: p.id,
             name: p.name,
             sku: p.sku,
+            slug: p.slug,
             stock: p.stock,
-            threshold: p.stockAlert?.threshold || defaultThreshold,
+            stockAlert: p.stockAlert ? {
+              threshold: p.stockAlert.threshold,
+            } : null,
             category: p.category?.name,
           })),
           stockTrend: Object.entries(trendByDate)

@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { addToPosCart, updatePosCartQuantity, removeFromPosCart } from '@/lib/redux/features/posSlice';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface ProductCardProps {
   product: {
@@ -22,6 +23,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const dispatch = useAppDispatch();
   const cart = useAppSelector((state) => state.pos.cart);
+  const { format } = useCurrency();
   const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
   const imageUrl = product.images?.[0]?.url || '/placeholder-product.png';
 
@@ -107,7 +109,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
       <div className="p-5">
         <h3 className="font-semibold text-base mb-2 line-clamp-2 min-h-[3rem]">{product.name}</h3>
-        <p className="text-2xl font-bold mb-4 text-primary">${price.toFixed(2)}</p>
+        <p className="text-2xl font-bold mb-4 text-primary">{format(price)}</p>
         {quantity > 0 ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">

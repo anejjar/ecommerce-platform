@@ -2,6 +2,8 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductReviews } from './ProductReviews';
+import { ProductDescriptionBlocks } from './ProductDescriptionBlocks';
+import { isBlockFormat } from '@/lib/product-description-blocks';
 import { Package, FileText, Star } from 'lucide-react';
 
 interface ProductTabsProps {
@@ -49,16 +51,20 @@ export function ProductTabs({
       </TabsList>
 
       <TabsContent value="description" className="mt-6">
-        <div className="prose prose-amber max-w-none">
-          {description ? (
-            <div 
-              className="text-gray-700 leading-relaxed whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
+        {description && description.trim() ? (
+          isBlockFormat(description) ? (
+            <ProductDescriptionBlocks content={description} />
           ) : (
-            <p className="text-gray-500 italic">No description available.</p>
-          )}
-        </div>
+            <div className="prose prose-amber max-w-none product-description">
+              <div 
+                className="text-gray-700 leading-relaxed product-rich-content"
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+            </div>
+          )
+        ) : (
+          <p className="text-gray-500 italic">No description available.</p>
+        )}
       </TabsContent>
 
       {hasSpecs && (

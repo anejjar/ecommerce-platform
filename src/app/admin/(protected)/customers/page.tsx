@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { formatCurrencyServer, getCurrencySymbol } from '@/lib/server-currency';
+import { formatCurrencyWithSymbol } from '@/lib/formatting';
 
 import {
   Table,
@@ -43,6 +45,9 @@ export default async function CustomersPage() {
       total: order.total.toString(),
     })),
   }));
+
+  // Get currency symbol for formatting
+  const currencySymbol = await getCurrencySymbol();
 
   return (
     <div className="space-y-6">
@@ -90,7 +95,7 @@ export default async function CustomersPage() {
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>{customer._count.orders}</TableCell>
-                    <TableCell>${totalSpent.toFixed(2)}</TableCell>
+                    <TableCell>{formatCurrencyWithSymbol(totalSpent, currencySymbol)}</TableCell>
                     <TableCell>
                       {new Date(customer.createdAt).toLocaleDateString()}
                     </TableCell>

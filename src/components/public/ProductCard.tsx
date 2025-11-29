@@ -9,6 +9,9 @@ import { useAppDispatch } from '@/lib/redux/hooks';
 import { addToCart } from '@/lib/redux/features/cartSlice';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
+import { useCurrency } from '@/hooks/useCurrency';
+import { useFlashSale } from '@/hooks/useFlashSale';
+import { FlashSaleBadge } from '@/components/public/FlashSaleBadge';
 
 interface Product {
     id: string;
@@ -29,6 +32,13 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
     const dispatch = useAppDispatch();
     const t = useTranslations();
+    const { format } = useCurrency();
+    const { flashSale, product: flashSaleProduct, loading: flashSaleLoading } = useFlashSale(product.id);
+
+    // Use flash sale price if available, otherwise use regular price
+    const displayPrice = flashSaleProduct?.salePrice ?? Number(product.price);
+    const originalPrice = flashSaleProduct?.originalPrice ?? (product.comparePrice ? Number(product.comparePrice) : Number(product.price));
+    const hasFlashSale = flashSale !== null && flashSaleProduct !== null;
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -36,16 +46,19 @@ export function ProductCard({ product }: ProductCardProps) {
             id: product.id,
             productId: product.id,
             name: product.name,
-            price: Number(product.price),
+            price: displayPrice, // Use flash sale price if available
             image: product.images[0]?.url,
             quantity: 1
         }));
         toast.success(t('product.addedToCart') || 'Added to cart');
     };
 
-    const discountPercentage = product.comparePrice && Number(product.comparePrice) > Number(product.price)
-        ? Math.round(((Number(product.comparePrice) - Number(product.price)) / Number(product.comparePrice)) * 100)
-        : 0;
+    // Calculate discount percentage
+    const discountPercentage = originalPrice > displayPrice
+        ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
+        : (product.comparePrice && Number(product.comparePrice) > Number(product.price)
+            ? Math.round(((Number(product.comparePrice) - Number(product.price)) / Number(product.comparePrice)) * 100)
+            : 0);
 
     return (
         <div className="group relative bg-white rounded-xl md:rounded-2xl overflow-hidden border border-amber-100 hover:border-amber-300 hover:shadow-xl md:hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
@@ -67,7 +80,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 {/* Badges */}
                 <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col gap-1.5 md:gap-2 z-10">
-                    {discountPercentage > 0 && (
+                    {hasFlashSale && flashSale && (
+                        <FlashSaleBadge
+                            discountType={flashSale.discountType}
+                            discountValue={flashSale.discountValue}
+                        />
+                    )}
+                    {!hasFlashSale && discountPercentage > 0 && (
                         <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 md:px-3 md:py-1.5 rounded-full shadow-md">
                             -{discountPercentage}%
                         </span>
@@ -120,14 +139,29 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 <div className="mt-auto flex items-end justify-between gap-2">
                     <div className="flex flex-col min-w-0 flex-1">
-                        {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
-                            <span className="text-xs text-gray-400 line-through mb-0.5">
-                                ${Number(product.comparePrice).toFixed(2)}
-                            </span>
+                        {hasFlashSale ? (
+                            <>
+                                {originalPrice > displayPrice && (
+                                    <span className="text-xs text-gray-400 line-through mb-0.5">
+                                        {format(originalPrice)}
+                                    </span>
+                                )}
+                                <span className="text-lg md:text-xl font-bold text-amber-900">
+                                    {format(displayPrice)}
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
+                                    <span className="text-xs text-gray-400 line-through mb-0.5">
+                                        {format(Number(product.comparePrice))}
+                                    </span>
+                                )}
+                                <span className="text-lg md:text-xl font-bold text-amber-900">
+                                    {format(Number(product.price))}
+                                </span>
+                            </>
                         )}
-                        <span className="text-lg md:text-xl font-bold text-amber-900">
-                            ${Number(product.price).toFixed(2)}
-                        </span>
                     </div>
 
                     {/* Mobile Add Button */}

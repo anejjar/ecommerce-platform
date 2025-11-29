@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreditCard, Wallet, DollarSign, Split } from 'lucide-react';
 import { ReceiptGenerator } from './ReceiptGenerator';
 import toast from 'react-hot-toast';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface PaymentModalProps {
   open: boolean;
@@ -40,6 +41,7 @@ export function PaymentModal({
   const orderType = useAppSelector((state) => state.pos.orderType);
   const locationId = useAppSelector((state) => state.pos.locationId);
   const cashierId = useAppSelector((state) => state.pos.cashierId);
+  const { format } = useCurrency();
 
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'DIGITAL_WALLET' | 'SPLIT'>('CASH');
   const [cashAmount, setCashAmount] = useState('');
@@ -177,7 +179,7 @@ export function PaymentModal({
           <TabsContent value="CASH" className="space-y-4">
             <div>
               <Label>Total Amount</Label>
-              <Input value={`$${total.toFixed(2)}`} disabled />
+              <Input value={format(total)} disabled />
             </div>
             <div>
               <Label>Cash Received</Label>
@@ -193,7 +195,7 @@ export function PaymentModal({
               <div>
                 <Label>Change</Label>
                 <Input
-                  value={`$${change >= 0 ? change.toFixed(2) : '0.00'}`}
+                  value={format(change >= 0 ? change : 0)}
                   disabled
                   className={change < 0 ? 'border-destructive' : ''}
                 />

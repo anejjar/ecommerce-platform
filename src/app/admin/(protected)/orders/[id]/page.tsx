@@ -17,6 +17,7 @@ import toast from 'react-hot-toast';
 import { OrderNotes } from '@/components/admin/OrderNotes';
 import { generateInvoice, generatePackingSlip } from '@/lib/invoice-generator';
 import { FileText, Package } from 'lucide-react';
+import { useCurrency } from '@/hooks/useCurrency';
 
 const statusOptions = [
   'PENDING',
@@ -42,6 +43,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [invoiceFeatureEnabled, setInvoiceFeatureEnabled] = useState(false);
+  const { format } = useCurrency();
 
   useEffect(() => {
     fetchOrder();
@@ -277,9 +279,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               {order.items.map((item: any) => (
                 <TableRow key={item.id}>
                   <TableCell>{item.product.name}</TableCell>
-                  <TableCell>${item.price.toString()}</TableCell>
+                  <TableCell>{format(Number(item.price))}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
-                  <TableCell>${item.total.toString()}</TableCell>
+                  <TableCell>{format(Number(item.total))}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -287,19 +289,19 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <div className="mt-4 space-y-2 text-right">
             <div className="flex justify-end gap-4">
               <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium">${order.subtotal.toString()}</span>
+              <span className="font-medium">{format(Number(order.subtotal))}</span>
             </div>
             <div className="flex justify-end gap-4">
               <span className="text-gray-600">Tax:</span>
-              <span className="font-medium">${order.tax.toString()}</span>
+              <span className="font-medium">{format(Number(order.tax))}</span>
             </div>
             <div className="flex justify-end gap-4">
               <span className="text-gray-600">Shipping:</span>
-              <span className="font-medium">${order.shipping.toString()}</span>
+              <span className="font-medium">{format(Number(order.shipping))}</span>
             </div>
             <div className="flex justify-end gap-4 text-lg font-bold border-t pt-2">
               <span>Total:</span>
-              <span>${order.total.toString()}</span>
+              <span>{format(Number(order.total))}</span>
             </div>
           </div>
         </CardContent>

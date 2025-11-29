@@ -131,8 +131,9 @@ model Category {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  products     Product[]
-  translations CategoryTranslation[]
+  products            Product[]
+  translations        CategoryTranslation[]
+  flashSaleCategories FlashSaleCategory[]
 }
 
 model Product {
@@ -163,6 +164,7 @@ model Product {
   translations        ProductTranslation[]
   customizationFields ProductCustomizationField[]
   stockHistory        StockHistory[]
+  flashSaleProducts   FlashSaleProduct[]
 }
 
 model ProductImage {
@@ -2220,4 +2222,76 @@ model LandingPageRevision {
   @@index([pageId])
   @@index([createdAt])
   @@index([revisionNumber])
+}
+
+// ============================================
+// FLASH SALES & SCHEDULED PROMOTIONS
+// ============================================
+
+enum FlashSaleStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+model FlashSale {
+  id            String          @id @default(cuid())
+  name          String
+  description   String?         @db.Text
+  discountType  DiscountType // PERCENTAGE or FIXED_AMOUNT
+  discountValue Float
+  startDate     DateTime
+  endDate       DateTime
+  status        FlashSaleStatus @default(DRAFT)
+  isActive      Boolean         @default(true)
+  priority      Int             @default(0)
+  bannerImage   String?
+  bannerText    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  products   FlashSaleProduct[]
+  categories FlashSaleCategory[]
+
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([isActive])
+  @@index([priority])
+}
+
+model FlashSaleProduct {
+  id            String   @id @default(cuid())
+  flashSaleId   String
+  productId     String
+  originalPrice Decimal  @db.Decimal(10, 2)
+  salePrice     Decimal  @db.Decimal(10, 2)
+  maxQuantity   Int?
+  soldQuantity  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  flashSale FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([flashSaleId, productId])
+  @@index([flashSaleId])
+  @@index([productId])
+}
+
+model FlashSaleCategory {
+  id          String   @id @default(cuid())
+  flashSaleId String
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  flashSale FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([flashSaleId, categoryId])
+  @@index([flashSaleId])
+  @@index([categoryId])
 }

@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Download, Calendar, TrendingUp, DollarSign, ShoppingBag, Users } from 'lucide-react';
+import { Download, Calendar, TrendingUp, DollarSign, ShoppingBag, Users, RefreshCw, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
 
 interface SalesData {
   totalSales: number;
@@ -48,6 +48,36 @@ export default function POSReportsPage() {
   const [cashierPerformance, setCashierPerformance] = useState<CashierPerformance[]>([]);
   const [paymentBreakdown, setPaymentBreakdown] = useState<PaymentMethodBreakdown[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Date range presets
+  const datePresets = [
+    {
+      label: 'Today',
+      from: format(new Date(), 'yyyy-MM-dd'),
+      to: format(new Date(), 'yyyy-MM-dd'),
+    },
+    {
+      label: 'Last 7 Days',
+      from: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
+      to: format(new Date(), 'yyyy-MM-dd'),
+    },
+    {
+      label: 'Last 30 Days',
+      from: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+      to: format(new Date(), 'yyyy-MM-dd'),
+    },
+    {
+      label: 'This Month',
+      from: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+      to: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
+    },
+    {
+      label: 'Last Month',
+      from: format(startOfMonth(subDays(new Date(), 30)), 'yyyy-MM-dd'),
+      to: format(endOfMonth(subDays(new Date(), 30)), 'yyyy-MM-dd'),
+    },
+  ];
 
   useEffect(() => {
     fetchReports();
@@ -55,6 +85,7 @@ export default function POSReportsPage() {
 
   const fetchReports = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams({
         dateFrom: dateRange.from,
@@ -69,14 +100,15 @@ export default function POSReportsPage() {
       const salesResponse = await fetch(`/api/pos/analytics/sales?${salesParams.toString()}`);
       if (salesResponse.ok) {
         const sales = await salesResponse.json();
-        // Transform to match expected format
-        const salesByDate: Array<{ date: string; sales: number; orders: number }> = [];
         setSalesData({
           totalSales: sales.totalSales || 0,
           totalOrders: sales.totalOrders || 0,
           averageOrderValue: sales.averageOrderValue || 0,
-          salesByDate,
+          salesByDate: sales.salesByDate || [],
         });
+      } else {
+        const errorData = await salesResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch sales data');
       }
 
       // Fetch top products
@@ -88,12 +120,11 @@ export default function POSReportsPage() {
       const productsResponse = await fetch(`/api/pos/analytics/top-products?${productsParams.toString()}`);
       if (productsResponse.ok) {
         const products = await productsResponse.json();
-        setTopProducts(products.map((p: any) => ({
-          productId: p.product.id,
-          productName: p.product.name,
-          quantity: p.quantity,
-          revenue: p.revenue,
-        })));
+        // API now returns correct format
+        setTopProducts(products || []);
+      } else {
+        const errorData = await productsResponse.json().catch(() => ({}));
+        console.error('Failed to fetch top products:', errorData);
       }
 
       // Fetch cashier performance (we'll create a simple aggregation from orders)
@@ -148,9 +179,11 @@ export default function POSReportsPage() {
         }));
         setPaymentBreakdown(breakdown);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching reports:', error);
-      toast.error('Failed to load reports');
+      const errorMessage = error?.message || 'Failed to load reports';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -204,10 +237,16 @@ export default function POSReportsPage() {
           <h1 className="text-3xl font-bold">POS Reports</h1>
           <p className="text-muted-foreground mt-1">Sales analytics and performance metrics</p>
         </div>
-        <Button onClick={exportToCSV} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={fetchReports} variant="outline" disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button onClick={exportToCSV} variant="outline" disabled={!salesData}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Date Range Selector */}
@@ -217,37 +256,98 @@ export default function POSReportsPage() {
           <CardDescription>Select the period for your reports</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <Label htmlFor="dateFrom">From Date</Label>
-              <Input
-                id="dateFrom"
-                type="date"
-                value={dateRange.from}
-                onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-                className="mt-1"
-              />
+          <div className="space-y-4">
+            {/* Date Presets */}
+            <div className="flex flex-wrap gap-2">
+              {datePresets.map((preset) => (
+                <Button
+                  key={preset.label}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDateRange({ from: preset.from, to: preset.to });
+                  }}
+                  className={
+                    dateRange.from === preset.from && dateRange.to === preset.to
+                      ? 'bg-primary text-primary-foreground'
+                      : ''
+                  }
+                >
+                  {preset.label}
+                </Button>
+              ))}
             </div>
-            <div className="flex-1">
-              <Label htmlFor="dateTo">To Date</Label>
-              <Input
-                id="dateTo"
-                type="date"
-                value={dateRange.to}
-                onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-                className="mt-1"
-              />
+            {/* Custom Date Range */}
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <Label htmlFor="dateFrom">From Date</Label>
+                <Input
+                  id="dateFrom"
+                  type="date"
+                  value={dateRange.from}
+                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="dateTo">To Date</Label>
+                <Input
+                  id="dateTo"
+                  type="date"
+                  value={dateRange.to}
+                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <Button onClick={fetchReports} disabled={isLoading}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Update
+              </Button>
             </div>
-            <Button onClick={fetchReports}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Update
-            </Button>
           </div>
         </CardContent>
       </Card>
 
+      {error && (
+        <Card className="border-destructive">
+          <CardContent className="pt-6">
+            <div className="text-center text-destructive">
+              <p className="font-semibold">Error loading reports</p>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {isLoading ? (
-        <div className="text-center py-12">Loading reports...</div>
+        <div className="space-y-6">
+          {/* Loading Skeletons */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader className="space-y-0 pb-2">
+                  <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 w-32 bg-muted animate-pulse rounded mb-2" />
+                  <div className="h-3 w-20 bg-muted animate-pulse rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <CardHeader>
+              <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
         <>
           {/* Sales Summary Cards */}
@@ -290,6 +390,47 @@ export default function POSReportsPage() {
             </Card>
           </div>
 
+          {/* Sales Trend Chart */}
+          {salesData && salesData.salesByDate.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Sales Trend
+                </CardTitle>
+                <CardDescription>Daily sales breakdown</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {salesData.salesByDate
+                    .sort((a, b) => a.date.localeCompare(b.date))
+                    .map((day) => {
+                      const maxSales = Math.max(...salesData.salesByDate.map((d) => d.sales));
+                      const percentage = maxSales > 0 ? (day.sales / maxSales) * 100 : 0;
+                      return (
+                        <div key={day.date} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium">
+                              {format(new Date(day.date), 'MMM dd, yyyy')}
+                            </span>
+                            <span className="text-muted-foreground">
+                              ${day.sales.toFixed(2)} • {day.orders} orders
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-3">
+                            <div
+                              className="bg-primary h-3 rounded-full transition-all"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Top Products */}
           <Card>
             <CardHeader>
@@ -298,7 +439,13 @@ export default function POSReportsPage() {
             </CardHeader>
             <CardContent>
               {topProducts.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No data available</p>
+                <div className="text-center py-8">
+                  <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-2 opacity-50" />
+                  <p className="text-muted-foreground font-medium">No products sold in this period</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Try selecting a different date range
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {topProducts.slice(0, 10).map((product, index) => (
@@ -332,7 +479,13 @@ export default function POSReportsPage() {
             </CardHeader>
             <CardContent>
               {cashierPerformance.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No data available</p>
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-2 opacity-50" />
+                  <p className="text-muted-foreground font-medium">No cashier data available</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    No orders processed by cashiers in this period
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {cashierPerformance.map((cashier) => (
@@ -364,7 +517,13 @@ export default function POSReportsPage() {
             </CardHeader>
             <CardContent>
               {paymentBreakdown.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No data available</p>
+                <div className="text-center py-8">
+                  <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-2 opacity-50" />
+                  <p className="text-muted-foreground font-medium">No payment data available</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    No payment transactions in this period
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {paymentBreakdown.map((payment) => (

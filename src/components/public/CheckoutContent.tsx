@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { Link } from '@/navigation';
-import { Lock, ShoppingBag, MapPin, Zap } from 'lucide-react';
+import { Lock, ShoppingBag, MapPin, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,10 +15,11 @@ import { clearCart } from '@/lib/redux/features/cartSlice';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 import { useFeatureFlag } from '@/hooks/useFeatureFlag';
+import { useCurrency } from '@/hooks/useCurrency';
 import { RegionSelect } from './RegionSelect';
 import { CitySelect } from './CitySelect';
 import { AddressAutocomplete } from './AddressAutocomplete';
-import { CheckoutSettings } from '@/types/checkout-settings';
+import { CheckoutSettings, DEFAULT_FIELD_ORDER } from '@/types/checkout-settings';
 import { CountdownTimer } from '@/components/checkout/CountdownTimer';
 import { FreeShippingBar } from '@/components/checkout/FreeShippingBar';
 import { TestimonialsCarousel } from '@/components/checkout/TestimonialsCarousel';
@@ -40,6 +41,7 @@ export function CheckoutContent() {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { format } = useCurrency();
 
   // Feature flags
   const checkoutCustomizationEnabled = useFeatureFlag('checkout_customization');
@@ -76,6 +78,9 @@ export function CheckoutContent() {
 
   // Phase 2: Custom fields data
   const [customFieldsData, setCustomFieldsData] = useState<Record<string, any>>({});
+
+  // Order summary collapsible state
+  const [orderSummaryCollapsed, setOrderSummaryCollapsed] = useState(false);
 
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState('');
@@ -128,6 +133,26 @@ export function CheckoutContent() {
       pill: 'rounded-full',
     };
     return buttonStyleMap[checkoutSettings.buttonStyle || 'rounded'];
+  }, [checkoutSettings, checkoutCustomizationEnabled]);
+
+  // Secondary color styles for borders, accents, and secondary elements
+  const secondaryColorStyles = useMemo(() => {
+    if (!checkoutSettings || !checkoutCustomizationEnabled || !checkoutSettings.secondaryColor) {
+      return {};
+    }
+    return {
+      borderColor: checkoutSettings.secondaryColor,
+      color: checkoutSettings.secondaryColor,
+    };
+  }, [checkoutSettings, checkoutCustomizationEnabled]);
+
+  // Field order - determines the order fields should be displayed
+  // Note: Full implementation requires form refactoring to render fields dynamically
+  const fieldOrder = useMemo(() => {
+    if (checkoutCustomizationEnabled && checkoutSettings?.fieldOrder && checkoutSettings.fieldOrder.length > 0) {
+      return checkoutSettings.fieldOrder;
+    }
+    return DEFAULT_FIELD_ORDER;
   }, [checkoutSettings, checkoutCustomizationEnabled]);
 
   // Phase 2: Helper functions for custom field labels and placeholders
@@ -292,6 +317,271 @@ export function CheckoutContent() {
     setDiscountError('');
   };
 
+  // Render order summary content (reusable function)
+  const renderOrderSummaryContent = () => (
+    <>
+      {/* Phase 4: Trust Badges - Sidebar Position */}
+      {checkoutCustomizationEnabled && checkoutSettings?.trustBadges && checkoutSettings.trustBadges.length > 0 && (
+        <TrustBadges
+          badges={checkoutSettings.trustBadges.filter((b) => b.position === 'sidebar')}
+        />
+      )}
+
+      {/* Phase 5: Upsell Products - Cart Position */}
+      {checkoutCustomizationEnabled && 
+       checkoutSettings?.showUpsells && 
+       checkoutSettings.upsellProducts && 
+       checkoutSettings.upsellProducts.length > 0 &&
+       checkoutSettings.upsellPosition === 'cart' && (
+        <UpsellProducts
+          productIds={checkoutSettings.upsellProducts}
+          title={checkoutSettings.upsellTitle || undefined}
+          position="cart"
+        />
+      )}
+
+      {/* Phase 5: Scarcity Message */}
+      {checkoutCustomizationEnabled && checkoutSettings?.scarcityMessage && (
+        <div
+          className={`p-3 rounded-lg border ${checkoutSettings.urgencyBadgeStyle === 'danger'
+            ? 'bg-red-50 border-red-200 text-red-800'
+            : checkoutSettings.urgencyBadgeStyle === 'info'
+              ? 'bg-blue-50 border-blue-200 text-blue-800'
+              : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+            }`}
+        >
+          <p className="text-sm font-medium">{checkoutSettings.scarcityMessage}</p>
+        </div>
+      )}
+
+      {/* Phase 4: Security Seals */}
+      {checkoutCustomizationEnabled && checkoutSettings?.showSecuritySeals && (
+        <SecuritySeals />
+      )}
+
+      {/* Phase 4: Customer Service Display */}
+      {checkoutCustomizationEnabled && checkoutSettings?.customerServiceDisplay && (
+        <CustomerServiceDisplay
+          text={checkoutSettings.customerServiceText || undefined}
+          phone={checkoutSettings.customerServicePhone || undefined}
+          email={checkoutSettings.customerServiceEmail || undefined}
+        />
+      )}
+
+      {/* Cart Items */}
+      <div className="space-y-3 mb-4 border-b pb-4">
+        {cartItems.map((item) => (
+          <div key={item.id}>
+            <div className="flex gap-3">
+              <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0">
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    📦
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm">{item.name}</p>
+                <p className="text-sm text-gray-600">{t('checkout.qty')} {item.quantity}</p>
+
+                {/* Phase 5: Low Stock Warning */}
+                {checkoutCustomizationEnabled && checkoutSettings?.showLowStock &&
+                  checkoutSettings.lowStockThreshold &&
+                  item.stock &&
+                  item.stock <= checkoutSettings.lowStockThreshold && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-orange-600 text-xs">⚠️</span>
+                      <p className="text-xs text-orange-600 font-medium">
+                        {checkoutSettings.lowStockText?.replace('X', item.stock.toString()) || `Only ${item.stock} left!`}
+                      </p>
+                    </div>
+                  )}
+              </div>
+              <div className="text-right">
+                <p className="font-medium">
+                  {format(item.price * item.quantity)}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Phase 5: Loyalty Points */}
+      {checkoutCustomizationEnabled && checkoutSettings?.showLoyaltyPoints && checkoutSettings.loyaltyPointsText && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-sm text-amber-800">{checkoutSettings.loyaltyPointsText}</p>
+        </div>
+      )}
+
+      {/* Phase 5: Gift with Purchase */}
+      {checkoutCustomizationEnabled && checkoutSettings?.showGiftWithPurchase &&
+        checkoutSettings.giftThreshold &&
+        subtotal >= checkoutSettings.giftThreshold && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <span className="text-purple-600">🎁</span>
+              <p className="text-sm text-purple-800">{checkoutSettings.giftDescription}</p>
+            </div>
+          </div>
+        )}
+
+      {/* Phase 5: Referral Discount */}
+      {checkoutCustomizationEnabled && checkoutSettings?.referralDiscountEnabled && checkoutSettings.referralDiscountText && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+          <p className="text-sm text-indigo-800">{checkoutSettings.referralDiscountText}</p>
+        </div>
+      )}
+
+      {/* Discount Code - Position controlled by Phase 5 settings */}
+      <div className={`border-b pb-4 ${checkoutSettings?.discountFieldPosition === 'top' ? 'order-first' : checkoutSettings?.discountFieldPosition === 'bottom' ? 'order-last' : ''
+        }`}>
+        <Label htmlFor="discountCode" className="mb-2 block">
+          {t('checkout.discountCode')}
+        </Label>
+        <div className="flex gap-2">
+          <Input
+            id="discountCode"
+            value={discountCode}
+            onChange={(e) => setDiscountCode(e.target.value)}
+            placeholder={t('checkout.enterCode')}
+            disabled={!!appliedDiscount}
+          />
+          {appliedDiscount ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={removeDiscount}
+              className="shrink-0"
+              style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+                borderColor: checkoutSettings.secondaryColor,
+                color: checkoutSettings.secondaryColor,
+              } : {}}
+            >
+              {t('cart.remove')}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleApplyDiscount}
+              disabled={isCheckingDiscount || !discountCode}
+              className="shrink-0"
+            >
+              {t('checkout.apply')}
+            </Button>
+          )}
+        </div>
+        {discountError && (
+          <p className="text-sm text-red-500 mt-1">{discountError}</p>
+        )}
+        {appliedDiscount && (
+          <p className="text-sm text-green-600 mt-1">
+            {t('checkout.discountAppliedLabel')} {appliedDiscount.code}
+          </p>
+        )}
+      </div>
+
+      {/* Totals */}
+      <div className="space-y-2 mb-4">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">{t('cart.subtotal')}</span>
+          <span className="font-medium">{format(subtotal)}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">{t('cart.tax')} (10%)</span>
+          <span className="font-medium">{format(tax)}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">{t('cart.shipping')}</span>
+          <span className="font-medium">
+            {shipping === 0 ? (
+              <span className="text-green-600">{t('cart.free')}</span>
+            ) : (
+              format(shipping)
+            )}
+          </span>
+        </div>
+        {appliedDiscount && (
+          <div className="flex justify-between text-sm text-green-600 font-medium">
+            <span>{t('checkout.discount')}</span>
+            <span>-{format(appliedDiscount.discountAmount)}</span>
+          </div>
+        )}
+      </div>
+
+      <div 
+        className="border-t pt-4 mb-6"
+        style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+          borderTopColor: checkoutSettings.secondaryColor,
+        } : {}}
+      >
+        <div className="flex justify-between text-lg font-bold">
+          <span>{t('cart.total')}</span>
+          <span>{format(total)}</span>
+        </div>
+      </div>
+
+              {/* Enhanced Place Order Button */}
+              <div className="space-y-3">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className={`w-full text-lg font-bold py-6 shadow-lg hover:shadow-xl transition-all ${buttonClass}`}
+                  disabled={isSubmitting}
+                  style={{
+                    backgroundColor: checkoutSettings?.primaryColor || undefined,
+                    borderColor: checkoutSettings?.primaryColor || undefined,
+                  }}
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="animate-spin">⏳</span>
+                      {t('checkout.placingOrder')}
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Lock className="w-5 h-5" />
+                      {t('checkout.placeOrder')} - {format(total)}
+                    </span>
+                  )}
+                </Button>
+                
+                {/* Secure Checkout Badge */}
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                  <Lock className="w-4 h-4 text-green-600" />
+                  <span className="font-medium">Secure Checkout</span>
+                  <span className="text-gray-400">•</span>
+                  <span>SSL Encrypted</span>
+                </div>
+
+                <div className="text-xs text-center text-gray-600">
+                  <p>{t('checkout.agreeToTerms')}</p>
+                  <p>
+                    <Link href="/terms" className="underline hover:text-primary">
+                      {t('footer.terms')}
+                    </Link>
+                  </p>
+                </div>
+              </div>
+    </>
+  );
+
+  // Render order summary wrapper
+  const renderOrderSummary = (sticky: boolean = true) => (
+    <div className={`bg-white rounded-lg shadow-sm p-6 space-y-6 ${sticky ? 'sticky top-24' : ''}`}>
+      <h2 className="text-xl font-bold">{t('cart.orderSummary')}</h2>
+      {renderOrderSummaryContent()}
+    </div>
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -444,13 +734,33 @@ export function CheckoutContent() {
 
         <h1 className="text-3xl font-bold mb-4">{t('cart.checkout')}</h1>
 
-        {/* Checkout Progress Indicator */}
-        <div className="mb-8 bg-white rounded-lg p-4 md:p-6 shadow-sm">
-          <CheckoutProgress
-            currentStep={0}
-            steps={['Information', 'Shipping', 'Payment', 'Review']}
-          />
-        </div>
+        {/* Checkout Progress Indicator - Only show if customization enabled and configured */}
+        {checkoutCustomizationEnabled && 
+         checkoutSettings?.progressStyle && 
+         checkoutSettings.progressStyle !== 'none' &&
+         checkoutSettings?.checkoutLayout === 'multi-step' && (
+          <div className="mb-8 bg-white rounded-lg p-4 md:p-6 shadow-sm">
+            {checkoutSettings.progressStyle === 'steps' ? (
+              <CheckoutProgress
+                currentStep={0}
+                steps={['Information', 'Shipping', 'Payment', 'Review']}
+              />
+            ) : checkoutSettings.progressStyle === 'bar' ? (
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Checkout Progress</span>
+                  <span className="text-sm text-gray-500">Step 1 of 4</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-amber-600 h-2 rounded-full transition-all duration-500"
+                    style={{ width: '25%' }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {/* Phase 4: Trust Rating & Order Count */}
         {checkoutCustomizationEnabled && (checkoutSettings?.showTrustRating || checkoutSettings?.showOrderCount) && (
@@ -522,11 +832,52 @@ export function CheckoutContent() {
         ))}
 
       <form onSubmit={handleSubmit}>
-        <div className="grid lg:grid-cols-3 gap-8">
+        {/* Order Summary - Top Position */}
+        {checkoutCustomizationEnabled && checkoutSettings?.orderSummaryPosition === 'top' && (
+          <div className="mb-8">
+            {renderOrderSummary(false)}
+          </div>
+        )}
+
+        {/* Order Summary - Collapsible Position */}
+        {checkoutCustomizationEnabled && checkoutSettings?.orderSummaryPosition === 'collapsible' && (
+          <div className="mb-8 bg-white rounded-lg shadow-sm">
+            <button
+              type="button"
+              onClick={() => setOrderSummaryCollapsed(!orderSummaryCollapsed)}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <h2 className="text-xl font-bold">{t('cart.orderSummary')}</h2>
+              {orderSummaryCollapsed ? (
+                <ChevronDown className="h-5 w-5" />
+              ) : (
+                <ChevronUp className="h-5 w-5" />
+              )}
+            </button>
+            {!orderSummaryCollapsed && (
+              <div className="px-6 pb-6">
+                {renderOrderSummaryContent()}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className={`grid gap-8 ${
+          checkoutCustomizationEnabled && checkoutSettings?.orderSummaryPosition === 'top' 
+            ? 'lg:grid-cols-1' 
+            : checkoutCustomizationEnabled && checkoutSettings?.orderSummaryPosition === 'collapsible'
+            ? 'lg:grid-cols-1'
+            : 'lg:grid-cols-3'
+        }`}>
           {/* Checkout Form */}
-          <div className="lg:col-span-2">
+          <div className={checkoutCustomizationEnabled && checkoutSettings?.orderSummaryPosition === 'right' ? 'lg:col-span-2' : checkoutCustomizationEnabled && (checkoutSettings?.orderSummaryPosition === 'top' || checkoutSettings?.orderSummaryPosition === 'collapsible') ? 'lg:col-span-1' : 'lg:col-span-2'}>
             {/* Contact Information */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div 
+              className="bg-white rounded-lg shadow-sm p-6 mb-6"
+              style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+                borderLeft: `4px solid ${checkoutSettings.secondaryColor}`
+              } : {}}
+            >
               <h2 className="text-xl font-bold mb-4">{t('checkout.contactInfo')}</h2>
 
               {!session && (
@@ -552,7 +903,7 @@ export function CheckoutContent() {
                     placeholder={getFieldPlaceholder('email')}
                     required
                     readOnly={!!session?.user?.email}
-                    className={buttonClass}
+                    className={`${buttonClass} focus:ring-2 focus:ring-primary focus:border-primary transition-all`}
                   />
                 </div>
 
@@ -579,6 +930,9 @@ export function CheckoutContent() {
                       checked={createAccount}
                       onChange={(e) => setCreateAccount(e.target.checked)}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                      style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+                        accentColor: checkoutSettings.secondaryColor,
+                      } : {}}
                     />
                     <Label htmlFor="createAccount" className="font-normal cursor-pointer">
                       {t('checkout.createAccount')}
@@ -603,6 +957,10 @@ export function CheckoutContent() {
                         if (defaultAddr) handleSelectSavedAddress(defaultAddr.id);
                       }}
                       className="gap-2"
+                      style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+                        borderColor: checkoutSettings.secondaryColor,
+                        color: checkoutSettings.secondaryColor,
+                      } : {}}
                     >
                       <Zap className="h-4 w-4" />
                       Use Default Address
@@ -679,8 +1037,16 @@ export function CheckoutContent() {
             )}
 
             {/* Shipping Address */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4">{t('checkout.shippingAddress')}</h2>
+            <div 
+              className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6 transition-shadow hover:shadow-lg"
+              style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+                borderLeft: `4px solid ${checkoutSettings.secondaryColor}`
+              } : {}}
+            >
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">2</span>
+                {t('checkout.shippingAddress')}
+              </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName">{getFieldLabel('firstName', t('checkout.firstName'))}</Label>
@@ -999,223 +1365,40 @@ export function CheckoutContent() {
             </div>
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24 space-y-6">
-              {/* Phase 4: Trust Badges - Sidebar Position */}
-              {checkoutCustomizationEnabled && checkoutSettings?.trustBadges && checkoutSettings.trustBadges.length > 0 && (
-                <TrustBadges
-                  badges={checkoutSettings.trustBadges.filter((b) => b.position === 'sidebar')}
-                />
-              )}
-
-              <h2 className="text-xl font-bold">{t('cart.orderSummary')}</h2>
-
-              {/* Phase 5: Scarcity Message */}
-              {checkoutCustomizationEnabled && checkoutSettings?.scarcityMessage && (
-                <div
-                  className={`p-3 rounded-lg border ${checkoutSettings.urgencyBadgeStyle === 'danger'
-                    ? 'bg-red-50 border-red-200 text-red-800'
-                    : checkoutSettings.urgencyBadgeStyle === 'info'
-                      ? 'bg-blue-50 border-blue-200 text-blue-800'
-                      : 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                    }`}
-                >
-                  <p className="text-sm font-medium">{checkoutSettings.scarcityMessage}</p>
-                </div>
-              )}
-
-              {/* Phase 4: Security Seals */}
-              {checkoutCustomizationEnabled && checkoutSettings?.showSecuritySeals && (
-                <SecuritySeals />
-              )}
-
-              {/* Phase 4: Customer Service Display */}
-              {checkoutCustomizationEnabled && checkoutSettings?.customerServiceDisplay && (
-                <CustomerServiceDisplay
-                  text={checkoutSettings.customerServiceText || undefined}
-                  phone={checkoutSettings.customerServicePhone || undefined}
-                  email={checkoutSettings.customerServiceEmail || undefined}
-                />
-              )}
-
-              {/* Cart Items */}
-              <div className="space-y-3 mb-4 border-b pb-4">
-                {cartItems.map((item) => (
-                  <div key={item.id}>
-                    <div className="flex gap-3">
-                      <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0">
-                        {item.image ? (
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            📦
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{item.name}</p>
-                        <p className="text-sm text-gray-600">{t('checkout.qty')} {item.quantity}</p>
-
-                        {/* Phase 5: Low Stock Warning */}
-                        {checkoutCustomizationEnabled && checkoutSettings?.showLowStock &&
-                          checkoutSettings.lowStockThreshold &&
-                          item.stock &&
-                          item.stock <= checkoutSettings.lowStockThreshold && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <span className="text-orange-600 text-xs">⚠️</span>
-                              <p className="text-xs text-orange-600 font-medium">
-                                {checkoutSettings.lowStockText?.replace('X', item.stock.toString()) || `Only ${item.stock} left!`}
-                              </p>
-                            </div>
-                          )}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Phase 5: Loyalty Points */}
-              {checkoutCustomizationEnabled && checkoutSettings?.showLoyaltyPoints && checkoutSettings.loyaltyPointsText && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-sm text-amber-800">{checkoutSettings.loyaltyPointsText}</p>
-                </div>
-              )}
-
-              {/* Phase 5: Gift with Purchase */}
-              {checkoutCustomizationEnabled && checkoutSettings?.showGiftWithPurchase &&
-                checkoutSettings.giftThreshold &&
-                subtotal >= checkoutSettings.giftThreshold && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <span className="text-purple-600">🎁</span>
-                      <p className="text-sm text-purple-800">{checkoutSettings.giftDescription}</p>
-                    </div>
-                  </div>
-                )}
-
-              {/* Phase 5: Referral Discount */}
-              {checkoutCustomizationEnabled && checkoutSettings?.referralDiscountEnabled && checkoutSettings.referralDiscountText && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                  <p className="text-sm text-indigo-800">{checkoutSettings.referralDiscountText}</p>
-                </div>
-              )}
-
-              {/* Discount Code - Position controlled by Phase 5 settings */}
-              <div className={`border-b pb-4 ${checkoutSettings?.discountFieldPosition === 'top' ? 'order-first' : checkoutSettings?.discountFieldPosition === 'bottom' ? 'order-last' : ''
-                }`}>
-                <Label htmlFor="discountCode" className="mb-2 block">
-                  {t('checkout.discountCode')}
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="discountCode"
-                    value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value)}
-                    placeholder={t('checkout.enterCode')}
-                    disabled={!!appliedDiscount}
-                  />
-                  {appliedDiscount ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={removeDiscount}
-                      className="shrink-0"
-                    >
-                      {t('cart.remove')}
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleApplyDiscount}
-                      disabled={isCheckingDiscount || !discountCode}
-                      className="shrink-0"
-                    >
-                      {t('checkout.apply')}
-                    </Button>
-                  )}
-                </div>
-                {discountError && (
-                  <p className="text-sm text-red-500 mt-1">{discountError}</p>
-                )}
-                {appliedDiscount && (
-                  <p className="text-sm text-green-600 mt-1">
-                    {t('checkout.discountAppliedLabel')} {appliedDiscount.code}
-                  </p>
-                )}
-              </div>
-
-              {/* Totals */}
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('cart.subtotal')}</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('cart.tax')} (10%)</span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('cart.shipping')}</span>
-                  <span className="font-medium">
-                    {shipping === 0 ? (
-                      <span className="text-green-600">{t('cart.free')}</span>
-                    ) : (
-                      `$${shipping.toFixed(2)}`
-                    )}
-                  </span>
-                </div>
-                {appliedDiscount && (
-                  <div className="flex justify-between text-sm text-green-600 font-medium">
-                    <span>{t('checkout.discount')}</span>
-                    <span>-${appliedDiscount.discountAmount.toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="border-t pt-4 mb-6">
-                <div className="flex justify-between text-lg font-bold">
-                  <span>{t('cart.total')}</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                size="lg"
-                className={`w-full ${buttonClass}`}
-                disabled={isSubmitting}
-                style={{
-                  backgroundColor: checkoutSettings?.primaryColor || undefined,
-                  borderColor: checkoutSettings?.primaryColor || undefined,
-                }}
-              >
-                {isSubmitting ? t('checkout.placingOrder') : t('checkout.placeOrder')}
-              </Button>
-
-              <div className="mt-4 text-xs text-center text-gray-600">
-                <p>{t('checkout.agreeToTerms')}</p>
-                <p>
-                  <Link href="/terms" className="underline">
-                    {t('footer.terms')}
-                  </Link>
-                </p>
-              </div>
+          {/* Order Summary - Right Position (default or when position is 'right') */}
+          {(!checkoutCustomizationEnabled || !checkoutSettings?.orderSummaryPosition || checkoutSettings.orderSummaryPosition === 'right') && (
+            <div className="lg:col-span-1">
+              {renderOrderSummary(true)}
             </div>
-          </div>
+          )}
         </div>
       </form>
+
+      {/* Phase 5: Upsell Products - Below Form Position */}
+      {checkoutCustomizationEnabled && 
+       checkoutSettings?.showUpsells && 
+       checkoutSettings.upsellProducts && 
+       checkoutSettings.upsellProducts.length > 0 &&
+       checkoutSettings.upsellPosition === 'below-form' && (
+        <UpsellProducts
+          productIds={checkoutSettings.upsellProducts}
+          title={checkoutSettings.upsellTitle || undefined}
+          position="below-form"
+        />
+      )}
+
+      {/* Phase 5: Upsell Products - Modal Position */}
+      {checkoutCustomizationEnabled && 
+       checkoutSettings?.showUpsells && 
+       checkoutSettings.upsellProducts && 
+       checkoutSettings.upsellProducts.length > 0 &&
+       checkoutSettings.upsellPosition === 'modal' && (
+        <UpsellProducts
+          productIds={checkoutSettings.upsellProducts}
+          title={checkoutSettings.upsellTitle || undefined}
+          position="modal"
+        />
+      )}
 
       {/* Phase 4: Money-Back Guarantee */}
       {checkoutCustomizationEnabled && checkoutSettings?.moneyBackGuarantee && (

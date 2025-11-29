@@ -170,6 +170,53 @@ export function getCurrencySymbol(locale: string = 'en', currency: string = 'USD
 }
 
 /**
+ * Format currency amount with custom symbol
+ * This is used when you want to use the currency symbol from settings
+ */
+export function formatCurrencyWithSymbol(
+  amount: number | string,
+  symbol: string = '$',
+  locale: string = 'en-US'
+): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  
+  if (isNaN(numAmount)) {
+    return `${symbol}0.00`;
+  }
+
+  // Format the number with locale-specific formatting
+  const formatted = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numAmount);
+
+  return `${symbol}${formatted}`;
+}
+
+/**
+ * Format currency amount with custom symbol (no decimals)
+ */
+export function formatCurrencyWithSymbolNoDecimals(
+  amount: number | string,
+  symbol: string = '$',
+  locale: string = 'en-US'
+): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  
+  if (isNaN(numAmount)) {
+    return `${symbol}0`;
+  }
+
+  // Format the number with locale-specific formatting
+  const formatted = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(numAmount);
+
+  return `${symbol}${formatted}`;
+}
+
+/**
  * Format list of items based on locale
  */
 export function formatList(

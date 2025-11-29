@@ -17,23 +17,47 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
+    // Build date filters - include end of day for endDate
+    let startDateObj: Date | undefined;
+    let endDateObj: Date | undefined;
+    
+    if (startDate) {
+      startDateObj = new Date(startDate);
+      startDateObj.setHours(0, 0, 0, 0);
+    }
+    
+    if (endDate) {
+      endDateObj = new Date(endDate);
+      endDateObj.setHours(23, 59, 59, 999);
+    }
+
     const where: any = {
       orderId: {
-        not: null,
+        not: null, // Only completed orders
+      },
+      status: {
+        not: 'CANCELLED', // Exclude cancelled orders
       },
     };
 
     if (locationId) where.locationId = locationId;
-    if (startDate || endDate) {
+    
+    // Filter by date using posOrder.createdAt
+    if (startDateObj || endDateObj) {
       where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
+      if (startDateObj) where.createdAt.gte = startDateObj;
+      if (endDateObj) where.createdAt.lte = endDateObj;
     }
 
     const posOrders = await prisma.posOrder.findMany({
       where,
       include: {
         order: {
+          where: {
+            status: {
+              not: 'CANCELLED', // Exclude cancelled orders
+            },
+          },
           include: {
             items: {
               include: {
@@ -53,34 +77,52 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Filter out posOrders where order is null or cancelled
+    const validPosOrders = posOrders.filter(po => po.order && po.order.status !== 'CANCELLED');
+
     // Aggregate product sales
     const productSales: Record<string, { product: any; quantity: number; revenue: number }> = {};
 
-    posOrders.forEach((posOrder) => {
-      posOrder.order?.items.forEach((item) => {
-        const productId = item.productId;
-        if (!productSales[productId]) {
-          productSales[productId] = {
-            product: item.product,
-            quantity: 0,
-            revenue: 0,
-          };
-        }
-        productSales[productId].quantity += item.quantity;
-        productSales[productId].revenue += Number(item.total);
-      });
+    validPosOrders.forEach((posOrder) => {
+      if (posOrder.order?.items) {
+        posOrder.order.items.forEach((item) => {
+          const productId = item.productId;
+          if (!productSales[productId]) {
+            productSales[productId] = {
+              product: item.product,
+              quantity: 0,
+              revenue: 0,
+            };
+          }
+          productSales[productId].quantity += item.quantity;
+          productSales[productId].revenue += Number(item.total);
+        });
+      }
     });
 
-    // Sort by revenue and take top N
+    // Sort by revenue and take top N, then format for frontend
     const topProducts = Object.values(productSales)
       .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, limit);
+      .slice(0, limit)
+      .map((p) => ({
+        productId: p.product.id,
+        productName: p.product.name,
+        quantity: p.quantity,
+        revenue: p.revenue,
+      }));
 
     return NextResponse.json(topProducts);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching top products:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+    });
     return NextResponse.json(
-      { error: 'Failed to fetch top products' },
+      { 
+        error: 'Failed to fetch top products',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     );
   }

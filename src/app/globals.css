@@ -182,3 +182,253 @@ html {
     @apply bg-background text-foreground;
   }
 }
+
+/* Product Description Rich Content Styles */
+.product-rich-content {
+  @apply text-gray-700 leading-relaxed;
+}
+
+.product-rich-content h1,
+.product-rich-content h2,
+.product-rich-content h3,
+.product-rich-content h4,
+.product-rich-content h5,
+.product-rich-content h6 {
+  @apply font-bold mt-6 mb-4 text-gray-900;
+}
+
+.product-rich-content h1 {
+  @apply text-3xl;
+}
+
+.product-rich-content h2 {
+  @apply text-2xl;
+}
+
+.product-rich-content h3 {
+  @apply text-xl;
+}
+
+.product-rich-content h4 {
+  @apply text-lg;
+}
+
+.product-rich-content p {
+  @apply mb-4;
+}
+
+.product-rich-content ul,
+.product-rich-content ol {
+  @apply mb-4 ml-6;
+}
+
+.product-rich-content ul {
+  @apply list-disc;
+}
+
+.product-rich-content ol {
+  @apply list-decimal;
+}
+
+.product-rich-content li {
+  @apply mb-2;
+}
+
+.product-rich-content blockquote {
+  @apply border-l-4 border-amber-400 pl-4 italic my-4 text-gray-600;
+}
+
+.product-rich-content code {
+  @apply bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.product-rich-content pre {
+  @apply bg-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+}
+
+.product-rich-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.product-rich-content a {
+  @apply text-amber-600 hover:text-amber-700 underline;
+}
+
+.product-rich-content img,
+.prose img {
+  @apply max-w-full h-auto rounded-lg my-4 mx-auto;
+  background: transparent !important;
+  display: block;
+}
+
+/* Fix for TipTap editor images */
+.ProseMirror img,
+.prose img,
+.prose-dark img,
+.dark .prose img {
+  background: transparent !important;
+  background-color: transparent !important;
+  display: block !important;
+  max-width: 100% !important;
+  height: auto !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Override any dark mode image styles */
+.prose-dark img,
+.dark .prose img,
+.prose.dark img {
+  background: transparent !important;
+  background-color: transparent !important;
+  filter: none !important;
+}
+
+/* Editor layout styles */
+.ProseMirror .image-text-layout {
+  @apply my-6 flex flex-col md:flex-row gap-6 items-start border border-dashed border-gray-300 rounded-lg p-4;
+}
+
+.ProseMirror .image-text-layout.image-left {
+  @apply flex-col md:flex-row;
+}
+
+.ProseMirror .image-text-layout.image-right {
+  @apply flex-col md:flex-row-reverse;
+}
+
+.ProseMirror .image-text-layout .layout-image {
+  @apply flex-shrink-0 w-full md:w-1/2 min-h-[200px] bg-gray-50 rounded-lg p-4 flex items-center justify-center;
+}
+
+.ProseMirror .image-text-layout .layout-image img {
+  @apply w-full h-auto rounded-lg;
+  background: transparent !important;
+}
+
+.ProseMirror .image-text-layout .layout-text {
+  @apply flex-1 w-full md:w-1/2;
+}
+
+.product-rich-content hr {
+  @apply my-6 border-gray-300;
+}
+
+/* Table Styles */
+.product-rich-content table {
+  @apply w-full border-collapse my-6 overflow-x-auto;
+  @apply border border-gray-300 rounded-lg;
+}
+
+.product-rich-content table thead {
+  @apply bg-gray-100;
+}
+
+.product-rich-content table th {
+  @apply border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900;
+}
+
+.product-rich-content table td {
+  @apply border border-gray-300 px-4 py-3 text-gray-700;
+}
+
+.product-rich-content table tbody tr:nth-child(even) {
+  @apply bg-gray-50;
+}
+
+.product-rich-content table tbody tr:hover {
+  @apply bg-amber-50;
+}
+
+/* Responsive Tables */
+@media (max-width: 768px) {
+  .product-rich-content table {
+    @apply block overflow-x-auto;
+  }
+  
+  .product-rich-content table thead {
+    @apply hidden;
+  }
+  
+  .product-rich-content table tbody,
+  .product-rich-content table tr,
+  .product-rich-content table td {
+    @apply block;
+  }
+  
+  .product-rich-content table tr {
+    @apply mb-4 border border-gray-300 rounded-lg p-2;
+  }
+  
+  .product-rich-content table td {
+    @apply border-0 px-2 py-1 text-left;
+  }
+  
+  .product-rich-content table td:before {
+    @apply content-[attr(data-label)] font-semibold text-gray-900 mr-2;
+  }
+}
+
+/* Image + Text Side-by-Side Layouts */
+.product-rich-content .image-text-layout,
+.prose .image-text-layout {
+  @apply my-6 flex flex-col md:flex-row gap-6 items-start;
+}
+
+.product-rich-content .image-text-layout.image-left,
+.prose .image-text-layout.image-left {
+  @apply flex-col md:flex-row;
+}
+
+.product-rich-content .image-text-layout.image-right,
+.prose .image-text-layout.image-right {
+  @apply flex-col md:flex-row-reverse;
+}
+
+.product-rich-content .image-text-layout .layout-image,
+.prose .image-text-layout .layout-image {
+  @apply flex-shrink-0 w-full md:w-1/2;
+}
+
+.product-rich-content .image-text-layout .layout-image img,
+.prose .image-text-layout .layout-image img {
+  @apply w-full h-auto rounded-lg;
+  background: transparent !important;
+}
+
+.product-rich-content .image-text-layout .layout-text,
+.prose .image-text-layout .layout-text {
+  @apply flex-1 w-full md:w-1/2;
+}
+
+@media (max-width: 768px) {
+  .product-rich-content .image-text-layout,
+  .prose .image-text-layout {
+    @apply flex-col;
+  }
+  
+  .product-rich-content .image-text-layout .layout-image,
+  .product-rich-content .image-text-layout .layout-text,
+  .prose .image-text-layout .layout-image,
+  .prose .image-text-layout .layout-text {
+    @apply w-full;
+  }
+}
+
+/* Text Alignment */
+.product-rich-content [style*="text-align: left"] {
+  @apply text-left;
+}
+
+.product-rich-content [style*="text-align: center"] {
+  @apply text-center;
+}
+
+.product-rich-content [style*="text-align: right"] {
+  @apply text-right;
+}
+
+.product-rich-content [style*="text-align: justify"] {
+  @apply text-justify;
+}

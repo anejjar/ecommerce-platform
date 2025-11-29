@@ -15,6 +15,7 @@ import { Save } from 'lucide-react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import { useCurrency } from '@/hooks/useCurrency';
 
 const TAX_RATE = 0.1; // 10% tax
 
@@ -24,6 +25,7 @@ export function OrderSummary() {
   const orderType = useAppSelector((state) => state.pos.orderType);
   const locationId = useAppSelector((state) => state.pos.locationId);
   const cashierId = useAppSelector((state) => state.pos.cashierId);
+  const { format } = useCurrency();
 
   const [selectedPaymentMethod] = useState<'CASH' | 'CARD' | 'DIGITAL_WALLET' | 'SPLIT'>('CASH');
   const [cashAmount, setCashAmount] = useState<number | null>(null);
@@ -322,7 +324,7 @@ export function OrderSummary() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      ${item.price.toFixed(2)} × {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
+                      {format(item.price)} × {item.quantity} = {format(item.price * item.quantity)}
                     </p>
                   </div>
                   <div className="flex items-center gap-0.5">
@@ -369,21 +371,21 @@ export function OrderSummary() {
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Price:</span>
-            <span className="font-medium">${subtotal.toFixed(2)}</span>
+            <span className="font-medium">{format(subtotal)}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Taxes:</span>
-            <span className="font-medium">${tax.toFixed(2)}</span>
+            <span className="font-medium">{format(tax)}</span>
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Discount:</span>
-              <span className="font-medium text-green-600">-${discount.toFixed(2)}</span>
+              <span className="font-medium text-green-600">-{format(discount)}</span>
             </div>
           )}
           <div className="flex justify-between text-xl font-bold pt-1.5 border-t">
             <span>Total:</span>
-            <span className="text-primary">${total.toFixed(2)}</span>
+            <span className="text-primary">{format(total)}</span>
           </div>
         </div>
 

@@ -1127,7 +1127,7 @@ export const featureDocs: Record<string, FeatureDocumentation> = {
     title: 'Activity Log & Audit Trail',
     category: 'operations',
     tier: 'PRO',
-    status: 'pending',
+    status: 'completed',
     overview: 'Complete audit trail of all admin actions including user changes, order modifications, product updates, and system events for accountability and troubleshooting.',
     benefits: [
       'Track all admin activities',
@@ -1172,15 +1172,15 @@ export const featureDocs: Record<string, FeatureDocumentation> = {
       components: ['ActivityLogTable', 'ActivityDetailModal', 'LogFilters'],
     },
     relatedFeatures: ['multi_admin', 'backup_export'],
-    notes: ['Feature planned but not yet implemented'],
+    notes: [],
   },
 
   multi_admin: {
     key: 'multi_admin',
     title: 'Multi-Admin User Management',
     category: 'operations',
-    tier: 'ENTERPRISE',
-    status: 'pending',
+    tier: 'PRO',
+    status: 'completed',
     overview: 'Enterprise-grade admin management system with role-based permissions, permission templates, activity logging per admin, login history, two-factor authentication, IP whitelisting, session timeout, and admin approval workflow for secure team collaboration.',
     benefits: [
       'Create multiple admin accounts',
@@ -1241,8 +1241,8 @@ export const featureDocs: Record<string, FeatureDocumentation> = {
       apis: ['/api/admin/users', '/api/admin/roles', '/api/admin/permissions'],
       components: ['AdminUserManager', 'RoleEditor', 'PermissionMatrix'],
     },
-    relatedFeatures: ['activity_log', 'multi_admin_enhanced'],
-    notes: ['Feature planned but not yet implemented'],
+    relatedFeatures: ['activity_log'],
+    notes: [],
   },
 
   invoice_generator: {
@@ -1250,7 +1250,7 @@ export const featureDocs: Record<string, FeatureDocumentation> = {
     title: 'Invoice & Packing Slip Generator',
     category: 'operations',
     tier: 'PRO',
-    status: 'pending',
+    status: 'completed',
     overview: 'Automatically generate professional PDF invoices and packing slips with customizable templates, branding, and configurable content for orders.',
     benefits: [
       'Professional invoice generation',
@@ -1296,7 +1296,7 @@ export const featureDocs: Record<string, FeatureDocumentation> = {
       components: ['InvoiceGenerator', 'InvoiceTemplate', 'PackingSlip'],
     },
     relatedFeatures: ['template_manager', 'email_campaigns'],
-    notes: ['Feature planned but not yet implemented'],
+    notes: [],
   },
 
   product_import_export: {
@@ -1417,7 +1417,7 @@ export const featureDocs: Record<string, FeatureDocumentation> = {
     title: 'Flash Sales & Scheduled Promotions',
     category: 'operations',
     tier: 'PRO',
-    status: 'pending',
+    status: 'completed',
     overview: 'Time-limited promotional system with countdown timers, automatic price changes, and scheduled start/end times to create urgency and drive sales.',
     benefits: [
       'Create time-limited sales',

@@ -12,6 +12,8 @@ import { DownloadInvoiceButton } from '@/components/customer/DownloadInvoiceButt
 import { isFeatureEnabled } from '@/lib/features';
 import { prisma } from '@/lib/prisma';
 import { getTranslations } from 'next-intl/server';
+import { formatCurrencyServer, getCurrencySymbol } from '@/lib/server-currency';
+import { formatCurrencyWithSymbol } from '@/lib/formatting';
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
@@ -113,6 +115,24 @@ export default async function OrderDetailPage({
     total: Number(item.total),
   }));
 
+  // Get currency symbol for formatting
+  const currencySymbol = await getCurrencySymbol();
+  
+  // Format order totals
+  const formattedSubtotal = formatCurrencyWithSymbol(Number(order.subtotal), currencySymbol);
+  const formattedTax = formatCurrencyWithSymbol(Number(order.tax), currencySymbol);
+  const formattedShipping = formatCurrencyWithSymbol(Number(order.shipping), currencySymbol);
+  const formattedTotal = formatCurrencyWithSymbol(Number(order.total), currencySymbol);
+  
+  // Format item prices
+  const formattedItems = await Promise.all(
+    order.items.map(async (item) => ({
+      ...item,
+      formattedPrice: await formatCurrencyServer(Number(item.price)),
+      formattedTotal: await formatCurrencyServer(Number(item.total)),
+    }))
+  );
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -207,7 +227,7 @@ export default async function OrderDetailPage({
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {order.items.map((item) => (
+                {formattedItems.map((item, index) => (
                   <div
                     key={item.id}
                     className="flex items-center justify-between py-3 border-b last:border-b-0"
@@ -218,11 +238,11 @@ export default async function OrderDetailPage({
                         <p className="text-sm text-gray-500">{t('cart.variant')} {item.variant.optionValues}</p>
                       )}
                       <p className="text-sm text-gray-600">
-                        ${Number(item.price).toFixed(2)} × {item.quantity}
+                        {item.formattedPrice} × {item.quantity}
                       </p>
                     </div>
                     <p className="font-bold">
-                      ${Number(item.total).toFixed(2)}
+                      {item.formattedTotal}
                     </p>
                   </div>
                 ))}
@@ -231,24 +251,24 @@ export default async function OrderDetailPage({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">{t('cart.subtotal')}</span>
                     <span className="font-medium">
-                      ${Number(order.subtotal).toFixed(2)}
+                      {formattedSubtotal}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">{t('cart.tax')}</span>
                     <span className="font-medium">
-                      ${Number(order.tax).toFixed(2)}
+                      {formattedTax}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">{t('cart.shipping')}</span>
                     <span className="font-medium">
-                      ${Number(order.shipping).toFixed(2)}
+                      {formattedShipping}
                     </span>
                   </div>
                   <div className="flex justify-between text-lg font-bold pt-2 border-t">
                     <span>{t('cart.total')}</span>
-                    <span>${Number(order.total).toFixed(2)}</span>
+                    <span>{formattedTotal}</span>
                   </div>
                 </div>
               </div>

@@ -258,91 +258,89 @@ export default function LowStockAlertsPage() {
           </div>
         </Card>
       ) : (
-        <Card>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead className="text-center">Current Stock</TableHead>
-                  <TableHead className="text-center">Threshold</TableHead>
-                  <TableHead className="text-center">Difference</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => {
-                  const threshold = product.stockAlert?.threshold || 0;
-                  const difference = threshold - product.stock;
-                  const isCritical = product.stock === 0;
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>SKU</TableHead>
+                <TableHead className="text-center">Current Stock</TableHead>
+                <TableHead className="text-center">Threshold</TableHead>
+                <TableHead className="text-center">Difference</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProducts.map((product) => {
+                const threshold = product.stockAlert?.threshold || 0;
+                const difference = threshold - product.stock;
+                const isCritical = product.stock === 0;
 
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <Link
-                          href={`/admin/products/${product.slug}`}
-                          className="font-medium hover:text-primary hover:underline"
-                        >
-                          {product.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {product.sku || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant={isCritical ? 'destructive' : 'secondary'}>
-                          {product.stock}
+                return (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <Link
+                        href={`/admin/products/${product.slug}`}
+                        className="font-medium hover:text-primary hover:underline"
+                      >
+                        {product.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {product.sku || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={isCritical ? 'destructive' : 'secondary'}>
+                        {product.stock}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="text-sm">{threshold}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className={`text-sm font-medium ${isCritical ? 'text-red-600' : 'text-orange-600'}`}>
+                        {difference > 0 ? `Need ${difference}` : '-'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {isCritical ? (
+                        <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+                          <XCircle className="w-3 h-3" />
+                          Out of Stock
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className="text-sm">{threshold}</span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className={`text-sm font-medium ${isCritical ? 'text-red-600' : 'text-orange-600'}`}>
-                          {difference > 0 ? `Need ${difference}` : '-'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {isCritical ? (
-                          <Badge variant="destructive" className="flex items-center gap-1 w-fit">
-                            <XCircle className="w-3 h-3" />
-                            Out of Stock
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="flex items-center gap-1 w-fit bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                            <AlertTriangle className="w-3 h-3" />
-                            Low Stock
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenThresholdDialog(product)}
-                          >
-                            <Settings className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleQuickReorder(product)}
-                          >
-                            <ShoppingCart className="w-4 h-4 mr-1" />
-                            Reorder
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
+                      ) : (
+                        <Badge variant="secondary" className="flex items-center gap-1 w-fit bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+                          <AlertTriangle className="w-3 h-3" />
+                          Low Stock
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenThresholdDialog(product)}
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleQuickReorder(product)}
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-1" />
+                          Reorder
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {/* Threshold Dialog */}
