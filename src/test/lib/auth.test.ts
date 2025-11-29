@@ -1,16 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { mockPrisma, resetAllMocks } from '@/test/helpers/mocks';
 import { compare } from 'bcryptjs';
 
 // Mock dependencies
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-    },
-  },
-}));
+vi.mock('@/lib/prisma', () => ({ prisma: mockPrisma }));
 
 vi.mock('bcryptjs', () => ({
   compare: vi.fn(),
@@ -18,7 +12,7 @@ vi.mock('bcryptjs', () => ({
 
 describe('Auth Configuration', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    resetAllMocks();
   });
 
   describe('authOptions', () => {
@@ -53,7 +47,7 @@ describe('Auth Configuration', () => {
     });
 
     it('should return null if user not found', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
       const result = await authorizeFunction(
         {
@@ -64,13 +58,13 @@ describe('Auth Configuration', () => {
       );
 
       expect(result).toBeNull();
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' },
       });
     });
 
     it('should return null if user has no password', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      mockPrisma.user.findUnique.mockResolvedValue({
         id: '1',
         email: 'test@example.com',
         password: null,
@@ -98,7 +92,7 @@ describe('Auth Configuration', () => {
     });
 
     it('should return null if password is invalid', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      mockPrisma.user.findUnique.mockResolvedValue({
         id: '1',
         email: 'test@example.com',
         password: 'hashedpassword',
@@ -145,7 +139,7 @@ describe('Auth Configuration', () => {
         sessionsInvalidatedAt: null,
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
       vi.mocked(compare).mockResolvedValue(true);
 
       const result = await authorizeFunction(
@@ -188,7 +182,7 @@ describe('Auth Configuration', () => {
     it('should return null if user no longer exists', async () => {
       const token = { id: '1', sub: '1', iat: 1000000 };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
       const result = await jwtCallback({
         token,
@@ -203,7 +197,7 @@ describe('Auth Configuration', () => {
 
       const invalidatedAt = new Date(2000 * 1000); // Invalidated at timestamp 2000
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      mockPrisma.user.findUnique.mockResolvedValue({
         id: '1',
         email: 'test@example.com',
         password: 'hashedpassword',
@@ -230,7 +224,7 @@ describe('Auth Configuration', () => {
     it('should update role in token if changed', async () => {
       const token = { id: '1', sub: '1', role: 'CUSTOMER', iat: 2000 };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      mockPrisma.user.findUnique.mockResolvedValue({
         id: '1',
         email: 'test@example.com',
         password: 'hashedpassword',

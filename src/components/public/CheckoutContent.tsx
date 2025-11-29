@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import { Lock, ShoppingBag, MapPin, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ import { CountdownTimer } from '@/components/checkout/CountdownTimer';
 import { FreeShippingBar } from '@/components/checkout/FreeShippingBar';
 import { TestimonialsCarousel } from '@/components/checkout/TestimonialsCarousel';
 import { RecentPurchasePopup } from '@/components/checkout/RecentPurchasePopup';
+import { CheckoutProgress } from '@/components/checkout/CheckoutProgress';
 import {
   TrustBadges,
   SecuritySeals,
@@ -441,7 +442,15 @@ export function CheckoutContent() {
           </div>
         )}
 
-        <h1 className="text-3xl font-bold mb-8">{t('cart.checkout')}</h1>
+        <h1 className="text-3xl font-bold mb-4">{t('cart.checkout')}</h1>
+
+        {/* Checkout Progress Indicator */}
+        <div className="mb-8 bg-white rounded-lg p-4 md:p-6 shadow-sm">
+          <CheckoutProgress
+            currentStep={0}
+            steps={['Information', 'Shipping', 'Payment', 'Review']}
+          />
+        </div>
 
         {/* Phase 4: Trust Rating & Order Count */}
         {checkoutCustomizationEnabled && (checkoutSettings?.showTrustRating || checkoutSettings?.showOrderCount) && (

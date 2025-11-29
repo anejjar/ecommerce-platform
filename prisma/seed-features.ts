@@ -287,6 +287,14 @@ const features = [
     tier: 'ENTERPRISE' as const,
     enabled: false,
   },
+  {
+    name: 'pos_system',
+    displayName: 'POS (Point of Sale) System',
+    description: 'Complete point of sale system for retail and restaurant businesses. Features include multi-location support, cashier management, customer search, hold orders, discount codes, order modifications, receipt printing, real-time analytics, and seamless integration with main order system.',
+    category: 'operations',
+    tier: 'PRO' as const,
+    enabled: false,
+  },
 
 ];
 

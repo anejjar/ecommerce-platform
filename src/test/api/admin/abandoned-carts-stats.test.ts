@@ -1,29 +1,27 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { GET } from '@/app/api/admin/abandoned-carts/stats/route'
 import { NextRequest } from 'next/server'
+import { mockPrisma, mockAdminSession, resetAllMocks } from '@/test/helpers/mocks'
+
+// Mock Next.js headers
+vi.mock('next/headers', () => ({
+  headers: vi.fn(() => new Headers()),
+}))
 
 // Mock NextAuth
-vi.mock('next-auth/next', () => ({
+vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
 }))
 
 // Mock Prisma
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
-    abandonedCart: {
-      count: vi.fn(),
-      findMany: vi.fn(),
-    },
-  },
-}))
+vi.mock('@/lib/prisma', () => ({ prisma: mockPrisma }))
 
 // Mock feature flags
 vi.mock('@/lib/features', () => ({
   isFeatureEnabled: vi.fn(() => Promise.resolve(true)),
 }))
 
-import { getServerSession } from 'next-auth/next'
-import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
 import { isFeatureEnabled } from '@/lib/features'
 
 const mockGetServerSession = getServerSession as any
@@ -31,16 +29,14 @@ const mockIsFeatureEnabled = isFeatureEnabled as any
 
 describe('Admin Abandoned Carts Stats API', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    resetAllMocks()
     mockIsFeatureEnabled.mockResolvedValue(true)
   })
 
   describe('GET /api/admin/abandoned-carts/stats', () => {
     it('should return 404 if feature is disabled', async () => {
       mockIsFeatureEnabled.mockResolvedValue(false)
-      mockGetServerSession.mockResolvedValue({
-        user: { id: '1', role: 'ADMIN', email: 'admin@example.com' },
-      })
+      mockGetServerSession.mockResolvedValue(mockAdminSession)
 
       const request = new NextRequest('http://localhost:3000/api/admin/abandoned-carts/stats')
       const response = await GET(request)
@@ -64,7 +60,7 @@ describe('Admin Abandoned Carts Stats API', () => {
     it('should return 401 if user is not ADMIN or SUPERADMIN', async () => {
       mockGetServerSession.mockResolvedValue({
         user: { id: '1', role: 'MANAGER', email: 'manager@example.com' },
-      })
+      } as any)
 
       const request = new NextRequest('http://localhost:3000/api/admin/abandoned-carts/stats')
       const response = await GET(request)
@@ -75,17 +71,15 @@ describe('Admin Abandoned Carts Stats API', () => {
     })
 
     it('should return statistics for ADMIN', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: '1', role: 'ADMIN', email: 'admin@example.com' },
-      })
+      mockGetServerSession.mockResolvedValue(mockAdminSession)
 
-      ;(prisma.abandonedCart.count as any)
+      mockPrisma.abandonedCart.count
         .mockResolvedValueOnce(100) // total
         .mockResolvedValueOnce(60) // abandoned
         .mockResolvedValueOnce(30) // recovered
         .mockResolvedValueOnce(10) // expired
 
-      ;(prisma.abandonedCart.findMany as any)
+      mockPrisma.abandonedCart.findMany
         .mockResolvedValueOnce([
           { totalValue: 100.00 },
           { totalValue: 200.50 },
@@ -109,17 +103,15 @@ describe('Admin Abandoned Carts Stats API', () => {
     })
 
     it('should calculate recovery rate correctly when total is zero', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: '1', role: 'SUPERADMIN', email: 'super@example.com' },
-      })
+      mockGetServerSession.mockResolvedValue(mockAdminSession)
 
-      ;(prisma.abandonedCart.count as any)
+      mockPrisma.abandonedCart.count
         .mockResolvedValueOnce(0) // total
         .mockResolvedValueOnce(0) // abandoned
         .mockResolvedValueOnce(0) // recovered
         .mockResolvedValueOnce(0) // expired
 
-      ;(prisma.abandonedCart.findMany as any)
+      mockPrisma.abandonedCart.findMany
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
 
@@ -132,11 +124,9 @@ describe('Admin Abandoned Carts Stats API', () => {
     })
 
     it('should handle database errors', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: '1', role: 'ADMIN', email: 'admin@example.com' },
-      })
+      mockGetServerSession.mockResolvedValue(mockAdminSession)
 
-      ;(prisma.abandonedCart.count as any).mockRejectedValue(new Error('DB Error'))
+      mockPrisma.abandonedCart.count.mockRejectedValue(new Error('DB Error'))
 
       const request = new NextRequest('http://localhost:3000/api/admin/abandoned-carts/stats')
       const response = await GET(request)

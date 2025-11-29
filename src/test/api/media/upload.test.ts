@@ -2,34 +2,33 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { POST } from '@/app/api/media/upload/route'
 import { NextRequest } from 'next/server'
 
+// Mock Next.js headers
+vi.mock('next/headers', () => ({
+  headers: vi.fn(() => new Headers()),
+}))
+
 // Mock NextAuth
-vi.mock('next-auth/next', () => ({
-    getServerSession: vi.fn(),
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(),
 }))
 
 // Mock Prisma
-vi.mock('@/lib/prisma', () => ({
-    prisma: {
-        mediaLibrary: {
-            create: vi.fn(),
-        },
-    },
-}))
+vi.mock('@/lib/prisma', () => ({ prisma: mockPrisma }))
 
 // Mock Cloudinary
 vi.mock('@/lib/cloudinary', () => ({
     uploadToCloudinary: vi.fn(),
 }))
 
-import { getServerSession } from 'next-auth/next'
-import { prisma } from '@/lib/prisma'
+import { mockPrisma, mockAdminSession, resetAllMocks } from '@/test/helpers/mocks'
+import { getServerSession } from 'next-auth'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 
 const mockGetServerSession = getServerSession as any
 
 describe('Media Upload API', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        resetAllMocks()
     })
 
     it('should return 401 if not authenticated', async () => {
@@ -52,9 +51,7 @@ describe('Media Upload API', () => {
     })
 
     it('should return 400 if no file provided', async () => {
-        mockGetServerSession.mockResolvedValue({
-            user: { id: '1', role: 'ADMIN' },
-        })
+        mockGetServerSession.mockResolvedValue(mockAdminSession)
 
         const formData = new FormData()
         // No file appended
@@ -72,9 +69,7 @@ describe('Media Upload API', () => {
     })
 
     it('should upload file and create database record', async () => {
-        mockGetServerSession.mockResolvedValue({
-            user: { id: '1', role: 'ADMIN' },
-        })
+        mockGetServerSession.mockResolvedValue(mockAdminSession)
 
         const mockCloudinaryResult = {
             public_id: 'test_id',
@@ -88,7 +83,7 @@ describe('Media Upload API', () => {
             height: 100,
         }
 
-            ; (uploadToCloudinary as any).mockResolvedValue(mockCloudinaryResult)
+        ;(uploadToCloudinary as any).mockResolvedValue(mockCloudinaryResult)
 
         const mockMedia = {
             id: 'media_1',
@@ -96,7 +91,8 @@ describe('Media Upload API', () => {
             ...mockCloudinaryResult,
         }
 
-            ; (prisma.mediaLibrary.create as any).mockResolvedValue(mockMedia)
+        mockPrisma.mediaLibrary.create.mockResolvedValue(mockMedia)
+        mockPrisma.activityLog.create.mockResolvedValue({ id: 'log-1' })
 
         const formData = new FormData()
         const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
@@ -116,16 +112,14 @@ describe('Media Upload API', () => {
 
         // Check that prisma.create was called with the correct structure
         // Note: In test environment, File.name may be 'blob' instead of 'test.jpg'
-        const createCall = (prisma.mediaLibrary.create as any).mock.calls[0][0]
-        expect(createCall.data.uploadedById).toBe('1')
+        const createCall = mockPrisma.mediaLibrary.create.mock.calls[0][0]
+        expect(createCall.data.uploadedById).toBe('admin-id')
         expect(createCall.data.mimeType).toBe('image/jpeg')
         expect(['test.jpg', 'blob']).toContain(createCall.data.filename)
     })
 
     it('should handle upload errors', async () => {
-        mockGetServerSession.mockResolvedValue({
-            user: { id: '1', role: 'ADMIN' },
-        })
+        mockGetServerSession.mockResolvedValue(mockAdminSession)
 
             ; (uploadToCloudinary as any).mockRejectedValue(new Error('Cloudinary error'))
 

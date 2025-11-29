@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import SessionProvider from '@/components/SessionProvider'
+import { SessionProvider } from '@/components/SessionProvider'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
@@ -9,6 +9,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 vi.mock('next-auth/react', () => ({
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useSession: () => ({ data: { user: { role: 'CUSTOMER' } }, status: 'authenticated' }),
 }))
 
@@ -17,8 +18,12 @@ describe('SessionProvider', () => {
     vi.clearAllMocks()
   })
 
-  it('renders without crashing', () => {
-    render(<SessionProvider />)
-    expect(screen.getByRole).toBeDefined()
+  it('renders children without crashing', () => {
+    render(
+      <SessionProvider>
+        <div>Test Content</div>
+      </SessionProvider>
+    )
+    expect(screen.getByText('Test Content')).toBeInTheDocument()
   })
 })

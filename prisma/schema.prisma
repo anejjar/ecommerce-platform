@@ -35,6 +35,24 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PosOrderType {
+  DINE_IN
+  TAKE_AWAY
+  DELIVERY
+}
+
+enum PosPaymentMethod {
+  CASH
+  CARD
+  DIGITAL_WALLET
+  SPLIT
+}
+
+enum PosSessionStatus {
+  OPEN
+  CLOSED
+}
+
 model User {
   id                    String    @id @default(cuid())
   name                  String?
@@ -77,6 +95,9 @@ model User {
   landingPages           LandingPage[]
   landingPageTemplates   LandingPageTemplate[]
   landingPageRevisions   LandingPageRevision[]
+  cashier                Cashier?
+  posSessions            PosSession[]
+  posOrders              PosOrder[]
 }
 
 model Account {
@@ -303,6 +324,9 @@ model Order {
   billingAddressId  String?     @unique
   billingAddress    Address?    @relation("BillingAddress", fields: [billingAddressId], references: [id])
   refunds           Refund[]
+  isPosOrder        Boolean     @default(false)
+  posOrderId        String?     @unique
+  posOrder          PosOrder?   @relation(fields: [posOrderId], references: [id])
 }
 
 model OrderItem {
@@ -319,6 +343,113 @@ model OrderItem {
   createdAt DateTime        @default(now())
 
   customizations OrderItemCustomization[]
+}
+
+// ============================================
+// POS SYSTEM MODELS
+// ============================================
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?  @db.Text
+  phone     String?
+  isActive  Boolean  @default(true)
+  settings  String?  @db.Text // JSON string for location-specific settings
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posOrders   PosOrder[]
+  cashiers    Cashier[]
+  posSessions PosSession[]
+
+  @@index([isActive])
+}
+
+model Cashier {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+  employeeId String?  @unique
+  pin        String? // Hashed PIN for quick login
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  posOrders   PosOrder[]
+  posSessions PosSession[]
+
+  @@index([locationId])
+  @@index([isActive])
+}
+
+enum PosOrderStatus {
+  ACTIVE
+  HELD
+  COMPLETED
+  CANCELLED
+}
+
+model PosOrder {
+  id                  String           @id @default(cuid())
+  orderType           PosOrderType
+  locationId          String
+  location            Location         @relation(fields: [locationId], references: [id])
+  cashierId           String
+  cashier             Cashier          @relation(fields: [cashierId], references: [id])
+  customerId          String?
+  customer            User?            @relation(fields: [customerId], references: [id])
+  tableNumber         String?
+  customerName        String?
+  paymentMethod       PosPaymentMethod
+  paymentDetails      String?          @db.Text // JSON for split payments
+  receiptPrinted      Boolean          @default(false)
+  subtotal            Decimal          @default(0) @db.Decimal(10, 2)
+  tax                 Decimal          @default(0) @db.Decimal(10, 2)
+  discount            Decimal          @default(0) @db.Decimal(10, 2)
+  discountCode        String?
+  discountType        String? // PERCENTAGE, FIXED_AMOUNT
+  total               Decimal          @default(0) @db.Decimal(10, 2)
+  status              PosOrderStatus   @default(ACTIVE)
+  notes               String?          @db.Text
+  specialInstructions String?          @db.Text
+  orderId             String?          @unique
+  order               Order?           @relation
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@index([locationId])
+  @@index([cashierId])
+  @@index([customerId])
+  @@index([orderType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PosSession {
+  id           String           @id @default(cuid())
+  cashierId    String
+  cashier      Cashier          @relation(fields: [cashierId], references: [id])
+  userId       String? // The user who opened the session (usually the cashier's user account)
+  user         User?            @relation(fields: [userId], references: [id])
+  locationId   String
+  location     Location         @relation(fields: [locationId], references: [id])
+  openedAt     DateTime         @default(now())
+  closedAt     DateTime?
+  openingCash  Decimal          @default(0) @db.Decimal(10, 2)
+  closingCash  Decimal?         @db.Decimal(10, 2)
+  expectedCash Decimal?         @db.Decimal(10, 2)
+  difference   Decimal?         @db.Decimal(10, 2)
+  status       PosSessionStatus @default(OPEN)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([cashierId])
+  @@index([locationId])
+  @@index([status])
+  @@index([openedAt])
 }
 
 model Address {
@@ -551,16 +682,21 @@ model NewsletterSubscriber {
   subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?
   source         String? // e.g., "footer", "checkout", "popup"
+  landingPageId  String? // Track which landing page the subscriber came from
 
   // Optional: Link to user account if they have one
   userId String? @unique
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Optional: Link to landing page if subscription came from a landing page
+  landingPage LandingPage? @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email])
   @@index([isActive])
+  @@index([landingPageId])
 }
 
 model WishlistItem {
@@ -1990,6 +2126,9 @@ model LandingPage {
   // Revisions
   revisions LandingPageRevision[]
 
+  // Newsletter subscribers from this landing page
+  newsletterSubscribers NewsletterSubscriber[]
+
   // Author
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
@@ -2052,19 +2191,19 @@ model LandingPageRevision {
   page   LandingPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   // Snapshot Data
-  title       String
-  slug        String
-  description String? @db.Text
-  seoTitle    String?
-  seoDescription String? @db.Text
-  seoKeywords String?
-  ogImage     String?
-  ogTitle     String?
-  ogDescription String?
-  status      PageStatus
-  layoutConfig Json?
-  customCss   String? @db.Text
-  customJs    String? @db.Text
+  title          String
+  slug           String
+  description    String?    @db.Text
+  seoTitle       String?
+  seoDescription String?    @db.Text
+  seoKeywords    String?
+  ogImage        String?
+  ogTitle        String?
+  ogDescription  String?
+  status         PageStatus
+  layoutConfig   Json?
+  customCss      String?    @db.Text
+  customJs       String?    @db.Text
 
   // Blocks Snapshot (JSON array)
   blocksSnapshot Json
@@ -2073,7 +2212,7 @@ model LandingPageRevision {
   revisionNumber Int
   note           String? @db.Text
   createdById    String
-  createdBy      User   @relation(fields: [createdById], references: [id])
+  createdBy      User    @relation(fields: [createdById], references: [id])
 
   // Timestamps
   createdAt DateTime @default(now())

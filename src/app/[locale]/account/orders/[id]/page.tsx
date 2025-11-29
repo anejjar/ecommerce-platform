@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import { authOptions } from '@/lib/auth';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';

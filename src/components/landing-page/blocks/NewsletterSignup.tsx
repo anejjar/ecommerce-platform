@@ -15,9 +15,10 @@ interface NewsletterSignupProps {
         placeholder?: string;
         backgroundColor?: string;
     };
+    landingPageId?: string;
 }
 
-export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({ config }) => {
+export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({ config, landingPageId }) => {
     const {
         heading = 'Subscribe to our newsletter',
         subheading,
@@ -56,6 +57,7 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({ config }) =>
                 body: JSON.stringify({
                     email,
                     source: 'landing-page',
+                    landingPageId: landingPageId || undefined,
                 }),
             });
 

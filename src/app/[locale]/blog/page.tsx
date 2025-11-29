@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';

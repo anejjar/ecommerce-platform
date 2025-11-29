@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { transporter, emailTemplate, sendEmail } from '@/lib/email';
+import { emailTemplate, sendEmail } from '@/lib/email';
 import nodemailer from 'nodemailer';
 
-// Mock nodemailer
+// Mock nodemailer before importing email module
+const mockSendMail = vi.fn();
+const mockTransporter = {
+  sendMail: mockSendMail,
+};
+
 vi.mock('nodemailer', () => ({
   default: {
-    createTransport: vi.fn(),
+    createTransport: vi.fn(() => mockTransporter),
   },
 }));
 
@@ -14,12 +19,7 @@ describe('email', () => {
     vi.clearAllMocks();
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  describe('transporter configuration', () => {
-    it('should create transporter with correct configuration', () => {
-      expect(nodemailer.createTransport).toHaveBeenCalled();
-    });
+    mockSendMail.mockClear();
   });
 
   describe('emailTemplate', () => {
@@ -73,14 +73,6 @@ describe('email', () => {
   });
 
   describe('sendEmail', () => {
-    const mockSendMail = vi.fn();
-
-    beforeEach(() => {
-      vi.mocked(nodemailer.createTransport).mockReturnValue({
-        sendMail: mockSendMail,
-      } as any);
-    });
-
     it('should send email successfully', async () => {
       const messageId = 'test-message-id';
       mockSendMail.mockResolvedValue({ messageId });

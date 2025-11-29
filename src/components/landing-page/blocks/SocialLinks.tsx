@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Github, Share2 } from 'lucide-react';
 
 interface SocialLink {

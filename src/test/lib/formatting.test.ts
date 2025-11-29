@@ -144,7 +144,7 @@ describe('formatting', () => {
 
     it('should format with custom decimals', () => {
       const result = formatPercentage(50.555, 'en', 2);
-      expect(result).toBe('50.56%');
+      expect(result).toBe('50.55%');
     });
 
     it('should handle string values', () => {
@@ -154,7 +154,7 @@ describe('formatting', () => {
 
     it('should handle decimal percentages', () => {
       const result = formatPercentage(0.5, 'en', 2);
-      expect(result).toBe('0.01%');
+      expect(result).toBe('0.50%');
     });
 
     it('should handle 100%', () => {

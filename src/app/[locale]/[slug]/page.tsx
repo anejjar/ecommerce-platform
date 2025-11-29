@@ -91,7 +91,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
 
             {/* Render blocks */}
             {page.blocks.map((block) => (
-                <BlockRenderer key={block.id} block={block} />
+                <BlockRenderer key={block.id} block={block} landingPageId={page.id} />
             ))}
 
             {/* Custom JS */}

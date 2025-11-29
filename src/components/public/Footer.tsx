@@ -1,9 +1,10 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/navigation';
 import { Facebook, Twitter, Instagram, Mail, Linkedin, Youtube, MapPin, Phone, Coffee } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/public/LanguageSwitcher';
 
 export function Footer() {
   const t = useTranslations();
@@ -181,13 +182,16 @@ export function Footer() {
           <p className="text-sm text-amber-200">
             {t('footer.copyright', { year: new Date().getFullYear(), storeName })}
           </p>
-          <div className="flex gap-6 text-sm">
-            <Link href="/privacy" className="hover:text-amber-300 transition-colors">
-              {t('footer.privacy')}
-            </Link>
-            <Link href="/terms" className="hover:text-amber-300 transition-colors">
-              {t('footer.terms')}
-            </Link>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex gap-6 text-sm">
+              <Link href="/privacy" className="hover:text-amber-300 transition-colors">
+                {t('footer.privacy')}
+              </Link>
+              <Link href="/terms" className="hover:text-amber-300 transition-colors">
+                {t('footer.terms')}
+              </Link>
+            </div>
+            <LanguageSwitcher />
           </div>
         </div>
       </div>

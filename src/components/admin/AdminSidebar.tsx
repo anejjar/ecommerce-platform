@@ -100,6 +100,19 @@ const navigation: NavItem[] = [
     ],
   },
   {
+    name: "POS",
+    icon: ShoppingCart,
+    featureFlag: "pos_system",
+    children: [
+      { name: "POS Terminal", href: "/admin/pos" },
+      { name: "Orders", href: "/admin/pos/orders" },
+      { name: "Reports", href: "/admin/pos/reports" },
+      { name: "Settings", href: "/admin/pos/settings" },
+      { name: "Locations", href: "/admin/pos/locations" },
+      { name: "Cashiers", href: "/admin/pos/cashiers" },
+    ],
+  },
+  {
     name: "Customers",
     icon: Users,
     children: [

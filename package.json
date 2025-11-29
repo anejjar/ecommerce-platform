@@ -12,6 +12,7 @@
     "seed": "tsx prisma/seed.ts",
     "seed:features": "tsx prisma/seed-features.ts",
     "seed:test": "tsx prisma/seed-test-data.ts",
+    "seed:pos": "tsx prisma/seed-pos.ts",
     "update:contact-form": "tsx prisma/update-contact-form-template.ts",
     "postinstall": "prisma generate"
   },

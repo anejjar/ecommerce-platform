@@ -53,9 +53,10 @@ interface BlockRendererProps {
       componentCode?: string;
     };
   };
+  landingPageId?: string;
 }
 
-export const BlockRenderer: React.FC<BlockRendererProps> = ({ block }) => {
+export const BlockRenderer: React.FC<BlockRendererProps> = ({ block, landingPageId }) => {
   // Responsive visibility classes
   const visibilityClasses = [
     block.hideOnMobile && 'hidden md:block',
@@ -132,7 +133,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({ block }) => {
 
       // Form blocks
       case 'newsletter-signup':
-        return <NewsletterSignup config={block.config} />;
+        return <NewsletterSignup config={block.config} landingPageId={landingPageId} />;
       case 'contact-form':
         return <ContactForm config={block.config} />;
 

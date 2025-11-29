@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@/navigation';
 import { useLocale } from 'next-intl';
 import { Globe, Loader2 } from 'lucide-react';
 
@@ -23,27 +23,8 @@ export function LanguageSwitcher() {
     setSelectedLocale(newLocale);
 
     startTransition(() => {
-      // Build the new path with locale prefix
-      let newPath = pathname;
-
-      // Remove current locale prefix if it exists
-      if (pathname.startsWith('/fr')) {
-        newPath = pathname.replace('/fr', '');
-      }
-
-      // Add new locale prefix if it's not the default (English)
-      if (newLocale !== 'en') {
-        newPath = `/${newLocale}${newPath}`;
-      }
-
-      // Ensure path starts with /
-      if (!newPath.startsWith('/')) {
-        newPath = `/${newPath}`;
-      }
-
-      // Navigate to the new path
-      router.push(newPath);
-      router.refresh();
+      // Use next-intl's router which automatically handles locale prefixes
+      router.replace(pathname, { locale: newLocale });
     });
   };
 

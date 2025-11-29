@@ -71,7 +71,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
           .filter((block: any) => block.isVisible)
           .sort((a: any, b: any) => a.order - b.order)
           .map((block: any) => (
-            <BlockRenderer key={block.id} block={block} />
+            <BlockRenderer key={block.id} block={block} landingPageId={page.id} />
           ))}
       </div>
 

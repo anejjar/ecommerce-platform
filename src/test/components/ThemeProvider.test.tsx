@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import ThemeProvider from '@/components/ThemeProvider'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
@@ -17,8 +17,12 @@ describe('ThemeProvider', () => {
     vi.clearAllMocks()
   })
 
-  it('renders without crashing', () => {
-    render(<ThemeProvider />)
-    expect(screen.getByRole).toBeDefined()
+  it('renders children without crashing', () => {
+    render(
+      <ThemeProvider>
+        <div>Test Content</div>
+      </ThemeProvider>
+    )
+    expect(screen.getByText('Test Content')).toBeInTheDocument()
   })
 })
