@@ -43,6 +43,7 @@ import {
   Package,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface AnalyticsData {
   summary: {
@@ -188,7 +189,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${analytics.summary.totalRevenue.toFixed(2)}
+              {format(Number(analytics.summary.totalRevenue))}
             </div>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
               {analytics.summary.revenueChange >= 0 ? (
@@ -262,7 +263,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${analytics.summary.averageOrderValue.toFixed(2)}
+              {format(Number(analytics.summary.averageOrderValue))}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Per paid order</p>
           </CardContent>
@@ -391,7 +392,7 @@ export default function AnalyticsPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold">${order.total.toFixed(2)}</p>
+                  <p className="text-lg font-bold">{format(Number(order.total))}</p>
                 </div>
               </div>
             ))}

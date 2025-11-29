@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { formatCurrencyWithSymbol } from './formatting';
 
 // Define types based on the Prisma schema and what we expect to be passed
 interface Address {
@@ -49,10 +50,23 @@ interface Order {
     } | null;
 }
 
-// Helper function to format currency
-const formatCurrency = (amount: number | string): string => {
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `$${num.toFixed(2)}`;
+// Helper function to get currency symbol from settings
+const getCurrencySymbol = async (): Promise<string> => {
+    try {
+        const response = await fetch('/api/settings?category=general');
+        if (response.ok) {
+            const data = await response.json();
+            return data.general_currency_symbol || '$';
+        }
+    } catch (error) {
+        console.error('Error fetching currency symbol:', error);
+    }
+    return '$';
+};
+
+// Helper function to format currency with symbol from settings
+const formatCurrency = async (amount: number | string, symbol: string): Promise<string> => {
+    return formatCurrencyWithSymbol(amount, symbol);
 };
 
 // Helper function to format date
@@ -84,6 +98,7 @@ const formatAddress = (address: Address | null | undefined): string => {
 
 export const generateInvoice = async (order: Order) => {
     const doc = new jsPDF();
+    const currencySymbol = await getCurrencySymbol();
 
     // Header
     doc.setFontSize(24);
@@ -106,13 +121,13 @@ export const generateInvoice = async (order: Order) => {
     doc.text(shippingText, 110, 77);
 
     // Items table
-    const tableData = order.items.map(item => [
+    const tableData = await Promise.all(order.items.map(async item => [
         item.product.name,
         item.product.sku || item.variant?.sku || '-',
         item.quantity.toString(),
-        formatCurrency(item.price),
-        formatCurrency(item.total)
-    ]);
+        await formatCurrency(item.price, currencySymbol),
+        await formatCurrency(item.total, currencySymbol)
+    ]));
 
     autoTable(doc, {
         startY: 120,
@@ -124,14 +139,14 @@ export const generateInvoice = async (order: Order) => {
 
     // Totals
     const finalY = (doc as any).lastAutoTable.finalY || 120;
-    doc.text(`Subtotal: ${formatCurrency(order.subtotal)}`, 150, finalY + 10);
-    doc.text(`Tax: ${formatCurrency(order.tax)}`, 150, finalY + 17);
-    doc.text(`Shipping: ${formatCurrency(order.shipping)}`, 150, finalY + 24);
+    doc.text(`Subtotal: ${await formatCurrency(order.subtotal, currencySymbol)}`, 150, finalY + 10);
+    doc.text(`Tax: ${await formatCurrency(order.tax, currencySymbol)}`, 150, finalY + 17);
+    doc.text(`Shipping: ${await formatCurrency(order.shipping, currencySymbol)}`, 150, finalY + 24);
     if (order.discountAmount) {
-        doc.text(`Discount: -${formatCurrency(order.discountAmount)}`, 150, finalY + 31);
+        doc.text(`Discount: -${await formatCurrency(order.discountAmount, currencySymbol)}`, 150, finalY + 31);
     }
     doc.setFontSize(14);
-    doc.text(`Total: ${formatCurrency(order.total)}`, 150, finalY + (order.discountAmount ? 41 : 34));
+    doc.text(`Total: ${await formatCurrency(order.total, currencySymbol)}`, 150, finalY + (order.discountAmount ? 41 : 34));
 
     // Footer
     doc.setFontSize(10);

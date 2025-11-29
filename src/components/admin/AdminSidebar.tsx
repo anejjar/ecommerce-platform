@@ -144,6 +144,7 @@ const navigation: NavItem[] = [
     icon: Megaphone,
     children: [
       { name: "Abandoned Carts", href: "/admin/abandoned-carts" },
+      { name: "Flash Sales", href: "/admin/marketing/flash-sales" },
       { name: "Popups", href: "/admin/popups" },
       { name: "Email Campaigns", href: "/admin/marketing/email-campaigns" },
       { name: "Newsletter", href: "/admin/newsletter" },
@@ -290,6 +291,7 @@ export function AdminSidebar() {
               filteredItem.children = item.children.filter(child => {
                 if (child.name === 'Refunds' && !enabledFeatures.includes('refund_management')) return false;
                 if (child.name === 'Abandoned Carts' && !enabledFeatures.includes('abandoned_cart')) return false;
+                if (child.name === 'Flash Sales' && !enabledFeatures.includes('flash_sales')) return false;
                 if (child.name === 'Popups' && !enabledFeatures.includes('exit_intent_popups')) return false;
                 if (child.name === 'Email Campaigns' && !enabledFeatures.includes('email_campaigns')) return false;
                 return true;

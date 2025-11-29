@@ -178,6 +178,7 @@ export default function GeneralSettingsPage() {
                   <option value="GBP">GBP - British Pound</option>
                   <option value="CAD">CAD - Canadian Dollar</option>
                   <option value="AUD">AUD - Australian Dollar</option>
+                  <option value="MAD">MAD - Moroccan Dirham</option>
                 </select>
               </div>
 

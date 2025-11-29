@@ -8,11 +8,13 @@ import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
 import { removeFromCart, updateQuantity } from '@/lib/redux/features/cartSlice';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export function CartContent() {
   const t = useTranslations();
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
+  const { format } = useCurrency();
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -91,7 +93,7 @@ export function CartContent() {
                     <p className="text-sm text-gray-500 mb-1">{item.variantName}</p>
                   )}
                   <p className="text-gray-600 mb-3">
-                    ${item.price.toFixed(2)} {t('cart.each')}
+                    {format(item.price)} {t('cart.each')}
                   </p>
 
                   {/* Quantity Controls */}
@@ -131,7 +133,7 @@ export function CartContent() {
                 {/* Item Total */}
                 <div className="text-right">
                   <p className="font-bold text-lg">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {format(item.price * item.quantity)}
                   </p>
                 </div>
               </div>
@@ -154,11 +156,11 @@ export function CartContent() {
             <div className="space-y-3 mb-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('cart.subtotal')}</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">{format(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('cart.tax')} (10%)</span>
-                <span className="font-medium">${tax.toFixed(2)}</span>
+                <span className="font-medium">{format(tax)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('cart.shipping')}</span>
@@ -166,13 +168,13 @@ export function CartContent() {
                   {shipping === 0 ? (
                     <span className="text-green-600">{t('cart.free')}</span>
                   ) : (
-                    `$${shipping.toFixed(2)}`
+                    format(shipping)
                   )}
                 </span>
               </div>
               {subtotal < 50 && (
                 <p className="text-xs text-gray-500">
-                  {t('cart.freeShippingProgress', { amount: (50 - subtotal).toFixed(2) })}
+                  {t('cart.freeShippingProgress', { amount: format(50 - subtotal) })}
                 </p>
               )}
             </div>
@@ -180,7 +182,7 @@ export function CartContent() {
             <div className="border-t pt-4 mb-6">
               <div className="flex justify-between text-lg font-bold">
                 <span>{t('cart.total')}</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{format(total)}</span>
               </div>
             </div>
 

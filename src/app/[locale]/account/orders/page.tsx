@@ -46,10 +46,10 @@ interface Order {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   items: OrderItem[];
   total: number;
-  currency: string;
+  currency?: string;
   createdAt: string;
   shippingInfo?: ShippingInfo;
-  shippingAddress: {
+  shippingAddress?: {
     fullName: string;
     addressLine1: string;
     addressLine2?: string;
@@ -60,12 +60,26 @@ interface Order {
   };
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
   processing: { label: 'Processing', color: 'bg-blue-100 text-blue-800', icon: Package },
   shipped: { label: 'Shipped', color: 'bg-purple-100 text-purple-800', icon: Truck },
   delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: Package },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: Package },
+  // Uppercase variants (from database)
+  PENDING: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+  PROCESSING: { label: 'Processing', color: 'bg-blue-100 text-blue-800', icon: Package },
+  SHIPPED: { label: 'Shipped', color: 'bg-purple-100 text-purple-800', icon: Truck },
+  DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: Package },
+  CANCELLED: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: Package },
+};
+
+// Default status config for unknown statuses
+const defaultStatusConfig = { label: 'Unknown', color: 'bg-gray-100 text-gray-800', icon: Package };
+
+// Helper function to get status config with fallback
+const getStatusConfig = (status: string) => {
+  return statusConfig[status] || statusConfig[status.toLowerCase()] || defaultStatusConfig;
 };
 
 export default function OrdersPage() {
@@ -174,10 +188,16 @@ export default function OrdersPage() {
     });
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
+  const formatCurrency = (amount: number, currency?: string) => {
+    // Default to USD if currency is not provided or invalid
+    const validCurrency = currency && currency.trim() ? currency.toUpperCase() : 'USD';
+    
+    // Validate currency code (must be 3 letters)
+    const currencyCode = /^[A-Z]{3}$/.test(validCurrency) ? validCurrency : 'USD';
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: currencyCode,
     }).format(amount);
   };
 
@@ -286,7 +306,8 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            const StatusIcon = statusConfig[order.status].icon;
+            const statusInfo = getStatusConfig(order.status);
+            const StatusIcon = statusInfo.icon;
 
             return (
               <Card key={order.id}>
@@ -302,10 +323,10 @@ export default function OrdersPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge
-                        className={`${statusConfig[order.status].color} flex items-center gap-1`}
+                        className={`${statusInfo.color} flex items-center gap-1`}
                       >
                         <StatusIcon className="h-3 w-3" />
-                        {statusConfig[order.status].label}
+                        {statusInfo.label}
                       </Badge>
                     </div>
                   </div>
@@ -342,25 +363,27 @@ export default function OrdersPage() {
                     </div>
 
                     {/* Shipping Address */}
-                    <div className="pt-3 border-t">
-                      <h4 className="font-semibold mb-2">Shipping Address</h4>
-                      <p className="text-sm text-gray-700">
-                        {order.shippingAddress.fullName}
-                        <br />
-                        {order.shippingAddress.addressLine1}
-                        {order.shippingAddress.addressLine2 && (
-                          <>
-                            <br />
-                            {order.shippingAddress.addressLine2}
-                          </>
-                        )}
-                        <br />
-                        {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
-                        {order.shippingAddress.postalCode}
-                        <br />
-                        {order.shippingAddress.country}
-                      </p>
-                    </div>
+                    {order.shippingAddress && (
+                      <div className="pt-3 border-t">
+                        <h4 className="font-semibold mb-2">Shipping Address</h4>
+                        <p className="text-sm text-gray-700">
+                          {order.shippingAddress.fullName}
+                          <br />
+                          {order.shippingAddress.addressLine1}
+                          {order.shippingAddress.addressLine2 && (
+                            <>
+                              <br />
+                              {order.shippingAddress.addressLine2}
+                            </>
+                          )}
+                          <br />
+                          {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
+                          {order.shippingAddress.postalCode}
+                          <br />
+                          {order.shippingAddress.country}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Delivery Timeline */}
                     {renderDeliveryTimeline(order)}

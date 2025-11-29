@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { closeCart, removeFromCart, updateQuantity } from '@/lib/redux/features/cartSlice';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export function CartDrawer() {
   const t = useTranslations();
@@ -16,6 +17,7 @@ export function CartDrawer() {
   const dispatch = useAppDispatch();
   const { items, isOpen } = useAppSelector((state) => state.cart);
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
+  const { format } = useCurrency();
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -143,7 +145,7 @@ export function CartDrawer() {
                               {product.name}
                             </p>
                             <p className="text-sm font-bold text-amber-900">
-                              ${Number(product.price).toFixed(2)}
+                              {format(Number(product.price))}
                             </p>
                           </div>
                           <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-amber-600 transition-colors flex-shrink-0" />
@@ -207,7 +209,7 @@ export function CartDrawer() {
                         <p className="text-xs text-gray-500 mb-1">{item.variantName}</p>
                       )}
                       <p className="text-sm font-semibold text-amber-900 mb-3">
-                        ${item.price.toFixed(2)}
+                        {format(item.price)}
                       </p>
 
                       {/* Quantity Controls */}
@@ -241,7 +243,7 @@ export function CartDrawer() {
                     {/* Item Total */}
                     <div className="text-right flex-shrink-0">
                       <p className="font-bold text-amber-900">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {format(item.price * item.quantity)}
                       </p>
                     </div>
                   </div>
@@ -256,7 +258,7 @@ export function CartDrawer() {
               {/* Subtotal */}
               <div className="flex items-center justify-between">
                 <span className="text-base font-medium text-gray-700">{t('cart.subtotal')}:</span>
-                <span className="text-2xl font-bold text-amber-900">${subtotal.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-amber-900">{format(subtotal)}</span>
               </div>
 
               <p className="text-xs text-gray-600 text-center">

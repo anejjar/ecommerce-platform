@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
     // Calculate totals and validate stock
     let subtotal = 0;
     const orderItems = [];
+    const flashSaleUpdates: Array<{ flashSaleProductId: string; quantity: number }> = [];
 
     for (const item of items) {
       let price;
@@ -136,9 +137,30 @@ export async function POST(request: NextRequest) {
           include: { product: true },
         });
 
-        if (!variant || !variant.product.published) {
+        if (!variant) {
+          console.error('Checkout Error: Variant not found', {
+            variantId: item.variantId,
+            productId: item.productId,
+            item: item,
+            timestamp: new Date().toISOString(),
+          });
           return NextResponse.json(
-            { error: `Product variant not available` },
+            { error: `Product variant not available: Variant ID ${item.variantId} not found` },
+            { status: 400 }
+          );
+        }
+
+        if (!variant.product.published) {
+          console.error('Checkout Error: Variant product not published', {
+            variantId: item.variantId,
+            productId: item.productId,
+            productName: variant.product.name,
+            published: variant.product.published,
+            item: item,
+            timestamp: new Date().toISOString(),
+          });
+          return NextResponse.json(
+            { error: `Product variant not available: ${variant.product.name} is no longer available` },
             { status: 400 }
           );
         }
@@ -158,21 +180,78 @@ export async function POST(request: NextRequest) {
           where: { id: item.productId },
         });
 
-        if (!product || !product.published) {
+        if (!product) {
+          console.error('Checkout Error: Product not found', {
+            productId: item.productId,
+            item: item,
+            timestamp: new Date().toISOString(),
+          });
           return NextResponse.json(
-            { error: `Product not available` },
+            { error: `Product not available: Product ID ${item.productId} not found` },
             { status: 400 }
           );
         }
 
-        price = Number(product.price);
-        stock = product.stock;
+        if (!product.published) {
+          console.error('Checkout Error: Product not published', {
+            productId: item.productId,
+            productName: product.name,
+            published: product.published,
+            item: item,
+            timestamp: new Date().toISOString(),
+          });
+          return NextResponse.json(
+            { error: `Product not available: ${product.name} is no longer available` },
+            { status: 400 }
+          );
+        }
+
+        // Check for active flash sale price
+        const now = new Date()
+        const flashSaleProduct = await prisma.flashSaleProduct.findFirst({
+          where: {
+            productId: item.productId,
+            flashSale: {
+              status: 'ACTIVE',
+              isActive: true,
+              startDate: { lte: now },
+              endDate: { gt: now },
+            },
+            OR: [
+              { maxQuantity: null },
+              { soldQuantity: { lt: prisma.flashSaleProduct.fields.maxQuantity } },
+            ],
+          },
+          orderBy: {
+            flashSale: {
+              priority: 'desc',
+            },
+          },
+        })
+
+        // Use flash sale price if available, otherwise use regular price
+        price = flashSaleProduct
+          ? Number(flashSaleProduct.salePrice)
+          : Number(product.price)
+        
+        stock = product.stock
 
         if (stock < item.quantity) {
           return NextResponse.json(
             { error: `Insufficient stock for ${product.name}` },
             { status: 400 }
-          );
+          )
+        }
+
+        // Check flash sale quantity limit if applicable
+        if (flashSaleProduct && flashSaleProduct.maxQuantity !== null) {
+          const available = flashSaleProduct.maxQuantity - flashSaleProduct.soldQuantity
+          if (available < item.quantity) {
+            return NextResponse.json(
+              { error: `Only ${available} available at flash sale price for ${product.name}` },
+              { status: 400 }
+            )
+          }
         }
       }
 
@@ -285,6 +364,18 @@ export async function POST(request: NextRequest) {
         shippingAddress: true,
       },
     });
+
+    // Update flash sale soldQuantity
+    for (const update of flashSaleUpdates) {
+      await prisma.flashSaleProduct.update({
+        where: { id: update.flashSaleProductId },
+        data: {
+          soldQuantity: {
+            increment: update.quantity,
+          },
+        },
+      })
+    }
 
     // Update stock (product AND variant if applicable)
     for (const item of items) {

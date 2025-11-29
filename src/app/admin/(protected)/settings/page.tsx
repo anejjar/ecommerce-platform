@@ -65,14 +65,14 @@ export default function SettingsPage() {
             description: "Manage admin accounts, roles, and permissions.",
             href: "/admin/users",
             icon: Users,
-            visible: true
+            visible: enabledFeatures.includes('multi_admin')
         },
         {
             title: "Activity Logs",
             description: "View audit logs of all administrative actions.",
             href: "/admin/activity-logs",
             icon: FileText,
-            visible: true
+            visible: enabledFeatures.includes('activity_log')
         },
         {
             title: "SEO",

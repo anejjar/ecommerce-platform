@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Image as ImageIcon, GripVertical } from 'lucide-react';
 import { MediaPicker } from '@/components/media-manager/MediaPicker/MediaPicker';
@@ -19,13 +19,35 @@ interface ImageUploadProps {
   onImagesChange?: (images: ProductImage[]) => void;
 }
 
+// Helper function to compare image arrays by their IDs
+function areImagesEqual(images1: ProductImage[], images2: ProductImage[]): boolean {
+  if (images1.length !== images2.length) return false;
+  return images1.every((img1, index) => {
+    const img2 = images2[index];
+    return img1.id === img2.id && img1.url === img2.url && img1.position === img2.position;
+  });
+}
+
 export function ImageUpload({ productId, initialImages = [], onImagesChange }: ImageUploadProps) {
   const [images, setImages] = useState<ProductImage[]>(initialImages);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const prevInitialImagesRef = useRef<ProductImage[]>(initialImages);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    setImages(initialImages);
+    // Skip on initial mount since we already initialized state with initialImages
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevInitialImagesRef.current = initialImages;
+      return;
+    }
+
+    // Only update if the actual content has changed (not just the reference)
+    if (!areImagesEqual(prevInitialImagesRef.current, initialImages)) {
+      setImages(initialImages);
+      prevInitialImagesRef.current = initialImages;
+    }
   }, [initialImages]);
 
   const handleMediaSelect = async (selectedMedia: MediaItem[]) => {
@@ -177,7 +199,7 @@ export function ImageUpload({ productId, initialImages = [], onImagesChange }: I
                   alt={image.alt || ''}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
+                <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
                   <Button
                     type="button"
                     variant="destructive"

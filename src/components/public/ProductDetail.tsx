@@ -16,6 +16,9 @@ import { VariantSelector } from '@/components/public/VariantSelector';
 import { ProductTabs } from '@/components/public/ProductTabs';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
+import { useFlashSale } from '@/hooks/useFlashSale';
+import { FlashSaleBadge } from '@/components/public/FlashSaleBadge';
+import { CountdownTimer } from '@/components/checkout/CountdownTimer';
 
 interface VariantOptionValue {
   id: string;
@@ -67,6 +70,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
+  const { flashSale, product: flashSaleProduct, loading: flashSaleLoading } = useFlashSale(product.id);
 
   // Track selected option values for each variant option
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
@@ -94,9 +98,14 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   }, [selectedOptions, product.variantOptions, product.variants, hasVariants]);
 
   // Get current price and stock (from variant or base product)
-  const currentPrice = selectedVariant
+  // Use flash sale price if available, otherwise use variant/base price
+  const basePrice = selectedVariant
     ? Number(selectedVariant.price || product.price)
     : Number(product.price);
+  
+  const currentPrice = flashSaleProduct?.salePrice ?? basePrice;
+  const originalPrice = flashSaleProduct?.originalPrice ?? (selectedVariant?.comparePrice ? Number(selectedVariant.comparePrice) : (product.comparePrice ? Number(product.comparePrice) : basePrice));
+  const hasFlashSale = flashSale !== null && flashSaleProduct !== null;
 
   const currentComparePrice = selectedVariant
     ? selectedVariant.comparePrice
@@ -247,7 +256,19 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
 
             {/* Product Info */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex-1">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                  {hasFlashSale && flashSale && (
+                    <div className="mb-2">
+                      <FlashSaleBadge
+                        discountType={flashSale.discountType}
+                        discountValue={flashSale.discountValue}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {product.category && (
                 <Link
@@ -258,23 +279,51 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 </Link>
               )}
 
+              {/* Flash Sale Countdown Timer */}
+              {hasFlashSale && flashSale && (
+                <div className="mb-6">
+                  <CountdownTimer
+                    endDate={new Date(flashSale.endDate)}
+                    text={flashSale.bannerText || 'Flash Sale Ends In'}
+                  />
+                </div>
+              )}
+
               {/* Price */}
               <div className="mb-6">
                 <div className="flex items-baseline gap-3">
                   <span className="text-4xl font-bold text-gray-900">
                     ${currentPrice.toFixed(2)}
                   </span>
-                  {currentComparePrice && currentComparePrice > currentPrice && (
-                    <>
-                      <span className="text-2xl text-gray-500 line-through">
-                        ${currentComparePrice.toFixed(2)}
-                      </span>
-                      <span className="text-green-600 font-semibold">
-                        {t('product.save')} ${(currentComparePrice - currentPrice).toFixed(2)}
-                      </span>
-                    </>
+                  {hasFlashSale ? (
+                    originalPrice > currentPrice && (
+                      <>
+                        <span className="text-2xl text-gray-500 line-through">
+                          ${originalPrice.toFixed(2)}
+                        </span>
+                        <span className="text-green-600 font-semibold">
+                          {t('product.save')} ${(originalPrice - currentPrice).toFixed(2)}
+                        </span>
+                      </>
+                    )
+                  ) : (
+                    currentComparePrice && currentComparePrice > currentPrice && (
+                      <>
+                        <span className="text-2xl text-gray-500 line-through">
+                          ${currentComparePrice.toFixed(2)}
+                        </span>
+                        <span className="text-green-600 font-semibold">
+                          {t('product.save')} ${(currentComparePrice - currentPrice).toFixed(2)}
+                        </span>
+                      </>
+                    )
                   )}
                 </div>
+                {hasFlashSale && flashSaleProduct && flashSaleProduct.maxQuantity !== null && (
+                  <p className="text-sm text-orange-600 mt-2 font-semibold">
+                    Only {flashSaleProduct.available} left at this price!
+                  </p>
+                )}
               </div>
 
               {/* Stock Status */}

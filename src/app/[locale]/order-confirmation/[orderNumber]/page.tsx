@@ -5,6 +5,7 @@ import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { formatCurrencyServer } from '@/lib/server-currency';
 
 export default async function OrderConfirmationPage({
   params,
@@ -31,6 +32,8 @@ export default async function OrderConfirmationPage({
   if (!order) {
     notFound();
   }
+
+  const formattedTotal = await formatCurrencyServer(Number(order.total));
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -60,7 +63,7 @@ export default async function OrderConfirmationPage({
                   </div>
                   <div>
                     <p className="text-gray-600">Order Total</p>
-                    <p className="font-bold">${Number(order.total).toFixed(2)}</p>
+                    <p className="font-bold">{formattedTotal}</p>
                   </div>
                   <div>
                     <p className="text-gray-600">Payment Status</p>

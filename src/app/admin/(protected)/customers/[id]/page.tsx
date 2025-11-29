@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -31,6 +32,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [adminNotes, setAdminNotes] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { format } = useCurrency();
 
   useEffect(() => {
     fetchCustomer();
@@ -117,7 +119,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <CardTitle>Total Spent</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">${totalSpent.toFixed(2)}</p>
+            <p className="text-3xl font-bold">{format(totalSpent)}</p>
           </CardContent>
         </Card>
 
@@ -202,7 +204,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         {order.paymentStatus}
                       </Badge>
                     </TableCell>
-                    <TableCell>${order.total.toString()}</TableCell>
+                    <TableCell>{format(Number(order.total))}</TableCell>
                     <TableCell>
                       <Link
                         href={`/admin/orders/${order.id}`}

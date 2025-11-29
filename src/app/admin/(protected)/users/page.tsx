@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
+import Link from 'next/link'
 import { hasPermission } from '@/lib/permissions'
 import { isFeatureEnabled } from '@/lib/features'
 import { AdminUsersClient } from '@/components/admin/AdminUsersClient'
@@ -36,6 +37,14 @@ export default async function AdminUsersPage() {
         <p className="text-muted-foreground">
           Manage admin users and their roles
         </p>
+        {!featureEnabled && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>Note:</strong> The multi-admin feature flag is not enabled. 
+              You can enable it in <Link href="/admin/features" className="underline font-semibold">Features</Link> to unlock additional functionality.
+            </p>
+          </div>
+        )}
       </div>
 
       <AdminUsersClient currentUserRole={session.user.role} />
