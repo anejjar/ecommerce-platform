@@ -14,6 +14,9 @@ export async function GET(req: Request) {
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status');
         const search = searchParams.get('search');
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = parseInt(searchParams.get('limit') || '20', 10);
+        const skip = (page - 1) * limit;
 
         const where: any = {};
 
@@ -30,10 +33,15 @@ export async function GET(req: Request) {
             ];
         }
 
-        const subscribers = await prisma.newsletterSubscriber.findMany({
-            where,
-            orderBy: { subscribedAt: 'desc' },
-        });
+        const [subscribers, total] = await Promise.all([
+            prisma.newsletterSubscriber.findMany({
+                where,
+                orderBy: { subscribedAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            prisma.newsletterSubscriber.count({ where }),
+        ]);
 
         const stats = {
             total: await prisma.newsletterSubscriber.count(),
@@ -41,7 +49,16 @@ export async function GET(req: Request) {
             inactive: await prisma.newsletterSubscriber.count({ where: { isActive: false } }),
         };
 
-        return NextResponse.json({ subscribers, stats });
+        return NextResponse.json({
+            subscribers,
+            stats,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        });
     } catch (error) {
         console.error('Error fetching subscribers:', error);
         return NextResponse.json(

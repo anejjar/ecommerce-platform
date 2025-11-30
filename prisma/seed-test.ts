@@ -43,34 +43,34 @@ async function main() {
   }
 
   // 2. Seed Feature Flags (all features enabled for testing)
-  console.log('🚩 Seeding Feature Flags...')
-  await prisma.featureFlag.deleteMany({})
-  const features = [
-    // Analytics
-    { name: 'analytics_dashboard', displayName: 'Analytics & Reporting Dashboard', description: 'Comprehensive analytics platform', category: 'analytics', tier: 'PRO' as const, enabled: true },
-    { name: 'sales_reports', displayName: 'Sales Reports', description: 'Detailed sales reporting', category: 'analytics', tier: 'PRO' as const, enabled: true },
-    { name: 'customer_analytics', displayName: 'Customer Analytics', description: 'Customer behavior analysis', category: 'analytics', tier: 'PRO' as const, enabled: true },
-    // Operations
-    { name: 'flash_sales', displayName: 'Flash Sales & Scheduled Promotions', description: 'Time-limited promotional system with countdown timers and automatic price reversion', category: 'operations', tier: 'PRO' as const, enabled: true },
-    { name: 'refund_management', displayName: 'Refund Management', description: 'Complete refund processing system', category: 'operations', tier: 'PRO' as const, enabled: true },
-    { name: 'inventory_management', displayName: 'Advanced Inventory Management', description: 'Stock tracking and management', category: 'operations', tier: 'PRO' as const, enabled: true },
-    { name: 'template_manager', displayName: 'Template Manager', description: 'Email and document templates', category: 'operations', tier: 'PRO' as const, enabled: true },
-    { name: 'product_import_export', displayName: 'Product Import/Export', description: 'Bulk product management', category: 'operations', tier: 'PRO' as const, enabled: true },
-    // Marketing
-    { name: 'abandoned_cart', displayName: 'Abandoned Cart Recovery', description: 'Recover abandoned shopping carts', category: 'marketing', tier: 'PRO' as const, enabled: true },
-    { name: 'cms', displayName: 'Content Management System', description: 'Blog posts, pages, and media library', category: 'marketing', tier: 'PRO' as const, enabled: true },
-    { name: 'email_campaigns', displayName: 'Email Campaigns', description: 'Email marketing campaigns', category: 'marketing', tier: 'PRO' as const, enabled: true },
-    { name: 'exit_intent_popups', displayName: 'Exit Intent Popups', description: 'Capture leaving visitors', category: 'marketing', tier: 'PRO' as const, enabled: true },
-    { name: 'seo_toolkit', displayName: 'SEO Toolkit', description: 'Search engine optimization tools', category: 'marketing', tier: 'PRO' as const, enabled: true },
-    { name: 'checkout_customization', displayName: 'Checkout Customization', description: 'Customize checkout experience', category: 'sales', tier: 'PRO' as const, enabled: true },
-  ]
-  for (const feature of features) {
-    await prisma.featureFlag.upsert({
-      where: { name: feature.name },
-      update: feature,
-      create: feature,
-    })
-  }
+  // console.log('🚩 Seeding Feature Flags...')
+  // await prisma.featureFlag.deleteMany({})
+  // const features = [
+  //   // Analytics
+  //   { name: 'analytics_dashboard', displayName: 'Analytics & Reporting Dashboard', description: 'Comprehensive analytics platform', category: 'analytics', tier: 'PRO' as const, enabled: true },
+  //   { name: 'sales_reports', displayName: 'Sales Reports', description: 'Detailed sales reporting', category: 'analytics', tier: 'PRO' as const, enabled: true },
+  //   { name: 'customer_analytics', displayName: 'Customer Analytics', description: 'Customer behavior analysis', category: 'analytics', tier: 'PRO' as const, enabled: true },
+  //   // Operations
+  //   { name: 'flash_sales', displayName: 'Flash Sales & Scheduled Promotions', description: 'Time-limited promotional system with countdown timers and automatic price reversion', category: 'operations', tier: 'PRO' as const, enabled: true },
+  //   { name: 'refund_management', displayName: 'Refund Management', description: 'Complete refund processing system', category: 'operations', tier: 'PRO' as const, enabled: true },
+  //   { name: 'inventory_management', displayName: 'Advanced Inventory Management', description: 'Stock tracking and management', category: 'operations', tier: 'PRO' as const, enabled: true },
+  //   { name: 'template_manager', displayName: 'Template Manager', description: 'Email and document templates', category: 'operations', tier: 'PRO' as const, enabled: true },
+  //   { name: 'product_import_export', displayName: 'Product Import/Export', description: 'Bulk product management', category: 'operations', tier: 'PRO' as const, enabled: true },
+  //   // Marketing
+  //   { name: 'abandoned_cart', displayName: 'Abandoned Cart Recovery', description: 'Recover abandoned shopping carts', category: 'marketing', tier: 'PRO' as const, enabled: true },
+  //   { name: 'cms', displayName: 'Content Management System', description: 'Blog posts, pages, and media library', category: 'marketing', tier: 'PRO' as const, enabled: true },
+  //   { name: 'email_campaigns', displayName: 'Email Campaigns', description: 'Email marketing campaigns', category: 'marketing', tier: 'PRO' as const, enabled: true },
+  //   { name: 'exit_intent_popups', displayName: 'Exit Intent Popups', description: 'Capture leaving visitors', category: 'marketing', tier: 'PRO' as const, enabled: true },
+  //   { name: 'seo_toolkit', displayName: 'SEO Toolkit', description: 'Search engine optimization tools', category: 'marketing', tier: 'PRO' as const, enabled: true },
+  //   { name: 'checkout_customization', displayName: 'Checkout Customization', description: 'Customize checkout experience', category: 'sales', tier: 'PRO' as const, enabled: true },
+  // ]
+  // for (const feature of features) {
+  //   await prisma.featureFlag.upsert({
+  //     where: { name: feature.name },
+  //     update: feature,
+  //     create: feature,
+  //   })
+  // }
 
   // 3. Users & Roles
   console.log('👤 Seeding Users...')

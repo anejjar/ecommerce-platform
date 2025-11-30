@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { ShopContent } from '@/components/public/ShopContent';
-import { getProducts, getCategories, getCategoryBySlug } from '@/lib/translations';
+import { getProducts, getCategories, getCategoryBySlug, countProducts } from '@/lib/translations';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -35,6 +35,9 @@ export default async function ShopPage({
   const category = typeof urlParams.category === 'string' ? urlParams.category : '';
   const featured = urlParams.featured === 'true';
   const sort = typeof urlParams.sort === 'string' ? urlParams.sort : 'newest';
+  const pageParam = parseInt(typeof urlParams.page === 'string' ? urlParams.page : '1', 10);
+  const requestedPage = pageParam > 0 ? pageParam : 1; // Ensure page is at least 1
+  const limit = 24; // Products per page
 
   // Build where clause
   const where: any = {
@@ -80,8 +83,14 @@ export default async function ShopPage({
     orderBy = { name: 'asc' };
   }
 
-  // Fetch products with translations
-  const productsData = await getProducts({ where, orderBy }, locale);
+  // Get total count first to validate page number
+  const total = await countProducts(where);
+  const totalPages = Math.ceil(total / limit);
+  const page = totalPages > 0 ? Math.min(requestedPage, totalPages) : 1;
+  const skip = (page - 1) * limit;
+
+  // Fetch products with translations and pagination
+  const productsData = await getProducts({ where, orderBy, take: limit, skip }, locale);
 
   // Convert Decimal fields to strings for client components
   const products = productsData.map(product => ({
@@ -105,6 +114,12 @@ export default async function ShopPage({
             initialCategory={category}
             initialFeatured={featured}
             initialSort={sort}
+            pagination={{
+              page,
+              totalPages,
+              total,
+              limit,
+            }}
           />
         </Suspense>
       </main>

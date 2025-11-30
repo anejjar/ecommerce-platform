@@ -2,20 +2,37 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Button } from '@/components/ui/button';
 import { ProductsList } from '@/components/admin/ProductsList';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default async function ProductsPage() {
-  const productsData = await prisma.product.findMany({
-    include: {
-      category: true,
-      images: {
-        orderBy: { position: 'asc' },
-        take: 1,
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const pageParam = parseInt(params.page || '1', 10);
+  const page = pageParam > 0 ? pageParam : 1;
+  const limit = 20; // Products per page
+  const skip = (page - 1) * limit;
+
+  // Get total count and products with pagination
+  const [productsData, total] = await Promise.all([
+    prisma.product.findMany({
+      include: {
+        category: true,
+        images: {
+          orderBy: { position: 'asc' },
+          take: 1,
+        },
       },
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.product.count(),
+  ]);
 
   // Convert Decimal fields to strings for client components
   const products = productsData.map(product => ({
@@ -28,12 +45,16 @@ export default async function ProductsPage() {
     orderBy: { name: 'asc' },
   });
 
+  const totalPages = Math.ceil(total / limit);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Products</h1>
-          <p className="text-gray-600 mt-2">Manage your product catalog</p>
+          <p className="text-gray-600 mt-2">
+            Showing {products.length > 0 ? skip + 1 : 0} to {Math.min(skip + limit, total)} of {total} products
+          </p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/products/import">
@@ -53,7 +74,36 @@ export default async function ProductsPage() {
           </Link>
         </div>
       ) : (
-        <ProductsList products={products} categories={categories} />
+        <>
+          <ProductsList products={products} categories={categories} />
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              <Link href={`/admin/products?page=${page - 1}`}>
+                <Button
+                  variant="outline"
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+              </Link>
+              <span className="flex items-center px-4 text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Link href={`/admin/products?page=${page + 1}`}>
+                <Button
+                  variant="outline"
+                  disabled={page === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </Link>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -173,6 +173,13 @@ export async function getProducts(
 }
 
 /**
+ * Count products matching the given where clause
+ */
+export async function countProducts(where: any) {
+  return prisma.product.count({ where })
+}
+
+/**
  * Fetch categories with translations applied for the given locale
  */
 export async function getCategories(locale: string) {

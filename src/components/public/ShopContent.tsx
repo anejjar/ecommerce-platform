@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Link } from '@/navigation';
 import Image from 'next/image';
-import { Search, Filter, X, Star } from 'lucide-react';
+import { Search, Filter, X, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { WishlistButton } from '@/components/public/WishlistButton';
@@ -31,6 +31,13 @@ interface Category {
   slug: string;
 }
 
+interface PaginationInfo {
+  page: number;
+  totalPages: number;
+  total: number;
+  limit: number;
+}
+
 interface ShopContentProps {
   products: Product[];
   categories: Category[];
@@ -38,6 +45,7 @@ interface ShopContentProps {
   initialCategory: string;
   initialFeatured: boolean;
   initialSort: string;
+  pagination: PaginationInfo;
 }
 
 export function ShopContent({
@@ -47,6 +55,7 @@ export function ShopContent({
   initialCategory,
   initialFeatured,
   initialSort,
+  pagination,
 }: ShopContentProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -54,12 +63,26 @@ export function ShopContent({
   const [search, setSearch] = useState(initialSearch);
   const [showFilters, setShowFilters] = useState(false);
 
-  const applyFilters = (params: Record<string, string>) => {
+  const applyFilters = (params: Record<string, string>, resetPage: boolean = true) => {
     const url = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value) url.set(key, value);
     });
+    // Reset to page 1 when filters change, unless explicitly told not to
+    if (resetPage && !params.page) {
+      url.set('page', '1');
+    }
     router.push(`/shop?${url.toString()}`);
+  };
+
+  const goToPage = (page: number) => {
+    const params: Record<string, string> = {};
+    if (initialSearch) params.search = initialSearch;
+    if (initialCategory) params.category = initialCategory;
+    if (initialFeatured) params.featured = 'true';
+    if (initialSort !== 'newest') params.sort = initialSort;
+    params.page = page.toString();
+    applyFilters(params, false);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -111,7 +134,9 @@ export function ShopContent({
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">{t('shop.title')}</h1>
         <p className="text-gray-600">
-          {products.length} {products.length === 1 ? t('cart.item') : t('cart.items')} found
+          Showing {products.length > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0} to{' '}
+          {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
+          {pagination.total === 1 ? t('cart.item') : t('cart.items')}
         </p>
       </div>
 
@@ -243,17 +268,46 @@ export function ShopContent({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product, index) => (
-                <div
-                  key={product.id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <ProductCard product={product} />
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.map((product, index) => (
+                  <div
+                    key={product.id}
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  {pagination.page > 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => goToPage(pagination.page - 1)}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      {t('shop.pagination.previous') || 'Previous'}
+                    </Button>
+                  )}
+                  <span className="flex items-center px-4 text-sm text-muted-foreground">
+                    {t('shop.pagination.page') || 'Page'} {pagination.page} {t('shop.pagination.of') || 'of'} {pagination.totalPages}
+                  </span>
+                  {pagination.page < pagination.totalPages && (
+                    <Button
+                      variant="outline"
+                      onClick={() => goToPage(pagination.page + 1)}
+                    >
+                      {t('shop.pagination.next') || 'Next'}
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  )}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
       </div>

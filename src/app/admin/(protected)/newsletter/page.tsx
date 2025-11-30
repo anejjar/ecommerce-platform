@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Table,
     TableBody,
@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2, Download } from 'lucide-react';
+import { Trash2, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Subscriber {
     id: string;
@@ -32,17 +32,26 @@ interface Stats {
     inactive: number;
 }
 
+interface Pagination {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
 export default function NewsletterSubscribersPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
     const [stats, setStats] = useState<Stats>({ total: 0, active: 0, inactive: 0 });
+    const [pagination, setPagination] = useState<Pagination | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
     const [search, setSearch] = useState('');
 
     useEffect(() => {
         fetchSubscribers();
-    }, [filter, search]);
+    }, [filter, search, searchParams]);
 
     const fetchSubscribers = async () => {
         setIsLoading(true);
@@ -50,6 +59,8 @@ export default function NewsletterSubscribersPage() {
             const params = new URLSearchParams();
             if (filter !== 'all') params.append('status', filter);
             if (search) params.append('search', search);
+            const page = searchParams.get('page') || '1';
+            params.append('page', page);
 
             const response = await fetch(`/api/newsletter/subscribers?${params}`);
             const data = await response.json();
@@ -57,12 +68,19 @@ export default function NewsletterSubscribersPage() {
             if (response.ok) {
                 setSubscribers(data.subscribers);
                 setStats(data.stats);
+                setPagination(data.pagination);
             }
         } catch (error) {
             console.error('Error fetching subscribers:', error);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const goToPage = (page: number) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('page', page.toString());
+        router.push(`?${params.toString()}`);
     };
 
     const handleDelete = async (id: string, email: string) => {
@@ -81,6 +99,25 @@ export default function NewsletterSubscribersPage() {
         } catch (error) {
             console.error('Error deleting subscriber:', error);
         }
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const params = new URLSearchParams(searchParams);
+        if (search) {
+            params.set('search', search);
+        } else {
+            params.delete('search');
+        }
+        params.set('page', '1'); // Reset to page 1
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleFilterChange = (newFilter: 'all' | 'active' | 'inactive') => {
+        setFilter(newFilter);
+        const params = new URLSearchParams(searchParams);
+        params.set('page', '1'); // Reset to page 1
+        router.push(`?${params.toString()}`);
     };
 
     const exportToCSV = () => {
@@ -158,7 +195,7 @@ export default function NewsletterSubscribersPage() {
                         </Button>
                     </div>
                 </div>
-                <div className="flex flex-col md:flex-row gap-4 mt-4 mb-4">
+                <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mt-4 mb-4">
                     <Input
                         placeholder="Search by email or name..."
                         value={search}
@@ -169,26 +206,29 @@ export default function NewsletterSubscribersPage() {
                         <Button
                             variant={filter === 'all' ? 'default' : 'outline'}
                             size="sm"
-                            onClick={() => setFilter('all')}
+                            onClick={() => handleFilterChange('all')}
+                            type="button"
                         >
                             All
                         </Button>
                         <Button
                             variant={filter === 'active' ? 'default' : 'outline'}
                             size="sm"
-                            onClick={() => setFilter('active')}
+                            onClick={() => handleFilterChange('active')}
+                            type="button"
                         >
                             Active
                         </Button>
                         <Button
                             variant={filter === 'inactive' ? 'default' : 'outline'}
                             size="sm"
-                            onClick={() => setFilter('inactive')}
+                            onClick={() => handleFilterChange('inactive')}
+                            type="button"
                         >
                             Inactive
                         </Button>
                     </div>
-                </div>
+                </form>
 
                 {isLoading ? (
                     <div className="text-center py-12 border rounded-lg bg-gray-50">
@@ -243,6 +283,31 @@ export default function NewsletterSubscribersPage() {
                                 ))}
                             </TableBody>
                         </Table>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {pagination && pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => goToPage(pagination.page - 1)}
+                            disabled={pagination.page === 1}
+                        >
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Previous
+                        </Button>
+                        <span className="flex items-center px-4 text-sm text-muted-foreground">
+                            Page {pagination.page} of {pagination.totalPages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            onClick={() => goToPage(pagination.page + 1)}
+                            disabled={pagination.page === pagination.totalPages}
+                        >
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
                     </div>
                 )}
             </div>

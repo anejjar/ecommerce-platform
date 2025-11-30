@@ -187,7 +187,7 @@ async function main() {
   console.log('⚡ Seeding 20 Flash Sales...')
   const flashSales = []
   const now = new Date()
-  
+
   for (let i = 1; i <= 20; i++) {
     const startDate = randomDate(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000))
     const endDate = new Date(startDate.getTime() + randomInt(1, 7) * 24 * 60 * 60 * 1000)
@@ -293,25 +293,37 @@ async function main() {
 
   // 8. Reviews (5000 reviews)
   console.log('⭐ Seeding 5000 Reviews...')
-  for (let i = 1; i <= 5000; i++) {
+  const reviewCombinations = new Set<string>()
+  let reviewsCreated = 0
+
+  while (reviewsCreated < 5000) {
     const customer = users[randomInt(2, users.length - 1)]
     const product = products[randomInt(0, products.length - 1)]
-    
+    const combinationKey = `${customer.id}-${product.id}`
+
+    // Skip if this user-product combination already exists
+    if (reviewCombinations.has(combinationKey)) {
+      continue
+    }
+
     await prisma.review.create({
       data: {
         userId: customer.id,
         productId: product.id,
         rating: randomInt(1, 5),
-        title: `Review ${i}`,
-        comment: `This is review number ${i}. ${randomInt(1, 5) >= 4 ? 'Great product!' : 'Could be better.'}`,
+        title: `Review ${reviewsCreated + 1}`,
+        comment: `This is review number ${reviewsCreated + 1}. ${randomInt(1, 5) >= 4 ? 'Great product!' : 'Could be better.'}`,
         verified: Math.random() > 0.3,
         approved: Math.random() > 0.2,
         createdAt: randomDate(new Date(2023, 0, 1), new Date()),
       },
     })
 
-    if (i % 1000 === 0) {
-      console.log(`  Created ${i} reviews...`)
+    reviewCombinations.add(combinationKey)
+    reviewsCreated++
+
+    if (reviewsCreated % 1000 === 0) {
+      console.log(`  Created ${reviewsCreated} reviews...`)
     }
   }
 

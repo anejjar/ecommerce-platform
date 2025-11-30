@@ -103,6 +103,7 @@ export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30');
+  const { format } = useCurrency();
 
   useEffect(() => {
     if (status === 'loading') return;

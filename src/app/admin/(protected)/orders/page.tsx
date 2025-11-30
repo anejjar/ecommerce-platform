@@ -2,23 +2,40 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { prisma } from '@/lib/prisma';
 import { OrdersList } from '@/components/admin/OrdersList';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default async function OrdersPage() {
-  const ordersData = await prisma.order.findMany({
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const pageParam = parseInt(params.page || '1', 10);
+  const page = pageParam > 0 ? pageParam : 1;
+  const limit = 20; // Orders per page
+  const skip = (page - 1) * limit;
+
+  // Get total count and orders with pagination
+  const [ordersData, total] = await Promise.all([
+    prisma.order.findMany({
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
         },
+        items: true,
+        shippingAddress: true,
       },
-      items: true,
-      shippingAddress: true,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.order.count(),
+  ]);
 
   // Convert Decimal fields to strings for client components
   const orders = ordersData.map(order => ({
@@ -36,12 +53,16 @@ export default async function OrdersPage() {
     })),
   }));
 
+  const totalPages = Math.ceil(total / limit);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Orders</h1>
-          <p className="text-gray-600 mt-2">Manage customer orders</p>
+          <p className="text-gray-600 mt-2">
+            Showing {orders.length > 0 ? skip + 1 : 0} to {Math.min(skip + limit, total)} of {total} orders
+          </p>
         </div>
         <Link href="/admin/orders/new">
           <Button>Create Order</Button>
@@ -56,7 +77,36 @@ export default async function OrdersPage() {
           </Link>
         </div>
       ) : (
-        <OrdersList orders={orders} />
+        <>
+          <OrdersList orders={orders} />
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              <Link href={`/admin/orders?page=${page - 1}`}>
+                <Button
+                  variant="outline"
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+              </Link>
+              <span className="flex items-center px-4 text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Link href={`/admin/orders?page=${page + 1}`}>
+                <Button
+                  variant="outline"
+                  disabled={page === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </Link>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

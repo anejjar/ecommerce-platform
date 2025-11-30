@@ -253,8 +253,8 @@ export function AdminSidebar() {
   }
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col gap-2">
-      <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
+      <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6 shrink-0">
         <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold cursor-pointer">
           <Package2 className="h-6 w-6" />
           {!isCollapsed && <span className="">Admin</span>}
@@ -274,7 +274,7 @@ export function AdminSidebar() {
           </div>
         )}
       </div>
-      <ScrollArea className="flex-1 px-3">
+      <ScrollArea className="flex-1 min-h-0 px-3">
         <nav className="grid items-start gap-2 text-sm font-medium py-4">
           {navigation.filter(item => {
             // SUPERADMIN-only features
@@ -388,7 +388,7 @@ export function AdminSidebar() {
           })}
         </nav>
       </ScrollArea>
-      <div className="mt-auto border-t p-4">
+      <div className="mt-auto border-t p-4 shrink-0">
 
 
         <DropdownMenu>
