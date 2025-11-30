@@ -2,6 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { locales, defaultLocale } from './i18n';
 import { prisma } from '@/lib/prisma';
+import { isFeatureEnabled } from '@/lib/features';
 
 // Create next-intl middleware
 const intlMiddleware = createMiddleware({
@@ -72,6 +73,18 @@ export async function proxy(request: NextRequest) {
     pathname.includes('.') // Skip files with extensions
   ) {
     return NextResponse.next();
+  }
+
+  // Check if storefront is enabled
+  try {
+    const storefrontEnabled = await isFeatureEnabled('storefront_enabled');
+    if (!storefrontEnabled) {
+      // Redirect to admin login if storefront is disabled
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+  } catch (error) {
+    console.error('Error checking storefront feature:', error);
+    // If there's an error, allow the request to continue (fail open)
   }
 
   // First, handle URL redirects from database

@@ -22,6 +22,8 @@ interface PageSettingsFormProps {
         seoDescription?: string;
         seoKeywords?: string;
         status: PageStatus;
+        overridesStorefrontPage?: boolean;
+        overriddenPageType?: string | null;
     };
     onChange: (field: string, value: any) => void;
 }
@@ -58,7 +60,18 @@ export const PageSettingsForm: React.FC<PageSettingsFormProps> = ({
                         placeholder="page-url-slug"
                     />
                     <p className="text-xs text-muted-foreground">
-                        URL: /landing/{pageData.slug}
+                        {pageData.overridesStorefrontPage && pageData.overriddenPageType ? (
+                            <>
+                                This page overrides the <strong>{pageData.overriddenPageType}</strong> storefront page.
+                                {pageData.status !== 'PUBLISHED' && (
+                                    <span className="block mt-1 text-amber-600 font-medium">
+                                        ⚠️ Page must be Published for override to take effect
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <>URL: /landing/{pageData.slug}</>
+                        )}
                     </p>
                 </div>
 
@@ -89,6 +102,14 @@ export const PageSettingsForm: React.FC<PageSettingsFormProps> = ({
                             <SelectItem value="ARCHIVED">Archived</SelectItem>
                         </SelectContent>
                     </Select>
+                    {pageData.overridesStorefrontPage && pageData.status !== 'PUBLISHED' && (
+                        <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                            <p className="text-xs text-amber-800">
+                                <strong>Note:</strong> Storefront page overrides only work when the page status is <strong>Published</strong>. 
+                                Change the status to Published to activate the override.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
 

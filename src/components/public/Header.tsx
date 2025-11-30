@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { CartDrawer } from '@/components/public/CartDrawer';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useTheme } from '@/hooks/useTheme';
 import { SearchAutocomplete } from '@/components/public/SearchAutocomplete';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -31,6 +32,7 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const { items: wishlistItems } = useWishlist();
   const { settings } = useSettings();
+  const { theme } = useTheme();
   const accountDropdownRef = useRef<HTMLDivElement>(null);
 
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -69,19 +71,33 @@ export function Header() {
     return pathname.startsWith(path);
   };
 
+  // Get theme styles - use theme values or fallbacks
+  const headerBg = theme?.components?.header?.backgroundColor ?? '#ffffff';
+  const headerText = theme?.components?.header?.textColor ?? '#111827';
+  const headerHeight = theme?.components?.header?.height ?? '64px';
+  const headerSticky = theme?.components?.header?.sticky ?? true;
+  const headerShadow = theme?.components?.header?.shadow ?? true;
+  const headerBorder = theme?.components?.header?.borderBottom ?? true;
+
   return (
     <>
       <header
         className={cn(
-          'bg-white sticky top-0 z-50 transition-all duration-300',
-          scrolled
-            ? 'shadow-md border-b border-amber-100/50'
-            : 'shadow-sm border-b border-transparent'
+          'sticky top-0 z-50 transition-all duration-300',
+          headerSticky && 'sticky',
+          scrolled && headerShadow ? 'shadow-md' : 'shadow-sm',
+          headerBorder && scrolled ? 'border-b' : 'border-b border-transparent'
         )}
+        style={{
+          backgroundColor: headerBg,
+          color: headerText,
+          height: headerHeight,
+          borderColor: theme?.colors?.border || 'transparent',
+        }}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8" style={{ maxWidth: theme?.layout?.containerMaxWidth || '1280px' }}>
           {/* Main Header */}
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between" style={{ height: headerHeight }}>
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
               {logo ? (

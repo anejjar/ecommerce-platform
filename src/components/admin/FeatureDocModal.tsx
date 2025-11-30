@@ -134,7 +134,7 @@ export function FeatureDocModal({ open, onOpenChange, feature }: FeatureDocModal
                     <div className="flex-1">
                       <h4 className="font-medium text-sm mb-1">{step.title}</h4>
                       <p className="text-sm text-muted-foreground">{step.description}</p>
-                      {step.location && (
+                      {step.location && !step.location.includes('[') && (
                         <Link
                           href={step.location}
                           className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1"
@@ -142,6 +142,12 @@ export function FeatureDocModal({ open, onOpenChange, feature }: FeatureDocModal
                           <ExternalLink className="h-3 w-3" />
                           {step.location}
                         </Link>
+                      )}
+                      {step.location && step.location.includes('[') && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <ExternalLink className="h-3 w-3" />
+                          {step.location.replace(/\[.*?\]/g, '...')} (dynamic route)
+                        </span>
                       )}
                     </div>
                   </div>

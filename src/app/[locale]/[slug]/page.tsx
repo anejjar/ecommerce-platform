@@ -3,18 +3,20 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { Metadata } from 'next';
+import { PageOverrideRenderer } from '@/components/public/PageOverrideRenderer';
+import { RichTextRenderer } from '@/components/admin/RichTextEditor';
 
-interface LandingPageProps {
+interface PageProps {
     params: Promise<{
         locale: string;
         slug: string;
     }>;
 }
 
-export async function generateMetadata({ params }: LandingPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params;
 
-    const page = await prisma.landingPage.findUnique({
+    const page = await prisma.page.findUnique({
         where: {
             slug,
             status: 'PUBLISHED'
@@ -48,10 +50,10 @@ export async function generateMetadata({ params }: LandingPageProps): Promise<Me
     };
 }
 
-export default async function LandingPage({ params }: LandingPageProps) {
+export default async function Page({ params }: PageProps) {
     const { slug } = await params;
 
-    const page = await prisma.landingPage.findUnique({
+    const page = await prisma.page.findUnique({
         where: {
             slug,
             status: 'PUBLISHED'
@@ -59,7 +61,15 @@ export default async function LandingPage({ params }: LandingPageProps) {
         include: {
             blocks: {
                 include: {
-                    template: true
+                    template: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                            category: true,
+                            componentCode: true,
+                        }
+                    }
                 },
                 orderBy: {
                     order: 'asc'
@@ -73,7 +83,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
     }
 
     // Increment view count
-    await prisma.landingPage.update({
+    await prisma.page.update({
         where: { id: page.id },
         data: {
             viewCount: {
@@ -82,22 +92,5 @@ export default async function LandingPage({ params }: LandingPageProps) {
         }
     });
 
-    return (
-        <div className="min-h-screen">
-            {/* Custom CSS */}
-            {page.customCss && (
-                <style dangerouslySetInnerHTML={{ __html: page.customCss }} />
-            )}
-
-            {/* Render blocks */}
-            {page.blocks.map((block) => (
-                <BlockRenderer key={block.id} block={block} landingPageId={page.id} />
-            ))}
-
-            {/* Custom JS */}
-            {page.customJs && (
-                <script dangerouslySetInnerHTML={{ __html: page.customJs }} />
-            )}
-        </div>
-    );
+    return <PageOverrideRenderer page={page} />;
 }

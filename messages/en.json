@@ -239,7 +239,12 @@
       "priceLowHigh": "Price: Low to High",
       "priceHighLow": "Price: High to Low",
       "nameAZ": "Name: A to Z"
-    }
+    },
+    "priceRange": "Price Range",
+    "availability": "Availability",
+    "inStockOnly": "In Stock Only",
+    "applyFilters": "Apply Filters",
+    "resetFilters": "Reset Filters"
   },
   "product": {
     "home": "Home",

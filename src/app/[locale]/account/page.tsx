@@ -13,6 +13,7 @@ import {
   Download,
   UserX,
   ShoppingBag,
+  FileText,
 } from 'lucide-react';
 
 interface OrderStats {
@@ -173,6 +174,22 @@ export default function AccountPage() {
                 <div>
                   <CardTitle className="text-lg">Preferences</CardTitle>
                   <p className="text-sm text-gray-600">Communication settings</p>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link href="/account/invoices">
+          <Card className="hover:border-gray-400 transition-colors cursor-pointer">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Invoices</CardTitle>
+                  <p className="text-sm text-gray-600">View and download invoices</p>
                 </div>
               </div>
             </CardHeader>

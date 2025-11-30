@@ -5,6 +5,7 @@ import { locales } from '@/i18n';
 import { StoreProvider } from '@/lib/redux/StoreProvider';
 import { SessionProvider } from '@/components/SessionProvider';
 import { SettingsProvider } from '@/contexts/SettingsContext';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import { CustomScripts } from '@/components/CustomScripts';
 import { CustomStyles } from '@/components/CustomStyles';
 import { PopupManager } from '@/components/PopupManager';
@@ -32,12 +33,14 @@ export default async function LocaleLayout({
     <SessionProvider>
       <NextIntlClientProvider locale={locale} messages={messages}>
         <SettingsProvider>
-          <StoreProvider>
-            <CustomStyles />
-            <CustomScripts />
-            {children}
-            <PopupManager />
-          </StoreProvider>
+          <ThemeProvider>
+            <StoreProvider>
+              <CustomStyles />
+              <CustomScripts />
+              {children}
+              <PopupManager />
+            </StoreProvider>
+          </ThemeProvider>
         </SettingsProvider>
       </NextIntlClientProvider>
     </SessionProvider>

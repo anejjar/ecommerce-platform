@@ -31,7 +31,8 @@ export function usePageEditor({
     initialBlocks = [], 
     initialPageData = {},
     autoSaveEnabled = true,
-    autoSaveDelay = 2000
+    autoSaveDelay = 2000,
+    templates = []
 }: UsePageEditorProps) {
     const router = useRouter();
     const [blocks, setBlocks] = useState<EditorBlock[]>(initialBlocks);
@@ -255,7 +256,7 @@ export function usePageEditor({
         }
         try {
             // Save page data first
-            const pageResponse = await fetch(`/api/admin/landing-pages/${pageId}`, {
+            const pageResponse = await fetch(`/api/admin/cms/pages/${pageId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -277,7 +278,7 @@ export function usePageEditor({
             }
 
             // Then sync blocks
-            const blocksResponse = await fetch(`/api/admin/landing-pages/${pageId}/sync-blocks`, {
+            const blocksResponse = await fetch(`/api/admin/cms/pages/${pageId}/sync-blocks`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -300,14 +301,80 @@ export function usePageEditor({
 
             // Update blocks with the server response (to get real IDs for temp blocks)
             if (data.page?.blocks) {
-                const updatedBlocks = data.page.blocks.map((block: any) => ({
-                    id: block.id,
-                    templateId: block.templateId,
-                    config: block.config,
-                    order: block.order,
-                    template: block.template,
-                }));
+                // Create a mapping from old block IDs to new block IDs
+                // This helps preserve the selected block when temp IDs are replaced
+                const idMap = new Map<string, string>();
+                
+                // First, try to match by index (most common case)
+                blocks.forEach((oldBlock, index) => {
+                    if (data.page.blocks[index]) {
+                        idMap.set(oldBlock.id, data.page.blocks[index].id);
+                    }
+                });
+                
+                // Also match by templateId + order as fallback (in case order changed)
+                blocks.forEach((oldBlock) => {
+                    if (!idMap.has(oldBlock.id)) {
+                        const matchingBlock = data.page.blocks.find(
+                            (newBlock: any) => 
+                                newBlock.templateId === oldBlock.templateId && 
+                                newBlock.order === oldBlock.order
+                        );
+                        if (matchingBlock) {
+                            idMap.set(oldBlock.id, matchingBlock.id);
+                        }
+                    }
+                });
+
+                const updatedBlocks = data.page.blocks.map((block: any) => {
+                    // Find the existing block to preserve template data if server response is incomplete
+                    const existingBlock = blocks.find(b => 
+                        b.id === block.id || 
+                        (b.templateId === block.templateId && b.order === block.order)
+                    );
+                    
+                    // Use template from server response if it has configSchema
+                    let template = block.template;
+                    if (!template || !template.configSchema) {
+                        // Fall back to existing block's template
+                        if (existingBlock?.template && existingBlock.template.configSchema) {
+                            template = existingBlock.template;
+                        } else {
+                            // Last resort: find template from templates array
+                            const templateFromArray = templates.find(t => t.id === block.templateId);
+                            if (templateFromArray) {
+                                template = templateFromArray;
+                            } else {
+                                // Use whatever we have
+                                template = block.template || existingBlock?.template;
+                            }
+                        }
+                    }
+                    
+                    return {
+                        id: block.id,
+                        templateId: block.templateId,
+                        config: block.config,
+                        order: block.order,
+                        template: template,
+                    };
+                });
                 setBlocks(updatedBlocks);
+                
+                // Preserve selected block ID if it was a temp block that got a new ID
+                if (selectedBlockId && idMap.has(selectedBlockId)) {
+                    const newId = idMap.get(selectedBlockId);
+                    if (newId) {
+                        setSelectedBlockId(newId);
+                    }
+                } else if (selectedBlockId) {
+                    // If the selected block ID doesn't exist in updated blocks, check if it still exists
+                    const blockStillExists = updatedBlocks.some(b => b.id === selectedBlockId);
+                    if (!blockStillExists) {
+                        // Block was removed or ID changed, deselect
+                        setSelectedBlockId(null);
+                    }
+                }
                 
                 // Update last saved state
                 lastSavedStateRef.current = JSON.stringify({ blocks: updatedBlocks, pageData });

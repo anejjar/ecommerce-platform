@@ -10,7 +10,7 @@ const languages = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
 ];
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ variant = 'dropdown' }: { variant?: 'dropdown' | 'inline' }) {
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
@@ -27,6 +27,27 @@ export function LanguageSwitcher() {
       router.replace(pathname, { locale: newLocale });
     });
   };
+
+  if (variant === 'inline') {
+    const inactiveLanguage = languages.find(l => l.code !== currentLocale);
+
+    if (!inactiveLanguage) return null;
+
+    return (
+      <button
+        onClick={() => switchLanguage(inactiveLanguage.code)}
+        disabled={isPending}
+        className="text-sm text-amber-200 hover:text-amber-300 transition-colors flex items-center gap-2"
+      >
+        {isPending && selectedLocale === inactiveLanguage.code ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : (
+          <span>{inactiveLanguage.flag}</span>
+        )}
+        <span>{inactiveLanguage.name}</span>
+      </button>
+    );
+  }
 
   return (
     <div className="relative group">
@@ -55,11 +76,10 @@ export function LanguageSwitcher() {
                 key={lang.code}
                 onClick={() => switchLanguage(lang.code)}
                 disabled={isPending}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 transition-colors ${
-                  isActive
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 transition-colors ${isActive
                     ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
                     : 'text-gray-700 dark:text-gray-200'
-                } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  } ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <span>{lang.flag}</span>
                 <span>{lang.name}</span>

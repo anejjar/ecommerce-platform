@@ -3,18 +3,24 @@
 import { Link } from '@/navigation';
 import { Facebook, Twitter, Instagram, Mail, Linkedin, Youtube, MapPin, Phone, Coffee } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useTheme } from '@/hooks/useTheme';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/public/LanguageSwitcher';
 
 export function Footer() {
   const t = useTranslations();
   const { settings } = useSettings();
+  const { theme } = useTheme();
 
   const storeName = settings.general_store_name || 'Organicaf';
   const storeTagline = settings.general_store_tagline || 'Torréfaction artisanale de café organique depuis 1996';
   const storeEmail = settings.general_store_email;
   const storePhone = settings.general_store_phone || '+212 7 00 49 49 30';
   const storeAddress = settings.general_store_address || 'Fès, Maroc';
+
+  // Get theme styles - use theme values or fallbacks
+  const footerBg = theme?.components?.footer?.backgroundColor ?? '#1f2937';
+  const footerText = theme?.components?.footer?.textColor ?? '#f9fafb';
 
   const socialLinks = [
     { url: settings.social_facebook_url, icon: Facebook, label: 'Facebook' },
@@ -25,8 +31,14 @@ export function Footer() {
   ].filter(link => link.url);
 
   return (
-    <footer className="bg-gradient-to-br from-amber-950 via-amber-900 to-amber-950 text-amber-100 mt-auto">
-      <div className="container mx-auto px-4 py-16">
+    <footer
+      className="mt-auto"
+      style={{
+        backgroundColor: footerBg,
+        color: footerText,
+      }}
+    >
+      <div className="container mx-auto px-4 py-16" style={{ maxWidth: theme?.layout?.containerMaxWidth || '1280px' }}>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* About */}
           <div>
@@ -191,7 +203,7 @@ export function Footer() {
                 {t('footer.terms')}
               </Link>
             </div>
-            <LanguageSwitcher />
+            <LanguageSwitcher variant="inline" />
           </div>
         </div>
       </div>

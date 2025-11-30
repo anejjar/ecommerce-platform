@@ -629,3 +629,22 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
+INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+VALUES (
+  'feat_c3RvcmVmcm9udF9lbmFibGVk',
+  'storefront_enabled',
+  'Enable Storefront',
+  'Control the visibility of your storefront. When disabled, all storefront routes redirect to admin login. When enabled, admins can create custom pages that override default storefront pages (homepage, shop, product, cart, checkout, blog).',
+  'customer_experience',
+  'PRO',
+  false,
+  NOW(),
+  NOW()
+)
+ON DUPLICATE KEY UPDATE
+  `displayName` = VALUES(`displayName`),
+  `description` = VALUES(`description`),
+  `category` = VALUES(`category`),
+  `tier` = VALUES(`tier`),
+  `updatedAt` = NOW();
+

@@ -114,17 +114,29 @@ export async function sendEmail({
   to,
   subject,
   html,
+  attachments,
+  from,
+  replyTo,
 }: {
   to: string;
   subject: string;
   html: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
+  from?: string;
+  replyTo?: string;
 }) {
   try {
     const info = await transporter.sendMail({
-      from: `"Your Store Name" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+      from: from || `"Your Store Name" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to,
       subject,
       html: emailTemplate(html),
+      attachments,
+      replyTo,
     });
 
     console.log('Email sent: %s', info.messageId);

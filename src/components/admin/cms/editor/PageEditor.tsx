@@ -11,6 +11,8 @@ interface PageEditorProps {
         title: string;
         slug: string;
         blocks: any[];
+        overridesStorefrontPage?: boolean;
+        overriddenPageType?: string | null;
     };
     templates: any[];
 }
@@ -65,7 +67,10 @@ export const PageEditor: React.FC<PageEditorProps> = ({
             seoDescription: page.seoDescription,
             seoKeywords: page.seoKeywords,
             status: page.status,
-        }
+            overridesStorefrontPage: page.overridesStorefrontPage ?? false,
+            overriddenPageType: page.overriddenPageType || null,
+        },
+        templates: templates, // Pass templates for fallback
     });
 
     return (
@@ -73,7 +78,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({
             pageTitle={pageData.title || page.title}
             pageId={page.id}
             pageSlug={pageData.slug || page.slug}
-            pageData={pageData}
+            pageData={{
+                ...pageData,
+                overridesStorefrontPage: pageData.overridesStorefrontPage ?? page.overridesStorefrontPage ?? false,
+                overriddenPageType: pageData.overriddenPageType ?? page.overriddenPageType ?? null,
+            }}
             blocks={blocks}
             templates={templates}
             selectedBlockId={selectedBlockId}

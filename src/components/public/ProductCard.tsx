@@ -11,7 +11,9 @@ import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useFlashSale } from '@/hooks/useFlashSale';
+import { useTheme } from '@/hooks/useTheme';
 import { FlashSaleBadge } from '@/components/public/FlashSaleBadge';
+import { cn } from '@/lib/utils';
 
 interface Product {
     id: string;
@@ -33,6 +35,7 @@ export function ProductCard({ product }: ProductCardProps) {
     const dispatch = useAppDispatch();
     const t = useTranslations();
     const { format } = useCurrency();
+    const { theme } = useTheme();
     const { flashSale, product: flashSaleProduct, loading: flashSaleLoading } = useFlashSale(product.id);
 
     // Use flash sale price if available, otherwise use regular price
@@ -60,10 +63,40 @@ export function ProductCard({ product }: ProductCardProps) {
             ? Math.round(((Number(product.comparePrice) - Number(product.price)) / Number(product.comparePrice)) * 100)
             : 0);
 
+    // Get theme styles - use theme values or fallbacks
+    const cardBg = theme?.colors?.surface ?? '#ffffff';
+    const cardBorder = theme?.colors?.border ?? '#e5e7eb';
+    const cardRadius = theme?.components?.productCard?.borderRadius ?? theme?.borderRadius?.lg ?? '0.5rem';
+    const cardPadding = theme?.components?.productCard?.padding ?? '0';
+    const imageAspectRatio = theme?.components?.productCard?.imageAspectRatio ?? '4/5';
+    const hoverEffect = theme?.components?.productCard?.hoverEffect ?? 'lift';
+
     return (
-        <div className="group relative bg-white rounded-xl md:rounded-2xl overflow-hidden border border-amber-100 hover:border-amber-300 hover:shadow-xl md:hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
+        <div
+            className={cn(
+                'group relative overflow-hidden flex flex-col h-full transition-all duration-300',
+                hoverEffect === 'scale' && 'hover:scale-105',
+                hoverEffect === 'lift' && 'hover:-translate-y-1',
+                hoverEffect === 'glow' && 'hover:shadow-2xl',
+            )}
+            style={{
+                backgroundColor: cardBg,
+                borderColor: cardBorder,
+                borderRadius: cardRadius,
+                padding: cardPadding,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+            }}
+        >
             {/* Image Container */}
-            <Link href={`/product/${product.slug}`} className="relative aspect-[4/5] bg-amber-50 overflow-hidden block touch-manipulation">
+            <Link
+                href={`/product/${product.slug}`}
+                className="relative overflow-hidden block touch-manipulation"
+                style={{
+                    aspectRatio: imageAspectRatio,
+                    backgroundColor: theme?.colors?.background || '#f9fafb',
+                }}
+            >
                 {product.images[0] ? (
                     <Image
                         src={product.images[0].url}
@@ -110,7 +143,17 @@ export function ProductCard({ product }: ProductCardProps) {
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 hidden md:block bg-gradient-to-t from-black/60 to-transparent">
                     <Button
                         onClick={handleAddToCart}
-                        className="w-full bg-amber-800 text-white hover:bg-amber-900 shadow-xl border-none font-semibold"
+                        className="w-full shadow-xl border-none font-semibold"
+                        style={{
+                            backgroundColor: theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000',
+                            color: theme?.components?.buttons?.textColor || '#ffffff',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.hoverColor || theme?.colors?.accent || '#111827';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000';
+                        }}
                         disabled={product.stock === 0}
                     >
                         {product.stock === 0 ? t('product.outOfStock') : (
@@ -126,13 +169,19 @@ export function ProductCard({ product }: ProductCardProps) {
             {/* Product Info */}
             <div className="p-3 md:p-4 flex flex-col flex-grow space-y-2">
                 {product.category && (
-                    <p className="text-xs text-amber-700 mb-0.5 md:mb-1 font-semibold uppercase tracking-wide">
+                    <p
+                        className="text-xs mb-0.5 md:mb-1 font-semibold uppercase tracking-wide"
+                        style={{ color: theme?.colors?.text?.secondary || '#6b7280' }}
+                    >
                         {product.category.name}
                     </p>
                 )}
 
                 <Link href={`/product/${product.slug}`} className="block -mb-1">
-                    <h3 className="font-semibold text-sm md:text-base text-amber-900 leading-tight group-hover:text-amber-700 transition-colors line-clamp-2 min-h-[2.5rem] md:min-h-[3rem]">
+                    <h3
+                        className="font-semibold text-sm md:text-base leading-tight transition-colors line-clamp-2 min-h-[2.5rem] md:min-h-[3rem]"
+                        style={{ color: theme?.colors?.text?.primary || '#111827' }}
+                    >
                         {product.name}
                     </h3>
                 </Link>
@@ -142,22 +191,34 @@ export function ProductCard({ product }: ProductCardProps) {
                         {hasFlashSale ? (
                             <>
                                 {originalPrice > displayPrice && (
-                                    <span className="text-xs text-gray-400 line-through mb-0.5">
+                                    <span
+                                        className="text-xs line-through mb-0.5"
+                                        style={{ color: theme?.colors?.text?.muted || '#9ca3af' }}
+                                    >
                                         {format(originalPrice)}
                                     </span>
                                 )}
-                                <span className="text-lg md:text-xl font-bold text-amber-900">
+                                <span
+                                    className="text-lg md:text-xl font-bold"
+                                    style={{ color: theme?.colors?.primary || '#111827' }}
+                                >
                                     {format(displayPrice)}
                                 </span>
                             </>
                         ) : (
                             <>
                                 {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
-                                    <span className="text-xs text-gray-400 line-through mb-0.5">
+                                    <span
+                                        className="text-xs line-through mb-0.5"
+                                        style={{ color: theme?.colors?.text?.muted || '#9ca3af' }}
+                                    >
                                         {format(Number(product.comparePrice))}
                                     </span>
                                 )}
-                                <span className="text-lg md:text-xl font-bold text-amber-900">
+                                <span
+                                    className="text-lg md:text-xl font-bold"
+                                    style={{ color: theme?.colors?.primary || '#111827' }}
+                                >
                                     {format(Number(product.price))}
                                 </span>
                             </>
@@ -168,7 +229,18 @@ export function ProductCard({ product }: ProductCardProps) {
                     <button
                         onClick={handleAddToCart}
                         disabled={product.stock === 0}
-                        className="md:hidden bg-amber-100 p-3 rounded-full text-amber-900 hover:bg-amber-800 hover:text-white active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+                        className="md:hidden p-3 rounded-full active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+                        style={{
+                            backgroundColor: theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000',
+                            color: theme?.components?.buttons?.textColor || '#ffffff',
+                            borderRadius: theme?.components?.buttons?.borderRadius || theme?.borderRadius?.full || '9999px',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.hoverColor || theme?.colors?.accent || '#111827';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000';
+                        }}
                         aria-label={product.stock === 0 ? t('product.outOfStock') : t('product.addToCart')}
                     >
                         <ShoppingCart className="w-5 h-5" />

@@ -242,7 +242,12 @@
       "priceLowHigh": "Prix : Croissant",
       "priceHighLow": "Prix : Décroissant",
       "nameAZ": "Nom : A à Z"
-    }
+    },
+    "priceRange": "Gamme de prix",
+    "availability": "Disponibilité",
+    "inStockOnly": "En stock uniquement",
+    "applyFilters": "Appliquer les filtres",
+    "resetFilters": "Réinitialiser les filtres"
   },
   "product": {
     "home": "Accueil",

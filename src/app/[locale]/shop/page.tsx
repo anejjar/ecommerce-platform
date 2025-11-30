@@ -3,7 +3,9 @@ import { Metadata } from 'next';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { ShopContent } from '@/components/public/ShopContent';
+import { PageOverrideRenderer } from '@/components/public/PageOverrideRenderer';
 import { getProducts, getCategories, getCategoryBySlug, countProducts } from '@/lib/translations';
+import { getPageOverride } from '@/lib/page-overrides';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -29,6 +31,12 @@ export default async function ShopPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { locale } = await params;
+
+  // Check for page override
+  const overridePage = await getPageOverride('SHOP');
+  if (overridePage) {
+    return <PageOverrideRenderer page={overridePage} />;
+  }
   const urlParams = await searchParams;
   
   const search = typeof urlParams.search === 'string' ? urlParams.search : '';

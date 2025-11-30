@@ -1,4 +1,5 @@
 import React from 'react';
+import { NextIntlClientProvider } from 'next-intl';
 import { Card } from '@/components/ui/card';
 import { HeroBackgroundImage } from '@/components/landing-page/blocks/HeroBackgroundImage';
 import { HeroVideoBackground } from '@/components/landing-page/blocks/HeroVideoBackground';
@@ -32,6 +33,20 @@ import { Divider } from '@/components/landing-page/blocks/Divider';
 import { Spacer } from '@/components/landing-page/blocks/Spacer';
 import { VideoPlayer } from '@/components/landing-page/blocks/VideoPlayer';
 import { TextContent } from '@/components/landing-page/blocks/TextContent';
+import { ProductGrid } from '@/components/landing-page/blocks/ProductGrid';
+import { ProductCardBlock } from '@/components/landing-page/blocks/ProductCardBlock';
+import { ProductDescription } from '@/components/landing-page/blocks/ProductDescription';
+import { AddToCartButton } from '@/components/landing-page/blocks/AddToCartButton';
+import { CartSummary } from '@/components/landing-page/blocks/CartSummary';
+import { ProductImageGallery } from '@/components/landing-page/blocks/ProductImageGallery';
+import { ProductReviews } from '@/components/landing-page/blocks/ProductReviews';
+import { RelatedProducts } from '@/components/landing-page/blocks/RelatedProducts';
+import { ProductTabs } from '@/components/landing-page/blocks/ProductTabs';
+import { BlogGrid } from '@/components/landing-page/blocks/BlogGrid';
+import { BlogPostCard } from '@/components/landing-page/blocks/BlogPostCard';
+import { BlogPostContent } from '@/components/landing-page/blocks/BlogPostContent';
+import { BlogCategories } from '@/components/landing-page/blocks/BlogCategories';
+import { RecentPostsWidget } from '@/components/landing-page/blocks/RecentPostsWidget';
 
 interface BlockPreviewProps {
     template: {
@@ -49,6 +64,10 @@ export const BlockPreview: React.FC<BlockPreviewProps> = ({
 }) => {
     // Debug logging to check template data
     // console.log('BlockPreview template:', template);
+    // console.log('BlockPreview config:', config);
+
+    // Use config as a key to force re-render when config changes
+    const configKey = JSON.stringify(config);
 
     const renderBlockContent = () => {
         // If we have a slug, try to match it to a component
@@ -121,6 +140,38 @@ export const BlockPreview: React.FC<BlockPreviewProps> = ({
                     return <VideoPlayer config={config} />;
                 case 'text-content':
                     return <TextContent config={config} />;
+                
+                // Product blocks
+                case 'product-grid':
+                    return <ProductGrid config={config} />;
+                case 'product-card':
+                    return <ProductCardBlock config={config} />;
+                case 'product-description':
+                    return <ProductDescription config={config} />;
+                case 'add-to-cart-button':
+                    return <AddToCartButton config={config} />;
+                case 'cart-summary':
+                    return <CartSummary config={config} />;
+                case 'product-image-gallery':
+                    return <ProductImageGallery config={config} />;
+                case 'product-reviews':
+                    return <ProductReviews config={config} />;
+                case 'related-products':
+                    return <RelatedProducts config={config} />;
+                case 'product-tabs':
+                    return <ProductTabs config={config} />;
+                
+                // Blog blocks
+                case 'blog-grid':
+                    return <BlogGrid config={config} />;
+                case 'blog-post-card':
+                    return <BlogPostCard config={config} />;
+                case 'blog-post-content':
+                    return <BlogPostContent config={config} />;
+                case 'blog-categories':
+                    return <BlogCategories config={config} />;
+                case 'recent-posts-widget':
+                    return <RecentPostsWidget config={config} />;
             }
         }
 
@@ -137,13 +188,68 @@ export const BlockPreview: React.FC<BlockPreviewProps> = ({
         );
     };
 
+    // Minimal messages for preview context
+    // These provide fallback translations for components that use useTranslations()
+    const minimalMessages = {
+        product: {
+            addedToCart: 'Added to cart',
+            addToCart: 'Add to Cart',
+            outOfStock: 'Out of Stock',
+            featured: 'Featured',
+        },
+        cart: {
+            emptyCart: 'Your cart is empty',
+            addProducts: 'Add some products to your cart',
+            continueShopping: 'Continue Shopping',
+            item: 'item',
+            items: 'items',
+            subtotal: 'Subtotal',
+            total: 'Total',
+            proceedToCheckout: 'Proceed to Checkout',
+            remove: 'Remove',
+            each: 'each',
+            orderSummary: 'Order Summary',
+            tax: 'Tax',
+            shipping: 'Shipping',
+            free: 'Free',
+            freeShippingProgress: 'Add {amount} more for free shipping',
+            trustBadges: {
+                secureCheckout: 'Secure Checkout',
+            },
+            freeReturns: 'Free Returns',
+            shippingTime: 'Shipping: 3-5 Business Days',
+        },
+        wishlist: {
+            title: 'My Wishlist',
+            empty: 'Your wishlist is empty',
+            emptyDesc: 'Save your favorite products to your wishlist and shop them later!',
+            startShopping: 'Start Shopping',
+            removed: 'Removed from wishlist',
+            removeFailed: 'Failed to remove from wishlist',
+            itemCount: '{count, plural, =0 {No items} one {1 item} other {# items}} saved',
+            signInRequired: 'Please sign in to use the wishlist',
+            added: 'Added to wishlist',
+            addFailed: 'Failed to add to wishlist',
+            saved: 'Saved',
+            save: 'Save',
+            removeFromWishlist: 'Remove from wishlist',
+            addToWishlist: 'Add to wishlist',
+        },
+        common: {
+            error: 'An error occurred',
+            loading: 'Loading...',
+        },
+    };
+
     return (
-        <div className="w-full">
-            {/* We wrap the preview in a div that prevents interaction (links, buttons) 
-                so they don't interfere with the editor UI */}
-            <div className="pointer-events-none select-none">
-                {renderBlockContent()}
+        <NextIntlClientProvider locale="en" messages={minimalMessages}>
+            <div className="w-full" key={configKey}>
+                {/* We wrap the preview in a div that prevents interaction (links, buttons) 
+                    so they don't interfere with the editor UI */}
+                <div className="pointer-events-none select-none">
+                    {renderBlockContent()}
+                </div>
             </div>
-        </div>
+        </NextIntlClientProvider>
     );
 };

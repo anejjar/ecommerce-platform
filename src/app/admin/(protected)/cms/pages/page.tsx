@@ -22,16 +22,31 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Copy, Globe, XCircle, Blocks, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreVertical } from 'lucide-react';
 
 interface Page {
     id: string;
     title: string;
     slug: string;
-    status: 'DRAFT' | 'PUBLISHED';
+    status: 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED';
+    useBlockEditor: boolean;
     updatedAt: string;
+    author?: {
+        id: string;
+        name: string | null;
+        email: string;
+    };
+    viewCount?: number;
+    blockCount?: number;
 }
 
 interface Pagination {
@@ -200,8 +215,73 @@ export default function PagesPage() {
                 return <Badge className="bg-green-500">Published</Badge>;
             case 'DRAFT':
                 return <Badge variant="secondary">Draft</Badge>;
+            case 'SCHEDULED':
+                return <Badge className="bg-blue-500">Scheduled</Badge>;
+            case 'ARCHIVED':
+                return <Badge className="bg-yellow-500">Archived</Badge>;
             default:
                 return <Badge>{status}</Badge>;
+        }
+    };
+
+    const handlePublish = async (id: string) => {
+        try {
+            const response = await fetch(`/api/admin/cms/pages/${id}/publish`, {
+                method: 'POST',
+            });
+            if (response.ok) {
+                toast.success('Page published');
+                fetchPages();
+            } else {
+                toast.error('Failed to publish page');
+            }
+        } catch (error) {
+            console.error('Error publishing page:', error);
+            toast.error('An error occurred');
+        }
+    };
+
+    const handleUnpublish = async (id: string) => {
+        try {
+            const response = await fetch(`/api/admin/cms/pages/${id}/unpublish`, {
+                method: 'POST',
+            });
+            if (response.ok) {
+                toast.success('Page unpublished');
+                fetchPages();
+            } else {
+                toast.error('Failed to unpublish page');
+            }
+        } catch (error) {
+            console.error('Error unpublishing page:', error);
+            toast.error('An error occurred');
+        }
+    };
+
+    const handleDuplicate = async (id: string, title: string) => {
+        const newTitle = prompt('Enter title for duplicated page:', `${title} (Copy)`);
+        if (!newTitle) return;
+
+        const newSlug = prompt('Enter slug for duplicated page:', `${title.toLowerCase().replace(/\s+/g, '-')}-copy`);
+        if (!newSlug) return;
+
+        try {
+            const response = await fetch(`/api/admin/cms/pages/${id}/duplicate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle, slug: newSlug }),
+            });
+
+            if (response.ok) {
+                toast.success('Page duplicated');
+                fetchPages();
+            } else {
+                const error = await response.json();
+                toast.error(error.error || 'Failed to duplicate page');
+            }
+        } catch (error) {
+            console.error('Error duplicating page:', error);
+            toast.error('An error occurred');
         }
     };
 
@@ -230,6 +310,8 @@ export default function PagesPage() {
                         <SelectContent>
                             <SelectItem value="status_draft">Set as Draft</SelectItem>
                             <SelectItem value="status_published">Set as Published</SelectItem>
+                            <SelectItem value="status_scheduled">Set as Scheduled</SelectItem>
+                            <SelectItem value="status_archived">Set as Archived</SelectItem>
                             <SelectItem value="delete">Delete</SelectItem>
                         </SelectContent>
                     </Select>
@@ -263,6 +345,8 @@ export default function PagesPage() {
                         <SelectItem value="ALL">All Statuses</SelectItem>
                         <SelectItem value="PUBLISHED">Published</SelectItem>
                         <SelectItem value="DRAFT">Draft</SelectItem>
+                        <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+                        <SelectItem value="ARCHIVED">Archived</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -271,8 +355,17 @@ export default function PagesPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-[50px]">
+                                <Checkbox
+                                    checked={selectedPages.length === pages.length && pages.length > 0}
+                                    onCheckedChange={toggleAllPages}
+                                />
+                            </TableHead>
                             <TableHead>Title</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>Author</TableHead>
+                            <TableHead>Views</TableHead>
                             <TableHead>Last Updated</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -280,50 +373,110 @@ export default function PagesPage() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-8">
+                                <TableCell colSpan={8} className="text-center py-8">
                                     Loading...
                                 </TableCell>
                             </TableRow>
                         ) : pages.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                                     No pages found
                                 </TableCell>
                             </TableRow>
                         ) : (
                             pages.map((page) => (
                                 <TableRow key={page.id}>
+                                    <TableCell>
+                                        <Checkbox
+                                            checked={selectedPages.includes(page.id)}
+                                            onCheckedChange={() => togglePage(page.id)}
+                                        />
+                                    </TableCell>
                                     <TableCell className="font-medium">
                                         {page.title}
                                         <div className="text-xs text-muted-foreground truncate max-w-[300px]">
                                             /{page.slug}
                                         </div>
                                     </TableCell>
+                                    <TableCell>
+                                        {page.useBlockEditor ? (
+                                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                                                <Blocks className="w-3 h-3" />
+                                                Blocks
+                                                {page.blockCount !== undefined && (
+                                                    <span className="ml-1">({page.blockCount})</span>
+                                                )}
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                                                <FileText className="w-3 h-3" />
+                                                Rich Text
+                                            </Badge>
+                                        )}
+                                    </TableCell>
                                     <TableCell>{getStatusBadge(page.status)}</TableCell>
+                                    <TableCell>
+                                        {page.author ? (
+                                            <div className="text-sm">
+                                                <div>{page.author.name || 'Unknown'}</div>
+                                                <div className="text-xs text-muted-foreground">{page.author.email}</div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted-foreground text-sm">—</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="text-sm">{page.viewCount || 0}</span>
+                                    </TableCell>
                                     <TableCell>
                                         {format(new Date(page.updatedAt), 'MMM d, yyyy')}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            <Link href={`/${page.slug}`} target="_blank">
-                                                <Button variant="ghost" size="icon" title="View Live">
-                                                    <Eye className="w-4 h-4" />
-                                                </Button>
-                                            </Link>
+                                            {page.status === 'PUBLISHED' && (
+                                                <Link href={`/${page.slug}`} target="_blank">
+                                                    <Button variant="ghost" size="icon" title="View Live">
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
+                                                </Link>
+                                            )}
                                             <Link href={`/admin/cms/pages/${page.id}`}>
                                                 <Button variant="ghost" size="icon" title="Edit">
                                                     <Edit className="w-4 h-4" />
                                                 </Button>
                                             </Link>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                onClick={() => handleDelete(page.id)}
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreVertical className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    {page.status !== 'PUBLISHED' && (
+                                                        <DropdownMenuItem onClick={() => handlePublish(page.id)}>
+                                                            <Globe className="w-4 h-4 mr-2" />
+                                                            Publish
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    {page.status === 'PUBLISHED' && (
+                                                        <DropdownMenuItem onClick={() => handleUnpublish(page.id)}>
+                                                            <XCircle className="w-4 h-4 mr-2" />
+                                                            Unpublish
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem onClick={() => handleDuplicate(page.id, page.title)}>
+                                                        <Copy className="w-4 h-4 mr-2" />
+                                                        Duplicate
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-red-600"
+                                                        onClick={() => handleDelete(page.id)}
+                                                    >
+                                                        <Trash2 className="w-4 h-4 mr-2" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </TableCell>
                                 </TableRow>

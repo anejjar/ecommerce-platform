@@ -1,6 +1,16 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrencyWithSymbol } from './formatting';
+import { Invoice, InvoiceSettings, InvoiceTemplate } from '@/types/invoice';
+
+// QR Code generation (optional - requires qrcode package)
+let QRCode: any = null;
+try {
+    QRCode = require('qrcode');
+} catch (error) {
+    // QR code library not installed - feature will be disabled
+    console.warn('QR code library not found. Install with: npm install qrcode @types/qrcode');
+}
 
 // Define types based on the Prisma schema and what we expect to be passed
 interface Address {
@@ -194,4 +204,336 @@ export const generatePackingSlip = async (order: Order) => {
     doc.text('Please check contents against this slip.', 105, 280, { align: 'center' });
 
     doc.save(`PackingSlip-${order.orderNumber}.pdf`);
+};
+
+// Enhanced invoice generation for premium invoice system
+export const generateInvoicePDF = async (
+    invoice: Invoice,
+    template?: InvoiceTemplate | null,
+    settings?: InvoiceSettings | null
+): Promise<Buffer> => {
+    const doc = new jsPDF();
+    
+    // Get settings defaults
+    const primaryColor = settings?.primaryColor || '#000000';
+    const secondaryColor = settings?.secondaryColor || '#666666';
+    const accentColor = settings?.accentColor || '#3182ce';
+    const fontFamily = settings?.fontFamily || 'Helvetica';
+    const fontSize = settings?.fontSize || 10;
+    const currencySymbol = invoice.currencySymbol || settings?.currencySymbol || '$';
+    
+    // Parse colors
+    const parseColor = (color: string): [number, number, number] => {
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return [r, g, b];
+    };
+    
+    const primaryRGB = parseColor(primaryColor);
+    const accentRGB = parseColor(accentColor);
+    
+    // Set font
+    doc.setFont(fontFamily);
+    doc.setFontSize(fontSize);
+    
+    let yPos = 20;
+    
+    // Header with logo
+    if (settings?.logoUrl) {
+        try {
+            // Note: jsPDF doesn't directly support images from URLs in server-side
+            // In production, you'd need to fetch and convert the image
+            // For now, we'll just add space for the logo
+            yPos += 20;
+        } catch (error) {
+            console.error('Error loading logo:', error);
+        }
+    }
+    
+    // Company information
+    if (settings?.companyName) {
+        doc.setFontSize(18);
+        doc.setTextColor(...primaryRGB);
+        doc.text(settings.companyName, 20, yPos);
+        yPos += 8;
+    }
+    
+    if (settings?.companyAddress) {
+        doc.setFontSize(fontSize);
+        doc.setTextColor(0, 0, 0);
+        const addressLines = settings.companyAddress.split('\n');
+        addressLines.forEach((line: string) => {
+            if (line.trim()) {
+                doc.text(line, 20, yPos);
+                yPos += 5;
+            }
+        });
+    }
+    
+    if (settings?.companyPhone || settings?.companyEmail || settings?.companyWebsite) {
+        yPos += 2;
+        if (settings.companyPhone) {
+            doc.text(`Phone: ${settings.companyPhone}`, 20, yPos);
+            yPos += 5;
+        }
+        if (settings.companyEmail) {
+            doc.text(`Email: ${settings.companyEmail}`, 20, yPos);
+            yPos += 5;
+        }
+        if (settings.companyWebsite) {
+            doc.text(`Website: ${settings.companyWebsite}`, 20, yPos);
+            yPos += 5;
+        }
+    }
+    
+    // Invoice title and number
+    yPos = 20;
+    doc.setFontSize(24);
+    doc.setTextColor(...primaryRGB);
+    doc.text('INVOICE', 150, yPos, { align: 'right' });
+    
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Invoice #: ${invoice.invoiceNumber}`, 150, yPos, { align: 'right' });
+    
+    yPos += 6;
+    doc.text(`Date: ${formatDate(invoice.invoiceDate)}`, 150, yPos, { align: 'right' });
+    
+    if (invoice.dueDate) {
+        yPos += 6;
+        doc.text(`Due Date: ${formatDate(invoice.dueDate)}`, 150, yPos, { align: 'right' });
+    }
+    
+    yPos += 6;
+    doc.text(`Status: ${invoice.status}`, 150, yPos, { align: 'right' });
+    
+    // Customer information
+    yPos = Math.max(yPos + 10, 80);
+    doc.setFontSize(12);
+    doc.setTextColor(...primaryRGB);
+    doc.text('Bill To:', 20, yPos);
+    
+    yPos += 7;
+    doc.setFontSize(fontSize);
+    doc.setTextColor(0, 0, 0);
+    
+    if (invoice.customerName) {
+        doc.text(invoice.customerName, 20, yPos);
+        yPos += 5;
+    }
+    
+    if (invoice.customerCompany) {
+        doc.text(invoice.customerCompany, 20, yPos);
+        yPos += 5;
+    }
+    
+    if (invoice.customerEmail) {
+        doc.text(invoice.customerEmail, 20, yPos);
+        yPos += 5;
+    }
+    
+    if (invoice.billingAddress) {
+        const address = typeof invoice.billingAddress === 'string' 
+            ? JSON.parse(invoice.billingAddress) 
+            : invoice.billingAddress;
+        
+        if (address.address1) {
+            doc.text(address.address1, 20, yPos);
+            yPos += 5;
+        }
+        if (address.address2) {
+            doc.text(address.address2, 20, yPos);
+            yPos += 5;
+        }
+        if (address.city || address.state || address.postalCode) {
+            const cityState = [
+                address.city,
+                address.state,
+                address.postalCode
+            ].filter(Boolean).join(', ');
+            doc.text(cityState, 20, yPos);
+            yPos += 5;
+        }
+        if (address.country) {
+            doc.text(address.country, 20, yPos);
+            yPos += 5;
+        }
+        if (address.phone) {
+            doc.text(`Phone: ${address.phone}`, 20, yPos);
+            yPos += 5;
+        }
+    }
+    
+    // Items table
+    const startY = yPos + 10;
+    const tableData = invoice.items?.map(item => [
+        item.description || 'Item',
+        item.sku || '-',
+        item.quantity.toString(),
+        formatCurrencyWithSymbol(item.unitPrice, currencySymbol),
+        formatCurrencyWithSymbol(item.total, currencySymbol)
+    ]) || [];
+    
+    autoTable(doc, {
+        startY,
+        head: [['Description', 'SKU', 'Qty', 'Price', 'Total']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { 
+            fillColor: primaryRGB,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+        },
+        styles: {
+            fontSize: fontSize,
+            font: fontFamily,
+        },
+        alternateRowStyles: {
+            fillColor: [245, 245, 245]
+        }
+    });
+    
+    // Totals
+    const finalY = (doc as any).lastAutoTable.finalY || startY;
+    let totalsY = finalY + 10;
+    
+    doc.setFontSize(fontSize);
+    doc.setTextColor(0, 0, 0);
+    
+    // Subtotal
+    doc.text('Subtotal:', 150, totalsY, { align: 'right' });
+    doc.text(formatCurrencyWithSymbol(invoice.subtotal, currencySymbol), 190, totalsY, { align: 'right' });
+    totalsY += 6;
+    
+    // Tax
+    if (invoice.tax > 0) {
+        const taxLabel = settings?.taxLabel || 'Tax';
+        doc.text(`${taxLabel}:`, 150, totalsY, { align: 'right' });
+        doc.text(formatCurrencyWithSymbol(invoice.tax, currencySymbol), 190, totalsY, { align: 'right' });
+        totalsY += 6;
+    }
+    
+    // Shipping
+    if (invoice.shipping > 0) {
+        doc.text('Shipping:', 150, totalsY, { align: 'right' });
+        doc.text(formatCurrencyWithSymbol(invoice.shipping, currencySymbol), 190, totalsY, { align: 'right' });
+        totalsY += 6;
+    }
+    
+    // Discount
+    if (invoice.discount > 0) {
+        doc.text('Discount:', 150, totalsY, { align: 'right' });
+        doc.text(`-${formatCurrencyWithSymbol(invoice.discount, currencySymbol)}`, 190, totalsY, { align: 'right' });
+        totalsY += 6;
+    }
+    
+    // Total
+    totalsY += 3;
+    doc.setFontSize(14);
+    doc.setTextColor(...primaryRGB);
+    doc.setFont(fontFamily, 'bold');
+    doc.text('Total:', 150, totalsY, { align: 'right' });
+    doc.text(formatCurrencyWithSymbol(invoice.total, currencySymbol), 190, totalsY, { align: 'right' });
+    
+    // Payment information
+    if (invoice.amountPaid > 0 || invoice.balanceDue > 0) {
+        totalsY += 8;
+        doc.setFontSize(fontSize);
+        doc.setFont(fontFamily, 'normal');
+        doc.setTextColor(0, 0, 0);
+        
+        if (invoice.amountPaid > 0) {
+            doc.text('Amount Paid:', 150, totalsY, { align: 'right' });
+            doc.text(formatCurrencyWithSymbol(invoice.amountPaid, currencySymbol), 190, totalsY, { align: 'right' });
+            totalsY += 6;
+        }
+        
+        if (invoice.balanceDue > 0) {
+            doc.setFont(fontFamily, 'bold');
+            doc.setTextColor(...accentRGB);
+            doc.text('Balance Due:', 150, totalsY, { align: 'right' });
+            doc.text(formatCurrencyWithSymbol(invoice.balanceDue, currencySymbol), 190, totalsY, { align: 'right' });
+        }
+    }
+    
+    // QR Code (if enabled)
+    if (settings?.showQRCode && QRCode) {
+        try {
+            totalsY += 10;
+            const qrData = invoice.paymentLink || JSON.stringify({
+                type: 'invoice',
+                invoiceNumber: invoice.invoiceNumber,
+                amount: invoice.total,
+                currency: currencySymbol,
+            });
+            
+            const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
+                errorCorrectionLevel: 'M',
+                type: 'image/png',
+                width: 60,
+                margin: 1,
+            });
+            
+            // Convert data URL to base64 and add to PDF
+            const base64Data = qrCodeDataUrl.split(',')[1];
+            doc.addImage(base64Data, 'PNG', 20, totalsY, 30, 30);
+            
+            // Add label
+            doc.setFontSize(fontSize - 2);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Scan to pay', 55, totalsY + 20, { align: 'left' });
+            
+            totalsY += 35;
+        } catch (error) {
+            console.error('Error generating QR code:', error);
+            // Continue without QR code if generation fails
+        }
+    }
+    
+    // Terms and conditions
+    if (invoice.termsAndConditions || settings?.defaultTerms) {
+        totalsY += 15;
+        doc.setFontSize(fontSize - 1);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(fontFamily, 'normal');
+        
+        const terms = invoice.termsAndConditions || settings?.defaultTerms || '';
+        const termsLines = doc.splitTextToSize(terms, 170);
+        doc.text('Terms & Conditions:', 20, totalsY);
+        totalsY += 6;
+        doc.text(termsLines, 20, totalsY);
+        totalsY += termsLines.length * 5;
+    }
+    
+    // Notes
+    if (invoice.notes) {
+        totalsY += 5;
+        doc.setFontSize(fontSize - 1);
+        const notesLines = doc.splitTextToSize(invoice.notes, 170);
+        doc.text('Notes:', 20, totalsY);
+        totalsY += 6;
+        doc.text(notesLines, 20, totalsY);
+    }
+    
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    const footerY = pageHeight - 20;
+    
+    if (settings?.footerText && settings?.showFooter) {
+        doc.setFontSize(fontSize - 2);
+        doc.setTextColor(100, 100, 100);
+        const footerLines = doc.splitTextToSize(settings.footerText, 170);
+        doc.text(footerLines, 105, footerY, { align: 'center' });
+    } else {
+        doc.setFontSize(fontSize - 2);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Thank you for your business!', 105, footerY, { align: 'center' });
+    }
+    
+    // Convert to buffer
+    const pdfOutput = doc.output('arraybuffer');
+    return Buffer.from(pdfOutput);
 };

@@ -17,7 +17,15 @@ export async function GET(
             include: {
                 blocks: {
                     include: {
-                        template: true
+                        template: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                category: true,
+                                componentCode: true,
+                            }
+                        }
                     },
                     orderBy: {
                         order: 'asc'

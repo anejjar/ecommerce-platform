@@ -1,9 +1,11 @@
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { HomePageContent } from '@/components/public/HomePageContent';
+import { PageOverrideRenderer } from '@/components/public/PageOverrideRenderer';
 import { prisma } from '@/lib/prisma';
 import { generateSEOMetadata } from '@/lib/metadata';
 import { getProducts } from '@/lib/translations';
+import { getPageOverride } from '@/lib/page-overrides';
 
 export async function generateMetadata() {
   return await generateSEOMetadata();
@@ -15,6 +17,12 @@ export default async function HomePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+
+  // Check for page override
+  const overridePage = await getPageOverride('HOME');
+  if (overridePage) {
+    return <PageOverrideRenderer page={overridePage} />;
+  }
 
   // Fetch store settings for hero section
   const storeSettings = await prisma.storeSetting.findMany({

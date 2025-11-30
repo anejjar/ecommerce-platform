@@ -37,12 +37,30 @@ export async function GET(request: Request) {
                 skip,
                 take: limit,
                 orderBy: { updatedAt: 'desc' },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
+                    _count: {
+                        select: { blocks: true },
+                    },
+                },
             }),
             prisma.page.count({ where }),
         ]);
 
+        // Transform response to include blockCount
+        const transformedPages = pages.map(({ _count, ...page }) => ({
+            ...page,
+            blockCount: _count.blocks,
+        }));
+
         return NextResponse.json({
-            pages,
+            pages: transformedPages,
             pagination: {
                 total,
                 pages: Math.ceil(total / limit),
@@ -64,10 +82,61 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { title, slug, content, status, useStorefrontLayout, seoTitle, seoDescription } = body;
+        const { 
+            title, 
+            slug, 
+            content, 
+            description,
+            status, 
+            useStorefrontLayout, 
+            useBlockEditor,
+            seoTitle, 
+            seoDescription,
+            seoKeywords,
+            ogImage,
+            ogTitle,
+            ogDescription,
+            publishedAt,
+            scheduledPublishAt,
+            layoutConfig,
+            customCss,
+            customJs,
+            templateId,
+            authorId,
+            conversionGoal,
+            overridesStorefrontPage, 
+            overriddenPageType 
+        } = body;
 
-        if (!title || !slug || !content) {
-            return new NextResponse('Missing required fields', { status: 400 });
+        if (!title || !slug) {
+            return new NextResponse('Missing required fields: title and slug', { status: 400 });
+        }
+
+        // Content is optional if useBlockEditor is true
+        if (!useBlockEditor && !content) {
+            return new NextResponse('Content is required when not using block editor', { status: 400 });
+        }
+
+        // Validate override fields
+        if (overridesStorefrontPage && !overriddenPageType) {
+            return new NextResponse('Page type is required when overriding storefront page', { status: 400 });
+        }
+
+        // Validate slug matches override type
+        if (overridesStorefrontPage && overriddenPageType) {
+            const slugMap: Record<string, string> = {
+                'HOME': '_home', // Special slug for homepage override
+                'SHOP': 'shop',
+                'PRODUCT': 'product',
+                'CART': 'cart',
+                'CHECKOUT': 'checkout',
+                'BLOG': 'blog',
+                'BLOG_POST': 'blog',
+            };
+            const expectedSlug = slugMap[overriddenPageType];
+            if (expectedSlug !== undefined && slug !== expectedSlug) {
+                return new NextResponse(`Slug must be "${expectedSlug}" for ${overriddenPageType} override`, { status: 400 });
+            }
         }
 
         // Check if slug exists
@@ -79,15 +148,67 @@ export async function POST(request: Request) {
             return new NextResponse('Slug already exists', { status: 400 });
         }
 
+        // Check if another page already overrides this page type
+        if (overridesStorefrontPage && overriddenPageType) {
+            const existingOverride = await prisma.page.findFirst({
+                where: {
+                    overridesStorefrontPage: true,
+                    overriddenPageType,
+                    NOT: { slug }, // Exclude current page if updating
+                },
+            });
+
+            if (existingOverride) {
+                return new NextResponse(`Another page already overrides ${overriddenPageType}`, { status: 400 });
+            }
+        }
+
         const page = await prisma.page.create({
             data: {
                 title,
                 slug,
-                content,
+                content: content || '',
+                description,
                 status: status || 'DRAFT',
                 useStorefrontLayout: useStorefrontLayout ?? true,
+                useBlockEditor: useBlockEditor ?? false,
                 seoTitle,
                 seoDescription,
+                seoKeywords,
+                ogImage,
+                ogTitle,
+                ogDescription,
+                publishedAt: publishedAt ? new Date(publishedAt) : null,
+                scheduledPublishAt: scheduledPublishAt ? new Date(scheduledPublishAt) : null,
+                layoutConfig,
+                customCss,
+                customJs,
+                templateId,
+                authorId: authorId || session.user.id,
+                conversionGoal,
+                overridesStorefrontPage: overridesStorefrontPage ?? false,
+                overriddenPageType: overridesStorefrontPage ? overriddenPageType : null,
+            },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+                blocks: {
+                    include: {
+                        template: {
+                            select: {
+                                id: true,
+                                name: true,
+                                category: true,
+                            },
+                        },
+                    },
+                    orderBy: { order: 'asc' },
+                },
             },
         });
 

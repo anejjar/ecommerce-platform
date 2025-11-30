@@ -55,7 +55,8 @@ import {
   Bell,
   Sun,
   Moon,
-  Laptop
+  Laptop,
+  Palette
 } from "lucide-react"
 import { useAdminSidebar } from "./AdminSidebarContext"
 
@@ -98,6 +99,12 @@ const navigation: NavItem[] = [
       { name: "Orders", href: "/admin/orders" },
       { name: "Discounts", href: "/admin/discounts" },
     ],
+  },
+  {
+    name: "Invoices",
+    href: "/admin/invoices",
+    icon: FileText,
+    featureFlag: "invoice_generator",
   },
   {
     name: "POS",
@@ -163,7 +170,6 @@ const navigation: NavItem[] = [
       { name: "Media Library", href: "/admin/media" },
       { name: "Blog Posts", href: "/admin/cms/posts" },
       { name: "Pages", href: "/admin/cms/pages" },
-      { name: "Landing Pages", href: "/admin/cms/landing-pages" },
       { name: "Block Templates", href: "/admin/cms/templates" },
       { name: "Categories & Tags", href: "/admin/cms/categories" },
     ],
@@ -173,6 +179,12 @@ const navigation: NavItem[] = [
     href: "/admin/templates",
     icon: FileText,
     featureFlag: "template_manager",
+  },
+  {
+    name: "Themes",
+    href: "/admin/themes",
+    icon: Palette,
+    featureFlag: "storefront_themes",
   },
   {
     name: "Backup & Export",
@@ -277,6 +289,9 @@ export function AdminSidebar() {
       <ScrollArea className="flex-1 min-h-0 px-3">
         <nav className="grid items-start gap-2 text-sm font-medium py-4">
           {navigation.filter(item => {
+            // Dashboard is always visible to all admin roles
+            if (item.name === 'Dashboard') return true;
+
             // SUPERADMIN-only features
             if (item.name === 'Features' && (session?.user?.role as string) !== 'SUPERADMIN') return false;
 

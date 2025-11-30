@@ -34,6 +34,20 @@ import { Divider } from './blocks/Divider';
 import { Spacer } from './blocks/Spacer';
 import { VideoPlayer } from './blocks/VideoPlayer';
 import { TextContent } from './blocks/TextContent';
+import { ProductGrid } from './blocks/ProductGrid';
+import { ProductCardBlock } from './blocks/ProductCardBlock';
+import { ProductDescription } from './blocks/ProductDescription';
+import { AddToCartButton } from './blocks/AddToCartButton';
+import { CartSummary } from './blocks/CartSummary';
+import { ProductImageGallery } from './blocks/ProductImageGallery';
+import { ProductReviews } from './blocks/ProductReviews';
+import { RelatedProducts } from './blocks/RelatedProducts';
+import { ProductTabs } from './blocks/ProductTabs';
+import { BlogGrid } from './blocks/BlogGrid';
+import { BlogPostCard } from './blocks/BlogPostCard';
+import { BlogPostContent } from './blocks/BlogPostContent';
+import { BlogCategories } from './blocks/BlogCategories';
+import { RecentPostsWidget } from './blocks/RecentPostsWidget';
 
 interface BlockRendererProps {
   block: {
@@ -180,6 +194,38 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({ block, landingPage
       // Text content block
       case 'text-content':
         return <TextContent config={block.config} />;
+
+      // Product blocks
+      case 'product-grid':
+        return <ProductGrid config={block.config} />;
+      case 'product-card':
+        return <ProductCardBlock config={block.config} />;
+      case 'product-description':
+        return <ProductDescription config={block.config} />;
+      case 'add-to-cart-button':
+        return <AddToCartButton config={block.config} />;
+      case 'cart-summary':
+        return <CartSummary config={block.config} />;
+      case 'product-image-gallery':
+        return <ProductImageGallery config={block.config} />;
+      case 'product-reviews':
+        return <ProductReviews config={block.config} />;
+      case 'related-products':
+        return <RelatedProducts config={block.config} />;
+      case 'product-tabs':
+        return <ProductTabs config={block.config} />;
+
+      // Blog blocks
+      case 'blog-grid':
+        return <BlogGrid config={block.config} />;
+      case 'blog-post-card':
+        return <BlogPostCard config={block.config} />;
+      case 'blog-post-content':
+        return <BlogPostContent config={block.config} />;
+      case 'blog-categories':
+        return <BlogCategories config={block.config} />;
+      case 'recent-posts-widget':
+        return <RecentPostsWidget config={block.config} />;
 
       // Default fallback: render from componentCode
       default:

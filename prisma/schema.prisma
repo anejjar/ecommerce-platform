@@ -92,12 +92,18 @@ model User {
   backups                Backup[]
   dataExports            DataExport[]
   dataImports            DataImport[]
-  landingPages           LandingPage[]
-  landingPageTemplates   LandingPageTemplate[]
-  landingPageRevisions   LandingPageRevision[]
+  pages                  Page[]
+  pageRevisions          PageRevision[]
   cashier                Cashier?
   posSessions            PosSession[]
   posOrders              PosOrder[]
+  invoicesAsCustomer     Invoice[]              @relation("InvoiceCustomer")
+  invoicesCreated        Invoice[]              @relation("InvoiceCreatedBy")
+  invoicesUpdated        Invoice[]              @relation("InvoiceUpdatedBy")
+  invoicePaymentsRecorded InvoicePayment[]      @relation("InvoicePaymentRecordedBy")
+  invoiceHistoryChanges   InvoiceHistory[]      @relation("InvoiceHistoryChangedBy")
+  recurringInvoicesAsCustomer RecurringInvoice[] @relation("RecurringInvoiceCustomer")
+  recurringInvoicesCreated    RecurringInvoice[] @relation("RecurringInvoiceCreatedBy")
 }
 
 model Account {
@@ -165,6 +171,7 @@ model Product {
   customizationFields ProductCustomizationField[]
   stockHistory        StockHistory[]
   flashSaleProducts   FlashSaleProduct[]
+  invoiceItems        InvoiceItem[]
 }
 
 model ProductImage {
@@ -329,6 +336,7 @@ model Order {
   isPosOrder        Boolean     @default(false)
   posOrderId        String?     @unique
   posOrder          PosOrder?   @relation(fields: [posOrderId], references: [id])
+  invoices         Invoice[]
 }
 
 model OrderItem {
@@ -684,21 +692,21 @@ model NewsletterSubscriber {
   subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?
   source         String? // e.g., "footer", "checkout", "popup"
-  landingPageId  String? // Track which landing page the subscriber came from
+  pageId         String? // Track which page the subscriber came from
 
   // Optional: Link to user account if they have one
   userId String? @unique
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  // Optional: Link to landing page if subscription came from a landing page
-  landingPage LandingPage? @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
+  // Optional: Link to page if subscription came from a page
+  page Page? @relation(fields: [pageId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email])
   @@index([isActive])
-  @@index([landingPageId])
+  @@index([pageId])
 }
 
 model WishlistItem {
@@ -1152,23 +1160,59 @@ model Page {
   id                  String     @id @default(cuid())
   title               String
   slug                String     @unique
+  description         String?    @db.Text
   content             String     @db.Text
-  status              PostStatus @default(DRAFT)
+  status              PageStatus @default(DRAFT)
   useStorefrontLayout Boolean    @default(true)
 
-  // NEW: Block-based content (alternative to rich text)
+  // Block-based content (can be used with or instead of rich text)
   useBlockEditor Boolean        @default(false) // Toggle between rich text or blocks
   blocks         ContentBlock[]
 
   // SEO
   seoTitle       String?
   seoDescription String? @db.Text
+  seoKeywords    String?
+  ogImage        String?
+  ogTitle        String?
+  ogDescription  String?
+
+  // Publishing
+  publishedAt        DateTime?
+  scheduledPublishAt DateTime?
+
+  // Layout & Customization
+  layoutConfig Json?    // Global page settings (width, spacing, colors, etc.)
+  customCss    String?   @db.Text
+  customJs     String?   @db.Text
+
+  // Template
+  templateId String?
+
+  // Storefront Page Override
+  overridesStorefrontPage Boolean @default(false)
+  overriddenPageType       String? // HOME, SHOP, PRODUCT, CART, CHECKOUT, BLOG, BLOG_POST
+
+  // Author
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  // Analytics
+  viewCount      Int     @default(0)
+  conversionGoal String?
+
+  // Relations
+  revisions             PageRevision[]
+  newsletterSubscribers NewsletterSubscriber[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([slug])
   @@index([status])
+  @@index([overriddenPageType])
+  @@index([authorId])
+  @@index([publishedAt])
 }
 
 // ============================================
@@ -1992,6 +2036,8 @@ enum BlockCategory {
   DIVIDER
   SPACER
   CUSTOM
+  PRODUCT
+  BLOG
 }
 
 model BlockTemplate {
@@ -2050,9 +2096,6 @@ model ContentBlock {
   postId String?
   post   BlogPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  landingPageId String?
-  landingPage   LandingPage? @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
-
   // Custom Configuration (overrides template defaults)
   config Json
 
@@ -2082,7 +2125,6 @@ model ContentBlock {
 
   @@index([pageId, order])
   @@index([postId, order])
-  @@index([landingPageId, order])
   @@index([templateId])
 }
 
@@ -2093,109 +2135,21 @@ enum PageStatus {
   ARCHIVED
 }
 
-model LandingPage {
-  id String @id @default(cuid())
+// LandingPage model removed - functionality merged into Page model
+// LandingPageTemplate model removed - can use BlockTemplate system instead
 
-  // Basic Info
-  title       String
-  slug        String  @unique
-  description String? @db.Text
-
-  // SEO
-  seoTitle       String?
-  seoDescription String? @db.Text
-  seoKeywords    String?
-  ogImage        String?
-  ogTitle        String?
-  ogDescription  String?
-
-  // Status
-  status             PageStatus @default(DRAFT)
-  publishedAt        DateTime?
-  scheduledPublishAt DateTime?
-
-  // Layout Configuration
-  layoutConfig Json?
-  customCss    String? @db.Text
-  customJs     String? @db.Text
-
-  // Template
-  templateId String?
-
-  // Content
-  blocks ContentBlock[]
-
-  // Revisions
-  revisions LandingPageRevision[]
-
-  // Newsletter subscribers from this landing page
-  newsletterSubscribers NewsletterSubscriber[]
-
-  // Author
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  // Analytics
-  viewCount      Int     @default(0)
-  conversionGoal String?
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([slug])
-  @@index([status])
-  @@index([authorId])
-  @@index([publishedAt])
-}
-
-model LandingPageTemplate {
-  id String @id @default(cuid())
-
-  // Basic Info
-  name        String
-  slug        String  @unique
-  description String? @db.Text
-  category    String?
-
-  // Visual
-  thumbnail  String?
-  previewUrl String?
-
-  // Template Data
-  templateData Json
-
-  // Metadata
-  isSystem Boolean @default(false)
-  isActive Boolean @default(true)
-  isPro    Boolean @default(false)
-
-  // Usage
-  usageCount Int @default(0)
-
-  // Creator
-  createdById String?
-  createdBy   User?   @relation(fields: [createdById], references: [id])
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([slug])
-  @@index([category])
-}
-
-model LandingPageRevision {
+model PageRevision {
   id String @id @default(cuid())
 
   // Page Reference
   pageId String
-  page   LandingPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  page   Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   // Snapshot Data
   title          String
   slug           String
   description    String?    @db.Text
+  content        String?    @db.Text
   seoTitle       String?
   seoDescription String?    @db.Text
   seoKeywords    String?
@@ -2206,9 +2160,15 @@ model LandingPageRevision {
   layoutConfig   Json?
   customCss      String?    @db.Text
   customJs       String?    @db.Text
+  useBlockEditor Boolean
+  useStorefrontLayout Boolean
 
   // Blocks Snapshot (JSON array)
-  blocksSnapshot Json
+  blocksSnapshot Json?
+
+  // Storefront Override Snapshot
+  overridesStorefrontPage Boolean
+  overriddenPageType       String?
 
   // Metadata
   revisionNumber Int
@@ -2294,4 +2254,402 @@ model FlashSaleCategory {
   @@unique([flashSaleId, categoryId])
   @@index([flashSaleId])
   @@index([categoryId])
+}
+
+// ============================================
+// PREMIUM INVOICE MANAGEMENT SYSTEM
+// ============================================
+
+enum InvoiceType {
+  STANDARD
+  PROFORMA
+  CREDIT_NOTE
+  QUOTE
+  RECURRING
+  RECEIPT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+model Invoice {
+  id String @id @default(cuid())
+
+  // Invoice Identification
+  invoiceNumber String @unique
+  invoiceType   InvoiceType @default(STANDARD)
+  status        InvoiceStatus @default(DRAFT)
+
+  // Dates
+  invoiceDate DateTime @default(now())
+  dueDate     DateTime?
+  sentAt      DateTime?
+  viewedAt    DateTime?
+  paidAt      DateTime?
+
+  // Customer Information
+  customerId String?
+  customer   User?   @relation("InvoiceCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  customerEmail String?
+  customerName  String?
+  customerCompany String?
+
+  // Billing Address (stored as JSON for flexibility)
+  billingAddress Json?
+
+  // Shipping Address (optional)
+  shippingAddress Json?
+
+  // Order Reference (if invoice created from order)
+  orderId String?
+  order   Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  // Financial Information
+  subtotal       Decimal @db.Decimal(10, 2)
+  tax            Decimal @default(0) @db.Decimal(10, 2)
+  taxRate        Decimal? @db.Decimal(5, 2) // Tax percentage
+  shipping       Decimal @default(0) @db.Decimal(10, 2)
+  discount       Decimal @default(0) @db.Decimal(10, 2)
+  discountType   String? // PERCENTAGE, FIXED_AMOUNT
+  total           Decimal @db.Decimal(10, 2)
+  amountPaid      Decimal @default(0) @db.Decimal(10, 2)
+  balanceDue      Decimal @db.Decimal(10, 2)
+
+  // Currency
+  currency      String @default("USD")
+  currencySymbol String @default("$")
+
+  // Template & Customization
+  templateId String?
+  template   InvoiceTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  // Custom Fields (JSON)
+  customFields Json?
+
+  // Terms & Conditions
+  termsAndConditions String? @db.Text
+  notes              String? @db.Text
+  footerText         String? @db.Text
+
+  // Payment Information
+  paymentMethod    String?
+  paymentInstructions String? @db.Text
+  paymentLink      String? // Link to payment gateway
+
+  // Recurring Invoice Configuration
+  isRecurring      Boolean @default(false)
+  recurringId      String? // Reference to RecurringInvoice
+  recurringInvoice RecurringInvoice? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+
+  // QR Code
+  qrCodeUrl String?
+
+  // Digital Signature
+  signatureUrl String?
+  signedAt     DateTime?
+  signedBy     String?
+
+  // Metadata
+  createdById String?
+  createdBy   User?   @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById String?
+  updatedBy   User?   @relation("InvoiceUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  items    InvoiceItem[]
+  payments InvoicePayment[]
+  history  InvoiceHistory[]
+
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([invoiceType])
+  @@index([customerId])
+  @@index([orderId])
+  @@index([invoiceDate])
+  @@index([dueDate])
+  @@index([createdAt])
+  @@index([recurringId])
+}
+
+model InvoiceItem {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  // Product Information
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId String?
+
+  // Item Details
+  description String
+  sku         String?
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  taxRate     Decimal? @db.Decimal(5, 2)
+  discount    Decimal @default(0) @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  // Custom Fields (JSON)
+  customFields Json?
+
+  // Position/Order
+  position Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([productId])
+  @@index([position])
+}
+
+model InvoiceSettings {
+  id String @id @default(cuid())
+
+  // General Settings
+  invoiceNumberPrefix String @default("INV")
+  invoiceNumberFormat String @default("{{prefix}}-{{number}}") // Template for numbering
+  nextInvoiceNumber   Int    @default(1)
+  defaultTerms        String? @db.Text
+  defaultNotes        String? @db.Text
+  defaultDueDays      Int     @default(30) // Days until due date
+
+  // Branding
+  logoUrl        String?
+  companyName    String?
+  companyAddress String? @db.Text
+  companyPhone   String?
+  companyEmail   String?
+  companyWebsite String?
+  companyTaxId   String?
+
+  // Colors & Styling
+  primaryColor   String @default("#000000")
+  secondaryColor String @default("#666666")
+  accentColor    String @default("#3182ce")
+  fontFamily     String @default("Helvetica")
+  fontSize       Int    @default(10)
+
+  // Template Settings
+  defaultTemplateId String?
+
+  // Email Settings
+  emailSubjectTemplate String? @default("Invoice {{invoiceNumber}} from {{companyName}}")
+  emailBodyTemplate    String? @db.Text
+  autoSendOnCreate     Boolean @default(false)
+  sendCopyToAdmin      Boolean @default(false)
+  adminEmail            String?
+
+  // Tax Settings
+  defaultTaxRate Decimal? @db.Decimal(5, 2)
+  taxLabel       String   @default("Tax")
+  showTaxBreakdown Boolean @default(true)
+  
+  // Currency Settings
+  currency      String @default("USD")
+  currencySymbol String @default("$")
+
+  // Payment Settings
+  paymentMethods Json? // Array of available payment methods
+  showPaymentLink Boolean @default(true)
+  paymentGateway String? // Integration with payment gateway
+
+  // Advanced Settings
+  showQRCode        Boolean @default(false)
+  enableSignatures Boolean @default(false)
+  customFields      Json? // Custom field definitions
+  multiLanguage     Boolean @default(false)
+  defaultLanguage   String  @default("en")
+
+  // Footer & Header
+  headerText String? @db.Text
+  footerText String? @db.Text
+  showFooter Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([id])
+}
+
+model InvoiceTemplate {
+  id String @id @default(cuid())
+
+  // Template Info
+  name        String
+  description String? @db.Text
+  isDefault   Boolean @default(false)
+  isSystem    Boolean @default(false) // System templates cannot be deleted
+
+  // Template Configuration (JSON)
+  config Json // Contains layout, colors, fonts, sections, etc.
+
+  // Preview
+  previewImage String?
+
+  // Usage
+  usageCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  invoices Invoice[]
+  recurringInvoices RecurringInvoice[] @relation("RecurringInvoiceTemplate")
+
+  @@index([isDefault])
+  @@index([isSystem])
+}
+
+model InvoicePayment {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  // Payment Details
+  amount      Decimal @db.Decimal(10, 2)
+  paymentDate DateTime @default(now())
+  paymentMethod String // "cash", "card", "bank_transfer", "paypal", "stripe", etc.
+  transactionId String? // External transaction ID
+  referenceNumber String?
+
+  // Payment Status
+  status String @default("completed") // "pending", "completed", "failed", "refunded"
+
+  // Notes
+  notes String? @db.Text
+
+  // Recorded By
+  recordedById String?
+  recordedBy   User?   @relation("InvoicePaymentRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([paymentDate])
+  @@index([status])
+}
+
+model InvoiceHistory {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  // Change Details
+  action     String // "created", "updated", "sent", "viewed", "paid", "cancelled", etc.
+  fieldName  String? // Which field was changed
+  oldValue   String? @db.Text
+  newValue   String? @db.Text
+  description String? @db.Text
+
+  // Changed By
+  changedById String?
+  changedBy   User?   @relation("InvoiceHistoryChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model RecurringInvoice {
+  id String @id @default(cuid())
+
+  // Recurring Configuration
+  name        String
+  description String? @db.Text
+
+  // Customer
+  customerId String?
+  customer   User?   @relation("RecurringInvoiceCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  customerEmail String?
+
+  // Frequency
+  frequency       RecurringFrequency @default(MONTHLY)
+  interval        Int                @default(1) // Every X days/weeks/months
+  customInterval  Int? // For CUSTOM frequency
+  dayOfMonth      Int? // For monthly: which day (1-31)
+  dayOfWeek       Int? // For weekly: which day (0-6, Sunday = 0)
+
+  // Template
+  templateId String?
+  template   InvoiceTemplate? @relation("RecurringInvoiceTemplate", fields: [templateId], references: [id], onDelete: SetNull)
+
+  // Invoice Settings (stored as JSON to copy to generated invoices)
+  invoiceSettings Json? // Contains items, amounts, addresses, etc.
+
+  // Schedule
+  startDate DateTime
+  endDate   DateTime?
+  nextRunDate DateTime?
+  lastRunDate DateTime?
+
+  // Status
+  isActive Boolean @default(true)
+
+  // Auto-send
+  autoSend Boolean @default(true)
+
+  // Generated Invoices
+  generatedInvoices Invoice[]
+
+  // Metadata
+  createdById String?
+  createdBy   User?   @relation("RecurringInvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([isActive])
+  @@index([nextRunDate])
+  @@index([startDate])
+}
+
+// ============================================
+// STOREFRONT THEMES
+// ============================================
+
+model Theme {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  description String?  @db.Text
+  version     String   @default("1.0.0")
+  author      String?
+  previewImage String? // URL to preview image
+  isBuiltIn   Boolean  @default(false)
+  isActive    Boolean  @default(false)
+  themeConfig Json     // Full theme configuration JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([isBuiltIn])
 }

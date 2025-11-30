@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import toast from 'react-hot-toast';
 import { OrderNotes } from '@/components/admin/OrderNotes';
-import { generateInvoice, generatePackingSlip } from '@/lib/invoice-generator';
+import { generatePackingSlip } from '@/lib/invoice-generator';
 import { FileText, Package } from 'lucide-react';
 import { useCurrency } from '@/hooks/useCurrency';
 
@@ -80,8 +80,21 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const handleDownloadInvoice = async () => {
     if (!order) return;
     try {
-      await generateInvoice(order);
-      toast.success('Invoice downloaded successfully');
+      const response = await fetch(`/api/orders/${id}/invoice/download`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice-${order.orderNumber}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Invoice downloaded successfully');
+      } else {
+        toast.error('Failed to generate invoice');
+      }
     } catch (error) {
       console.error('Failed to generate invoice:', error);
       toast.error('Failed to generate invoice');

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
-import { generateInvoice } from '@/lib/invoice-generator';
 import toast from 'react-hot-toast';
 
 interface DownloadInvoiceButtonProps {
@@ -34,8 +33,21 @@ export function DownloadInvoiceButton({ order }: DownloadInvoiceButtonProps) {
 
     const handleDownloadInvoice = async () => {
         try {
-            await generateInvoice(order);
-            toast.success('Invoice downloaded successfully');
+            const response = await fetch(`/api/orders/${order.id}/invoice/download`);
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Invoice-${order.orderNumber}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                toast.success('Invoice downloaded successfully');
+            } else {
+                toast.error('Failed to generate invoice');
+            }
         } catch (error) {
             console.error('Error generating invoice:', error);
             toast.error('Failed to generate invoice');

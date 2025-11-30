@@ -20,7 +20,8 @@ import {
     User,
     ShoppingCart,
     AlertTriangle,
-    Image
+    Image,
+    Receipt
 } from 'lucide-react';
 
 interface FeatureFlags {
@@ -94,6 +95,14 @@ export default function SettingsPage() {
             href: "/admin/templates",
             icon: LayoutTemplate,
             visible: enabledFeatures.includes('template_manager')
+        },
+        {
+            title: "Invoice Settings",
+            description: "Configure invoice templates, branding, numbering, and automation. Premium invoice management system.",
+            href: "/admin/settings/invoices",
+            icon: Receipt,
+            visible: enabledFeatures.includes('invoice_generator'),
+            premium: true
         },
         {
             title: "Checkout Settings",

@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
+import { PageOverrideRenderer } from '@/components/public/PageOverrideRenderer';
+import { getPageOverride } from '@/lib/page-overrides';
 
 export const metadata: Metadata = {
     title: 'Blog | Our Store',
@@ -61,6 +63,12 @@ export default async function BlogPage({
 }: {
     searchParams: Promise<{ page?: string; search?: string }>;
 }) {
+    // Check for page override
+    const overridePage = await getPageOverride('BLOG');
+    if (overridePage) {
+        return <PageOverrideRenderer page={overridePage} />;
+    }
+
     const { page: pageParam, search: searchParam } = await searchParams;
     const page = parseInt(pageParam || '1');
     const search = searchParam || '';
