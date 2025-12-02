@@ -17,6 +17,7 @@ interface Theme {
 interface ThemeGridProps {
   themes: Theme[];
   onActivate: (id: string) => Promise<void>;
+  onDeactivate: () => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onExport: (id: string) => void;
   onPreview: (id: string) => void;
@@ -25,6 +26,7 @@ interface ThemeGridProps {
 export function ThemeGrid({
   themes,
   onActivate,
+  onDeactivate,
   onDelete,
   onExport,
   onPreview,
@@ -44,6 +46,7 @@ export function ThemeGrid({
           key={theme.id}
           theme={theme}
           onActivate={onActivate}
+          onDeactivate={onDeactivate}
           onDelete={onDelete}
           onExport={onExport}
           onPreview={onPreview}

@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ProductActions } from '@/components/admin/ProductActions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Star, Trash2, Eye, EyeOff } from 'lucide-react';
+import { handleImageError } from '@/lib/image-utils';
 
 interface Product {
   id: string;
@@ -242,6 +243,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                         fill
                         className="object-cover"
                         sizes="48px"
+                        onError={handleImageError}
                       />
                     </div>
                   ) : (

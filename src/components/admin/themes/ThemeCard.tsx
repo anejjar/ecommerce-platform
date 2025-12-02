@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Download, Trash2, Eye, Sparkles } from 'lucide-react';
+import { Check, Download, Trash2, Eye, Sparkles, X } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -21,6 +21,7 @@ interface ThemeCardProps {
     isActive: boolean;
   };
   onActivate: (id: string) => Promise<void>;
+  onDeactivate: () => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onExport: (id: string) => void;
   onPreview: (id: string) => void;
@@ -29,11 +30,13 @@ interface ThemeCardProps {
 export function ThemeCard({
   theme,
   onActivate,
+  onDeactivate,
   onDelete,
   onExport,
   onPreview,
 }: ThemeCardProps) {
   const [activating, setActivating] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleActivate = async () => {
@@ -45,6 +48,21 @@ export function ThemeCard({
       toast.error('Failed to activate theme');
     } finally {
       setActivating(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    if (!confirm(`Are you sure you want to deactivate "${theme.displayName}"?`)) {
+      return;
+    }
+
+    try {
+      setDeactivating(true);
+      await onDeactivate();
+    } catch (error) {
+      // Error is handled in parent
+    } finally {
+      setDeactivating(false);
     }
   };
 
@@ -125,7 +143,24 @@ export function ThemeCard({
       </CardContent>
 
       <CardFooter className="flex gap-2">
-        {!theme.isActive && (
+        {theme.isActive ? (
+          <Button
+            onClick={handleDeactivate}
+            disabled={deactivating}
+            variant="outline"
+            className="flex-1"
+            size="sm"
+          >
+            {deactivating ? (
+              'Deactivating...'
+            ) : (
+              <>
+                <X className="w-4 h-4 mr-1" />
+                Deactivate
+              </>
+            )}
+          </Button>
+        ) : (
           <Button
             onClick={handleActivate}
             disabled={activating}

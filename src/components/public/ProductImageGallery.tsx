@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { ZoomIn, ZoomOut, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { handleImageError } from '@/lib/image-utils';
 
 interface ProductImage {
   id: string;
@@ -141,6 +142,7 @@ export function ProductImageGallery({
             }`}
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
+            onError={handleImageError}
           />
 
           {/* Badges */}
@@ -247,6 +249,7 @@ export function ProductImageGallery({
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 20vw, 10vw"
+                  onError={handleImageError}
                 />
                 {selectedIndex === index && (
                   <div className="absolute inset-0 bg-amber-600/20" />
@@ -284,8 +287,10 @@ export function ProductImageGallery({
               alt={currentImage.alt || productName}
               fill
               className="object-contain"
+              onError={handleImageError}
               sizes="100vw"
               priority
+              onError={handleImageError}
             />
 
             {/* Navigation in Lightbox */}

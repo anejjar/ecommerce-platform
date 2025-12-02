@@ -2,16 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Link } from '@/navigation';
-import Image from 'next/image';
-import { Search, Filter, X, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { WishlistButton } from '@/components/public/WishlistButton';
 import { ProductCard } from '@/components/public/ProductCard';
 import { FilterSidebar } from '@/components/public/FilterSidebar';
 import { SearchAutocomplete } from '@/components/public/SearchAutocomplete';
 import { useTranslations } from 'next-intl';
+import { useTheme } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
 
 interface Product {
   id: string;
@@ -59,7 +57,7 @@ export function ShopContent({
 }: ShopContentProps) {
   const t = useTranslations();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const { theme } = useTheme();
   const [search, setSearch] = useState(initialSearch);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -68,7 +66,6 @@ export function ShopContent({
     Object.entries(params).forEach(([key, value]) => {
       if (value) url.set(key, value);
     });
-    // Reset to page 1 when filters change, unless explicitly told not to
     if (resetPage && !params.page) {
       url.set('page', '1');
     }
@@ -129,19 +126,25 @@ export function ShopContent({
   const hasActiveFilters = search || initialCategory || initialFeatured;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12" style={{ maxWidth: theme?.layout?.containerMaxWidth || '1280px' }}>
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">{t('shop.title')}</h1>
-        <p className="text-gray-600">
-          Showing {products.length > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0} to{' '}
-          {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
-          {pagination.total === 1 ? t('cart.item') : t('cart.items')}
+      <div className="mb-8 md:mb-12">
+        <h1 className="text-3xl md:text-4xl font-medium mb-3">{t('shop.title')}</h1>
+        <p className="text-sm text-muted-foreground">
+          {products.length > 0 ? (
+            <>
+              Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
+              {pagination.total === 1 ? t('cart.item') : t('cart.items')}
+            </>
+          ) : (
+            <>No products found</>
+          )}
         </p>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-8">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <form onSubmit={handleSearch} className="flex-1">
@@ -163,7 +166,7 @@ export function ShopContent({
           <select
             value={initialSort}
             onChange={(e) => handleSortChange(e.target.value)}
-            className="px-4 py-2 border rounded-md"
+            className="px-4 py-2.5 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-ring transition-all"
           >
             <option value="newest">{t('shop.sort.newest')}</option>
             <option value="price-asc">{t('shop.sort.priceLowHigh')}</option>
@@ -184,11 +187,11 @@ export function ShopContent({
 
         {/* Active Filters */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
-            <span className="text-sm text-gray-600">{t('shop.activeFilters')}</span>
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-border">
+            <span className="text-sm text-muted-foreground">{t('shop.activeFilters')}:</span>
             {search && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                {t('shop.filterSearch')} {search}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted text-foreground rounded-lg text-sm">
+                {t('shop.filterSearch')} "{search}"
                 <button
                   onClick={() => {
                     setSearch('');
@@ -198,30 +201,31 @@ export function ShopContent({
                     if (initialSort !== 'newest') params.sort = initialSort;
                     applyFilters(params);
                   }}
+                  className="hover:opacity-70 transition-opacity"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             )}
             {initialCategory && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted text-foreground rounded-lg text-sm">
                 {t('shop.filterCategory')} {categories.find(c => c.slug === initialCategory)?.name}
-                <button onClick={() => handleCategoryFilter('')}>
-                  <X className="w-3 h-3" />
+                <button onClick={() => handleCategoryFilter('')} className="hover:opacity-70 transition-opacity">
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             )}
             {initialFeatured && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted text-foreground rounded-lg text-sm">
                 {t('shop.filterFeatured')}
-                <button onClick={handleFeaturedToggle}>
-                  <X className="w-3 h-3" />
+                <button onClick={handleFeaturedToggle} className="hover:opacity-70 transition-opacity">
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             )}
             <button
               onClick={clearFilters}
-              className="text-sm text-blue-600 hover:underline ml-2"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-2"
             >
               {t('shop.clearAll')}
             </button>
@@ -229,7 +233,7 @@ export function ShopContent({
         )}
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex gap-6 lg:gap-8">
         {/* Filter Sidebar */}
         <FilterSidebar
           categories={categories}
@@ -258,13 +262,13 @@ export function ShopContent({
         {/* Products Grid */}
         <div className="flex-1">
           {products.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <p className="text-gray-500 text-lg mb-2">{t('shop.noProducts')}</p>
-              <p className="text-sm text-gray-400 mb-4">
+            <div className="bg-card border border-border rounded-lg p-12 md:p-16 text-center">
+              <p className="text-foreground text-lg font-medium mb-2">{t('shop.noProducts')}</p>
+              <p className="text-sm text-muted-foreground mb-6">
                 {t('shop.noProductsDesc')}
               </p>
               {hasActiveFilters && (
-                <Button onClick={clearFilters}>{t('shop.clearFilters')}</Button>
+                <Button onClick={clearFilters} variant="outline">{t('shop.clearFilters')}</Button>
               )}
             </div>
           ) : (
@@ -273,8 +277,8 @@ export function ShopContent({
                 {products.map((product, index) => (
                   <div
                     key={product.id}
-                    className="animate-slide-up"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="animate-subtle-lift"
+                    style={{ animationDelay: `${index * 30}ms` }}
                   >
                     <ProductCard product={product} />
                   </div>
@@ -283,13 +287,14 @@ export function ShopContent({
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-8">
+                <div className="flex items-center justify-center gap-3 mt-12">
                   {pagination.page > 1 && (
                     <Button
                       variant="outline"
                       onClick={() => goToPage(pagination.page - 1)}
+                      className="gap-2"
                     >
-                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      <ChevronLeft className="h-4 w-4" />
                       {t('shop.pagination.previous') || 'Previous'}
                     </Button>
                   )}
@@ -300,9 +305,10 @@ export function ShopContent({
                     <Button
                       variant="outline"
                       onClick={() => goToPage(pagination.page + 1)}
+                      className="gap-2"
                     >
                       {t('shop.pagination.next') || 'Next'}
-                      <ChevronRight className="h-4 w-4 ml-1" />
+                      <ChevronRight className="h-4 w-4" />
                     </Button>
                   )}
                 </div>

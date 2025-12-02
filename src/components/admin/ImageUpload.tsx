@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { X, Image as ImageIcon, GripVertical } from 'lucide-react';
 import { MediaPicker } from '@/components/media-manager/MediaPicker/MediaPicker';
 import { MediaItem } from '@/components/media-manager/types';
+import { handleImageError } from '@/lib/image-utils';
 
 interface ProductImage {
   id: string;
@@ -198,6 +199,7 @@ export function ImageUpload({ productId, initialImages = [], onImagesChange }: I
                   src={image.url}
                   alt={image.alt || ''}
                   className="w-full h-full object-cover"
+                  onError={handleImageError}
                 />
                 <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
                   <Button

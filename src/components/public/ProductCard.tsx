@@ -14,6 +14,7 @@ import { useFlashSale } from '@/hooks/useFlashSale';
 import { useTheme } from '@/hooks/useTheme';
 import { FlashSaleBadge } from '@/components/public/FlashSaleBadge';
 import { cn } from '@/lib/utils';
+import { handleImageError, getProductImageUrl } from '@/lib/image-utils';
 
 interface Product {
     id: string;
@@ -49,7 +50,7 @@ export function ProductCard({ product }: ProductCardProps) {
             id: product.id,
             productId: product.id,
             name: product.name,
-            price: displayPrice, // Use flash sale price if available
+            price: displayPrice,
             image: product.images[0]?.url,
             quantity: 1
         }));
@@ -63,56 +64,49 @@ export function ProductCard({ product }: ProductCardProps) {
             ? Math.round(((Number(product.comparePrice) - Number(product.price)) / Number(product.comparePrice)) * 100)
             : 0);
 
-    // Get theme styles - use theme values or fallbacks
-    const cardBg = theme?.colors?.surface ?? '#ffffff';
+    // Get theme styles
     const cardBorder = theme?.colors?.border ?? '#e5e7eb';
     const cardRadius = theme?.components?.productCard?.borderRadius ?? theme?.borderRadius?.lg ?? '0.5rem';
-    const cardPadding = theme?.components?.productCard?.padding ?? '0';
-    const imageAspectRatio = theme?.components?.productCard?.imageAspectRatio ?? '4/5';
-    const hoverEffect = theme?.components?.productCard?.hoverEffect ?? 'lift';
+    const imageAspectRatio = theme?.components?.productCard?.imageAspectRatio ?? '1/1';
+    const primaryColor = theme?.colors?.primary ?? '#111827';
 
     return (
         <div
             className={cn(
-                'group relative overflow-hidden flex flex-col h-full transition-all duration-300',
-                hoverEffect === 'scale' && 'hover:scale-105',
-                hoverEffect === 'lift' && 'hover:-translate-y-1',
-                hoverEffect === 'glow' && 'hover:shadow-2xl',
+                'group relative flex flex-col h-full bg-card border border-border rounded-lg overflow-hidden transition-all duration-300',
+                'hover:-translate-y-1 hover:shadow-lg'
             )}
             style={{
-                backgroundColor: cardBg,
                 borderColor: cardBorder,
                 borderRadius: cardRadius,
-                padding: cardPadding,
-                borderWidth: '1px',
-                borderStyle: 'solid',
             }}
         >
             {/* Image Container */}
             <Link
                 href={`/product/${product.slug}`}
-                className="relative overflow-hidden block touch-manipulation"
+                className="relative overflow-hidden block bg-muted"
                 style={{
                     aspectRatio: imageAspectRatio,
-                    backgroundColor: theme?.colors?.background || '#f9fafb',
                 }}
             >
                 {product.images[0] ? (
                     <Image
-                        src={product.images[0].url}
+                        src={getProductImageUrl(product.images[0].url)}
                         alt={product.name}
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        onError={handleImageError}
+                        unoptimized={product.images[0].url?.startsWith('data:') || false}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-amber-300 bg-amber-50">
-                        <span className="text-4xl">☕</span>
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                        <div className="w-16 h-16 border-2 border-dashed border-muted-foreground/20 rounded-lg" />
                     </div>
                 )}
 
-                {/* Badges */}
-                <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col gap-1.5 md:gap-2 z-10">
+                {/* Single Badge Position - Top Left */}
+                <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
                     {hasFlashSale && flashSale && (
                         <FlashSaleBadge
                             discountType={flashSale.discountType}
@@ -120,43 +114,39 @@ export function ProductCard({ product }: ProductCardProps) {
                         />
                     )}
                     {!hasFlashSale && discountPercentage > 0 && (
-                        <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 md:px-3 md:py-1.5 rounded-full shadow-md">
+                        <span className="bg-destructive text-destructive-foreground text-xs font-medium px-2.5 py-1 rounded">
                             -{discountPercentage}%
                         </span>
                     )}
-                    {product.featured && (
-                        <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 md:px-3 md:py-1.5 rounded-full shadow-md flex items-center gap-1">
+                    {!hasFlashSale && product.featured && discountPercentage === 0 && (
+                        <span className="bg-foreground text-background text-xs font-medium px-2.5 py-1 rounded flex items-center gap-1">
                             <Star className="w-3 h-3 fill-current" />
                             <span className="hidden sm:inline">{t('product.featured')}</span>
                         </span>
                     )}
                 </div>
 
-                {/* Wishlist Button */}
-                <div className="absolute top-2 right-2 md:top-3 md:right-3 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-white rounded-full p-2 shadow-lg hover:scale-110 active:scale-95 transition-transform min-w-[44px] min-h-[44px] flex items-center justify-center">
+                {/* Wishlist Button - Top Right */}
+                <div className="absolute top-3 right-3 z-10 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-background/90 backdrop-blur-sm rounded-full p-2 shadow-sm hover:bg-background transition-colors">
                         <WishlistButton productId={product.id} />
                     </div>
                 </div>
 
-                {/* Quick Add Overlay (Desktop) */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 hidden md:block bg-gradient-to-t from-black/60 to-transparent">
+                {/* Quick Add Button - Appears on Hover (Desktop) */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 hidden md:block bg-background/95 backdrop-blur-sm border-t border-border">
                     <Button
                         onClick={handleAddToCart}
-                        className="w-full shadow-xl border-none font-semibold"
+                        className="w-full"
                         style={{
-                            backgroundColor: theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000',
-                            color: theme?.components?.buttons?.textColor || '#ffffff',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.hoverColor || theme?.colors?.accent || '#111827';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000';
+                            backgroundColor: primaryColor,
+                            color: '#ffffff',
                         }}
                         disabled={product.stock === 0}
                     >
-                        {product.stock === 0 ? t('product.outOfStock') : (
+                        {product.stock === 0 ? (
+                            t('product.outOfStock')
+                        ) : (
                             <>
                                 <ShoppingCart className="w-4 h-4 mr-2" />
                                 {t('product.addToCart')}
@@ -167,58 +157,40 @@ export function ProductCard({ product }: ProductCardProps) {
             </Link>
 
             {/* Product Info */}
-            <div className="p-3 md:p-4 flex flex-col flex-grow space-y-2">
+            <div className="p-4 md:p-5 flex flex-col flex-grow space-y-3">
                 {product.category && (
-                    <p
-                        className="text-xs mb-0.5 md:mb-1 font-semibold uppercase tracking-wide"
-                        style={{ color: theme?.colors?.text?.secondary || '#6b7280' }}
-                    >
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {product.category.name}
                     </p>
                 )}
 
-                <Link href={`/product/${product.slug}`} className="block -mb-1">
-                    <h3
-                        className="font-semibold text-sm md:text-base leading-tight transition-colors line-clamp-2 min-h-[2.5rem] md:min-h-[3rem]"
-                        style={{ color: theme?.colors?.text?.primary || '#111827' }}
-                    >
+                <Link href={`/product/${product.slug}`} className="block -mb-1 group/link">
+                    <h3 className="font-medium text-sm md:text-base leading-snug transition-colors line-clamp-2 group-hover/link:text-primary">
                         {product.name}
                     </h3>
                 </Link>
 
-                <div className="mt-auto flex items-end justify-between gap-2">
+                <div className="mt-auto flex items-end justify-between gap-3">
                     <div className="flex flex-col min-w-0 flex-1">
                         {hasFlashSale ? (
                             <>
                                 {originalPrice > displayPrice && (
-                                    <span
-                                        className="text-xs line-through mb-0.5"
-                                        style={{ color: theme?.colors?.text?.muted || '#9ca3af' }}
-                                    >
+                                    <span className="text-xs line-through mb-1 text-muted-foreground">
                                         {format(originalPrice)}
                                     </span>
                                 )}
-                                <span
-                                    className="text-lg md:text-xl font-bold"
-                                    style={{ color: theme?.colors?.primary || '#111827' }}
-                                >
+                                <span className="text-lg md:text-xl font-medium" style={{ color: primaryColor }}>
                                     {format(displayPrice)}
                                 </span>
                             </>
                         ) : (
                             <>
                                 {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
-                                    <span
-                                        className="text-xs line-through mb-0.5"
-                                        style={{ color: theme?.colors?.text?.muted || '#9ca3af' }}
-                                    >
+                                    <span className="text-xs line-through mb-1 text-muted-foreground">
                                         {format(Number(product.comparePrice))}
                                     </span>
                                 )}
-                                <span
-                                    className="text-lg md:text-xl font-bold"
-                                    style={{ color: theme?.colors?.primary || '#111827' }}
-                                >
+                                <span className="text-lg md:text-xl font-medium" style={{ color: primaryColor }}>
                                     {format(Number(product.price))}
                                 </span>
                             </>
@@ -229,17 +201,10 @@ export function ProductCard({ product }: ProductCardProps) {
                     <button
                         onClick={handleAddToCart}
                         disabled={product.stock === 0}
-                        className="md:hidden p-3 rounded-full active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+                        className="md:hidden p-2.5 rounded-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                         style={{
-                            backgroundColor: theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000',
-                            color: theme?.components?.buttons?.textColor || '#ffffff',
-                            borderRadius: theme?.components?.buttons?.borderRadius || theme?.borderRadius?.full || '9999px',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.hoverColor || theme?.colors?.accent || '#111827';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = theme?.components?.buttons?.primaryColor || theme?.colors?.primary || '#000000';
+                            backgroundColor: primaryColor,
+                            color: '#ffffff',
                         }}
                         aria-label={product.stock === 0 ? t('product.outOfStock') : t('product.addToCart')}
                     >

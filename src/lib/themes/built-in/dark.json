@@ -24,19 +24,19 @@
   },
   "typography": {
     "fontFamily": {
-      "heading": "Inter, system-ui, sans-serif",
-      "body": "Inter, system-ui, sans-serif",
-      "mono": "monospace"
+      "heading": "'Inter', 'SF Pro Display', system-ui, sans-serif",
+      "body": "'Inter', 'SF Pro Text', system-ui, sans-serif",
+      "mono": "'JetBrains Mono', 'Fira Code', monospace"
     },
     "fontSize": {
       "xs": "0.75rem",
       "sm": "0.875rem",
       "base": "1rem",
       "lg": "1.125rem",
-      "xl": "1.25rem",
-      "2xl": "1.5rem",
-      "3xl": "1.875rem",
-      "4xl": "2.25rem"
+      "xl": "1.375rem",
+      "2xl": "1.75rem",
+      "3xl": "2.25rem",
+      "4xl": "3rem"
     },
     "fontWeight": {
       "normal": 400,
@@ -51,19 +51,19 @@
     }
   },
   "spacing": {
-    "xs": "0.25rem",
-    "sm": "0.5rem",
-    "md": "1rem",
-    "lg": "1.5rem",
-    "xl": "2rem",
-    "2xl": "3rem",
-    "3xl": "4rem"
+    "xs": "0.5rem",
+    "sm": "1rem",
+    "md": "1.5rem",
+    "lg": "2.5rem",
+    "xl": "4rem",
+    "2xl": "6rem",
+    "3xl": "8rem"
   },
   "borderRadius": {
-    "sm": "0.25rem",
-    "md": "0.5rem",
-    "lg": "0.75rem",
-    "xl": "1rem",
+    "sm": "0.5rem",
+    "md": "0.75rem",
+    "lg": "1rem",
+    "xl": "1.25rem",
     "full": "9999px"
   },
   "components": {
@@ -88,7 +88,7 @@
       "imageAspectRatio": "4/5",
       "showBadges": true,
       "showQuickView": true,
-      "borderRadius": "0.75rem",
+      "borderRadius": "1rem",
       "padding": "0",
       "hoverEffect": "glow"
     },
@@ -97,14 +97,14 @@
       "primaryColor": "#60a5fa",
       "hoverColor": "#3b82f6",
       "textColor": "#0f172a",
-      "padding": "0.875rem 1.75rem",
-      "borderRadius": "0.5rem"
+      "padding": "0.875rem 2rem",
+      "borderRadius": "0.75rem"
     }
   },
   "layout": {
     "containerMaxWidth": "1400px",
     "pagePadding": "1.5rem",
     "sectionSpacing": "5rem"
-  }
+  },
+  "customCSS": "/* Dark Theme - Sleek Dark Mode Design */\n@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');\nbody { font-family: var(--theme-font-body); background: var(--theme-color-background); color: var(--theme-color-text-primary); }\nh1, h2, h3, h4, h5, h6 { font-family: var(--theme-font-heading); color: var(--theme-color-text-primary); }\nbutton, .btn { background: var(--theme-button-primary); color: var(--theme-button-text); box-shadow: 0 4px 14px 0 rgba(96, 165, 250, 0.39); transition: all 0.3s ease; position: relative; overflow: hidden; }\nbutton::before, .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.5s; }\nbutton:hover::before, .btn:hover::before { left: 100%; }\nbutton:hover, .btn:hover { background: var(--theme-button-hover); box-shadow: 0 6px 20px rgba(96, 165, 250, 0.5); transform: translateY(-2px); }\n.product-card { background: var(--theme-color-surface); border: 1px solid var(--theme-color-border); border-radius: var(--theme-radius-lg); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }\n.product-card:hover { box-shadow: 0 0 30px rgba(96, 165, 250, 0.4), 0 12px 24px rgba(0, 0, 0, 0.4); transform: translateY(-4px); border-color: var(--theme-color-primary); }\n.header { background: var(--theme-header-bg) !important; backdrop-filter: blur(20px); border-bottom: 1px solid var(--theme-color-border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }\n.footer { background: var(--theme-footer-bg) !important; border-top: 1px solid var(--theme-color-border); }\n.section { padding: var(--theme-section-spacing) 0; }\ninput, textarea, select { background: var(--theme-color-surface); border-color: var(--theme-color-border); color: var(--theme-color-text-primary); }\ninput:focus, textarea:focus, select:focus { border-color: var(--theme-color-primary); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1); }\n"
 }
-

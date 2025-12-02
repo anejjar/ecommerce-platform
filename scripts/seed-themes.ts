@@ -11,17 +11,7 @@ async function seedThemes() {
   console.log('🌱 Seeding built-in themes...');
 
   try {
-    // Check if themes already exist
-    const existingThemes = await prisma.theme.findMany({
-      where: { isBuiltIn: true },
-    });
-
-    if (existingThemes.length > 0) {
-      console.log(`⚠️  ${existingThemes.length} built-in themes already exist. Skipping seed.`);
-      return;
-    }
-
-    // Validate and create each theme
+    // Validate and create/update each theme
     for (const themeData of defaultThemes) {
       const validation = validateThemeConfig(themeData.config);
       
@@ -36,7 +26,23 @@ async function seedThemes() {
       });
 
       if (existing) {
-        console.log(`⚠️  Theme "${themeData.name}" already exists. Skipping.`);
+        // Update existing built-in theme
+        if (existing.isBuiltIn) {
+          await prisma.theme.update({
+            where: { name: themeData.name },
+            data: {
+              displayName: themeData.displayName,
+              description: themeData.description,
+              version: themeData.config.metadata.version,
+              author: themeData.config.metadata.author,
+              themeConfig: themeData.config as any,
+              // Preserve isActive status
+            },
+          });
+          console.log(`🔄 Updated theme: ${themeData.displayName}`);
+        } else {
+          console.log(`⚠️  Theme "${themeData.name}" exists but is not built-in. Skipping.`);
+        }
         continue;
       }
 

@@ -6,6 +6,7 @@ import { Link } from '@/navigation';
 import Image from 'next/image';
 import { Search, X, Clock, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { handleImageError } from '@/lib/image-utils';
 
 interface SearchResult {
   id: string;
@@ -216,6 +217,7 @@ export function SearchAutocomplete({
                           fill
                           className="object-cover"
                           sizes="48px"
+                          onError={handleImageError}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-amber-300">

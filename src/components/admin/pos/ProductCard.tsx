@@ -8,6 +8,7 @@ import { addToPosCart, updatePosCartQuantity, removeFromPosCart } from '@/lib/re
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useCurrency } from '@/hooks/useCurrency';
+import { handleImageError, getProductImageUrl } from '@/lib/image-utils';
 
 interface ProductCardProps {
   product: {
@@ -25,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const cart = useAppSelector((state) => state.pos.cart);
   const { format } = useCurrency();
   const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-  const imageUrl = product.images?.[0]?.url || '/placeholder-product.png';
+  const imageUrl = getProductImageUrl(product.images?.[0]?.url);
 
   // Check if product is in cart (no variants for now)
   const cartItem = cart.find((item) => item.productId === product.id && !item.variantId);
@@ -87,15 +88,14 @@ export function ProductCard({ product }: ProductCardProps) {
           }
         }}
       >
-        {imageUrl && (
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        )}
+        <Image
+          src={imageUrl}
+          alt={product.name}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          onError={handleImageError}
+        />
         {isOutOfStock && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="text-white font-bold text-lg">Out of Stock</span>

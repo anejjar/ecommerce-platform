@@ -6,8 +6,9 @@ import { ThemeGrid } from '@/components/admin/themes/ThemeGrid';
 import { ThemeImporter } from '@/components/admin/themes/ThemeImporter';
 import { ThemePreview } from '@/components/admin/themes/ThemePreview';
 import FeatureGateLayout from '@/components/admin/FeatureGateLayout';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Power } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/button';
 
 interface Theme {
   id: string;
@@ -63,6 +64,25 @@ export default function ThemesPage() {
       await fetchThemes();
     } catch (error) {
       throw error;
+    }
+  };
+
+  const handleDeactivate = async () => {
+    try {
+      const response = await fetch('/api/admin/themes/deactivate', {
+        method: 'PATCH',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to deactivate theme');
+      }
+
+      // Refresh themes list
+      await fetchThemes();
+      toast.success('Theme deactivated');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to deactivate theme');
     }
   };
 
@@ -124,7 +144,19 @@ export default function ThemesPage() {
               Manage and customize your storefront appearance
             </p>
           </div>
-          <ThemeImporter onImport={handleImport} />
+          <div className="flex items-center gap-3">
+            {themes.some(t => t.isActive) && (
+              <Button
+                variant="outline"
+                onClick={handleDeactivate}
+                className="gap-2"
+              >
+                <Power className="w-4 h-4" />
+                Deactivate All
+              </Button>
+            )}
+            <ThemeImporter onImport={handleImport} />
+          </div>
         </div>
 
         {loading ? (
@@ -135,6 +167,7 @@ export default function ThemesPage() {
           <ThemeGrid
             themes={themes}
             onActivate={handleActivate}
+            onDeactivate={handleDeactivate}
             onDelete={handleDelete}
             onExport={handleExport}
             onPreview={handlePreview}

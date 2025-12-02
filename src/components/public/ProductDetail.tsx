@@ -19,6 +19,9 @@ import { useTranslations } from 'next-intl';
 import { useFlashSale } from '@/hooks/useFlashSale';
 import { FlashSaleBadge } from '@/components/public/FlashSaleBadge';
 import { CountdownTimer } from '@/components/checkout/CountdownTimer';
+import { useCurrency } from '@/hooks/useCurrency';
+import { useTheme } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
 
 interface VariantOptionValue {
   id: string;
@@ -68,6 +71,8 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   const t = useTranslations();
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { format } = useCurrency();
+  const { theme } = useTheme();
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const { flashSale, product: flashSaleProduct, loading: flashSaleLoading } = useFlashSale(product.id);
@@ -98,7 +103,6 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   }, [selectedOptions, product.variantOptions, product.variants, hasVariants]);
 
   // Get current price and stock (from variant or base product)
-  // Use flash sale price if available, otherwise use variant/base price
   const basePrice = selectedVariant
     ? Number(selectedVariant.price || product.price)
     : Number(product.price);
@@ -116,14 +120,11 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
       : null;
 
   // Calculate available stock
-  // If has variants: sum of all variant stocks (or selected variant if chosen)
-  // If no variants: use product stock
   const currentStock = useMemo(() => {
     if (hasVariants) {
       if (selectedVariant) {
         return selectedVariant.stock;
       }
-      // Sum all variant stocks to show total availability
       return product.variants.reduce((sum, v) => sum + v.stock, 0);
     }
     return product.stock;
@@ -136,6 +137,8 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
     currentComparePrice && currentComparePrice > currentPrice
       ? Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)
       : null;
+
+  const primaryColor = theme?.colors?.primary ?? '#111827';
 
   const handleOptionChange = (optionId: string, value: string) => {
     setSelectedOptions((prev) => ({
@@ -202,19 +205,19 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
   };
 
   return (
-    <div className="bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
+    <div className="bg-background py-12 md:py-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8" style={{ maxWidth: theme?.layout?.containerMaxWidth || '1280px' }}>
         {/* Breadcrumb */}
-        <nav className="mb-6 text-sm">
-          <ol className="flex items-center gap-2 text-gray-600">
+        <nav className="mb-8 text-sm">
+          <ol className="flex items-center gap-2 text-muted-foreground">
             <li>
-              <Link href="/" className="hover:text-blue-600">
+              <Link href="/" className="hover:text-foreground transition-colors">
                 {t('product.home')}
               </Link>
             </li>
             <li>/</li>
             <li>
-              <Link href="/shop" className="hover:text-blue-600">
+              <Link href="/shop" className="hover:text-foreground transition-colors">
                 {t('product.shop')}
               </Link>
             </li>
@@ -224,7 +227,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 <li>
                   <Link
                     href={`/shop?category=${product.category.slug}`}
-                    className="hover:text-blue-600"
+                    className="hover:text-foreground transition-colors"
                   >
                     {product.category.name}
                   </Link>
@@ -232,13 +235,13 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               </>
             )}
             <li>/</li>
-            <li className="text-gray-900 font-medium">{product.name}</li>
+            <li className="text-foreground font-medium">{product.name}</li>
           </ol>
         </nav>
 
         {/* Product Details */}
-        <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
-          <div className="grid md:grid-cols-2 gap-8">
+        <div className="bg-card border border-border rounded-lg mb-12 md:mb-16 p-6 md:p-8 lg:p-12">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-16">
             {/* Image Gallery */}
             <div>
               <ProductImageGallery
@@ -255,29 +258,26 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
             </div>
 
             {/* Product Info */}
-            <div>
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-                  {hasFlashSale && flashSale && (
-                    <div className="mb-2">
-                      <FlashSaleBadge
-                        discountType={flashSale.discountType}
-                        discountValue={flashSale.discountValue}
-                      />
-                    </div>
-                  )}
-                </div>
+            <div className="flex flex-col">
+              <div className="mb-6">
+                {product.category && (
+                  <Link
+                    href={`/shop?category=${product.category.slug}`}
+                    className="inline-block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
+                  >
+                    {product.category.name}
+                  </Link>
+                )}
+                <h1 className="text-3xl md:text-4xl font-medium mb-4 leading-tight">{product.name}</h1>
+                {hasFlashSale && flashSale && (
+                  <div className="mb-4">
+                    <FlashSaleBadge
+                      discountType={flashSale.discountType}
+                      discountValue={flashSale.discountValue}
+                    />
+                  </div>
+                )}
               </div>
-
-              {product.category && (
-                <Link
-                  href={`/shop?category=${product.category.slug}`}
-                  className="inline-block text-sm text-blue-600 hover:underline mb-4"
-                >
-                  {product.category.name}
-                </Link>
-              )}
 
               {/* Flash Sale Countdown Timer */}
               {hasFlashSale && flashSale && (
@@ -290,37 +290,37 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               )}
 
               {/* Price */}
-              <div className="mb-6">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold text-gray-900">
-                    ${currentPrice.toFixed(2)}
+              <div className="mb-8">
+                <div className="flex items-baseline gap-4 flex-wrap">
+                  <span className="text-4xl md:text-5xl font-medium" style={{ color: primaryColor }}>
+                    {format(currentPrice)}
                   </span>
                   {hasFlashSale ? (
                     originalPrice > currentPrice && (
                       <>
-                        <span className="text-2xl text-gray-500 line-through">
-                          ${originalPrice.toFixed(2)}
+                        <span className="text-xl md:text-2xl text-muted-foreground line-through">
+                          {format(originalPrice)}
                         </span>
-                        <span className="text-green-600 font-semibold">
-                          {t('product.save')} ${(originalPrice - currentPrice).toFixed(2)}
+                        <span className="text-sm font-medium text-destructive">
+                          {t('product.save')} {format(originalPrice - currentPrice)}
                         </span>
                       </>
                     )
                   ) : (
                     currentComparePrice && currentComparePrice > currentPrice && (
                       <>
-                        <span className="text-2xl text-gray-500 line-through">
-                          ${currentComparePrice.toFixed(2)}
+                        <span className="text-xl md:text-2xl text-muted-foreground line-through">
+                          {format(currentComparePrice)}
                         </span>
-                        <span className="text-green-600 font-semibold">
-                          {t('product.save')} ${(currentComparePrice - currentPrice).toFixed(2)}
+                        <span className="text-sm font-medium text-destructive">
+                          {t('product.save')} {format(currentComparePrice - currentPrice)}
                         </span>
                       </>
                     )
                   )}
                 </div>
                 {hasFlashSale && flashSaleProduct && flashSaleProduct.maxQuantity !== null && (
-                  <p className="text-sm text-orange-600 mt-2 font-semibold">
+                  <p className="text-sm text-destructive mt-2 font-medium">
                     Only {flashSaleProduct.available} left at this price!
                   </p>
                 )}
@@ -329,24 +329,24 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               {/* Stock Status */}
               <div className="mb-6">
                 {currentStock > 0 ? (
-                  <p className="text-green-600 font-medium">
+                  <p className="text-sm font-medium text-green-600">
                     ✓ {t('product.inStock')} ({currentStock} {t('product.available')})
                   </p>
                 ) : (
-                  <p className="text-red-600 font-medium">✗ {t('product.outOfStock')}</p>
+                  <p className="text-sm font-medium text-destructive">✗ {t('product.outOfStock')}</p>
                 )}
               </div>
 
               {/* SKU */}
               {product.sku && (
-                <p className="text-sm text-gray-600 mb-6">
+                <p className="text-sm text-muted-foreground mb-6">
                   {t('product.sku')}: <span className="font-mono">{product.sku}</span>
                 </p>
               )}
 
               {/* Variant Options */}
               {hasVariants && (
-                <div className="mb-6">
+                <div className="mb-8">
                   <VariantSelector
                     options={product.variantOptions}
                     variants={product.variants.map(v => ({
@@ -362,40 +362,41 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
               )}
 
               {/* Quantity Selector */}
-              <div className="mb-6">
-                <label className="block font-semibold mb-2">{t('product.quantity')}</label>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center border rounded-lg">
+              <div className="mb-8">
+                <label className="block text-sm font-medium mb-3">{t('product.quantity')}</label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-border rounded-lg">
                     <button
                       onClick={decrementQuantity}
                       disabled={quantity <= 1}
-                      className="px-4 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2.5 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="px-6 py-2 font-semibold border-x">{quantity}</span>
+                    <span className="px-6 py-2.5 font-medium border-x border-border min-w-[60px] text-center">{quantity}</span>
                     <button
                       onClick={incrementQuantity}
                       disabled={quantity >= currentStock}
-                      className="px-4 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2.5 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     {t('product.total')}:{' '}
-                    <span className="font-bold">${(currentPrice * quantity).toFixed(2)}</span>
+                    <span className="font-medium text-foreground">{format(currentPrice * quantity)}</span>
                   </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 mb-6">
+              <div className="flex gap-3 mb-8">
                 <Button
                   onClick={handleAddToCart}
                   disabled={currentStock === 0}
                   className="flex-1"
                   size="lg"
+                  style={{ backgroundColor: primaryColor, color: '#ffffff' }}
                 >
                   {addedToCart ? (
                     <>
@@ -412,18 +413,18 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
                 <Button
                   onClick={handleBuyNow}
                   disabled={currentStock === 0}
-                  variant="secondary"
+                  variant="outline"
                   size="lg"
                 >
                   {t('product.buyNow')}
                 </Button>
-                <div className="border rounded-lg flex items-center justify-center px-4 hover:bg-gray-50">
+                <div className="border border-border rounded-lg flex items-center justify-center px-4 hover:bg-muted transition-colors">
                   <WishlistButton productId={product.id} showText={false} />
                 </div>
               </div>
 
               {/* Additional Info */}
-              <div className="border-t pt-6 space-y-3 text-sm text-gray-600">
+              <div className="border-t border-border pt-6 space-y-2 text-sm text-muted-foreground">
                 <p>✓ {t('product.freeShipping')}</p>
                 <p>✓ {t('product.moneyBack')}</p>
                 <p>✓ {t('product.secureCheckout')}</p>
@@ -433,7 +434,7 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
         </div>
 
         {/* Product Tabs (Description, Specs, Reviews) */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-8">
+        <div className="bg-card border border-border rounded-lg mb-12 md:mb-16 p-6 md:p-8 lg:p-12">
           <ProductTabs
             description={product.description}
             productId={product.id}
@@ -443,13 +444,13 @@ export function ProductDetail({ product, relatedProducts }: ProductDetailProps) 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">{t('product.relatedProducts')}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <h2 className="text-2xl md:text-3xl font-medium mb-8">{t('product.relatedProducts')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct, index) => (
                 <div
                   key={relatedProduct.id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="animate-subtle-lift"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <ProductCard product={relatedProduct} />
                 </div>

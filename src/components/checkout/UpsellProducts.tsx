@@ -9,6 +9,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { ShoppingCart, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
+import { handleImageError } from '@/lib/image-utils';
 
 interface Product {
   id: string;
@@ -100,6 +101,7 @@ export function UpsellProducts({ productIds, title, position }: UpsellProductsPr
                   alt={product.name}
                   fill
                   className="object-cover"
+                  onError={handleImageError}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-100">

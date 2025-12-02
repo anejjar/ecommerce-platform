@@ -126,7 +126,13 @@ export default function SettingsPage() {
             icon: Share2,
             visible: true
         },
-
+        {
+            title: "Appearance",
+            description: "Customize your storefront color palette and visual appearance.",
+            href: "/admin/settings/appearance",
+            icon: Palette,
+            visible: true
+        },
         {
             title: "Translations",
             description: "Manage languages and translations.",

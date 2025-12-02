@@ -13,6 +13,7 @@ import { removeFromWishlist } from '@/lib/redux/features/wishlistSlice';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { handleImageError } from '@/lib/image-utils';
 
 export function WishlistContent() {
   const t = useTranslations();
@@ -137,6 +138,7 @@ export function WishlistContent() {
                       alt={product.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform"
+                      onError={handleImageError}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
