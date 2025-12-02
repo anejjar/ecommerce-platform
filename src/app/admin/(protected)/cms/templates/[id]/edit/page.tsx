@@ -36,7 +36,16 @@ const CATEGORY_LABELS: Record<BlockCategory, string> = {
     FAQ: 'FAQ',
     GALLERY: 'Gallery',
     VIDEO: 'Video',
+    NAVIGATION: 'Navigation',
+    HEADER: 'Header',
+    FOOTER: 'Footer',
+    SOCIAL: 'Social',
+    BREADCRUMBS: 'Breadcrumbs',
+    DIVIDER: 'Divider',
+    SPACER: 'Spacer',
     CUSTOM: 'Custom',
+    PRODUCT: 'Product',
+    BLOG: 'Blog',
 };
 
 export default function EditBlockTemplatePage({ params }: { params: Promise<{ id: string }> }) {

@@ -106,7 +106,7 @@ export default function AppearanceSettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          displayName: `${activeTheme?.metadata?.displayName || 'Custom'} Theme`,
+          displayName: `${activeTheme?.metadata?.name || 'Custom'} Theme`,
           activate: true,
         }),
       });

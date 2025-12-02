@@ -62,10 +62,14 @@ export async function GET(
         const settings = await prisma.invoiceSettings.findFirst();
 
         if (format === 'pdf') {
-            // Generate PDF
-            const pdfBuffer = await generateInvoicePDF(invoice, invoice.template, settings);
+            // Generate PDF - convert Prisma invoice to Invoice type
+            const invoiceData = {
+                ...invoice,
+                invoiceType: invoice.invoiceType as any,
+            };
+            const pdfBuffer = await generateInvoicePDF(invoiceData as any, invoice.template, settings as any);
 
-            return new NextResponse(pdfBuffer, {
+            return new NextResponse(pdfBuffer as any, {
                 headers: {
                     'Content-Type': 'application/pdf',
                     'Content-Disposition': `attachment; filename="Invoice-${invoice.invoiceNumber}.pdf"`,

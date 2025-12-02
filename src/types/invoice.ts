@@ -217,5 +217,12 @@ export interface RecurringInvoice {
   createdById?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
+  generatedInvoices?: Array<{
+    id: string;
+    invoiceNumber: string;
+    status: string;
+    total: number;
+    createdAt: Date | string;
+  }>;
 }
 

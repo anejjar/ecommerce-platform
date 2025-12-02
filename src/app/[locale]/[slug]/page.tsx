@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { Metadata } from 'next';
 import { PageOverrideRenderer } from '@/components/public/PageOverrideRenderer';
-import { RichTextRenderer } from '@/components/admin/RichTextEditor';
 
 interface PageProps {
     params: Promise<{

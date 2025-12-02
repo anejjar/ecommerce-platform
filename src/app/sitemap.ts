@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
 import { locales, defaultLocale } from '@/i18n';
+import { PostStatus } from '@prisma/client';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -15,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const blogPosts = await prisma.blogPost.findMany({
-    where: { published: true },
+    where: { status: PostStatus.PUBLISHED },
     select: { slug: true, updatedAt: true },
   });
 

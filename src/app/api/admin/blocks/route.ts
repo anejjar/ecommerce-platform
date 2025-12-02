@@ -9,7 +9,7 @@ const createBlockSchema = z.object({
     templateId: z.string(),
     pageId: z.string().optional(),
     postId: z.string().optional(),
-    landingPageId: z.string().optional(),
+    landingPageId: z.string().optional(), // Deprecated: kept for backward compatibility, will be converted to pageId
     config: z.record(z.string(), z.any()),
     customCss: z.string().optional().nullable(),
     customClasses: z.string().optional().nullable(),
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         // Parse query parameters
         const pageId = searchParams.get('pageId');
         const postId = searchParams.get('postId');
-        const landingPageId = searchParams.get('landingPageId');
+        const landingPageId = searchParams.get('landingPageId'); // Deprecated: kept for backward compatibility
         const templateId = searchParams.get('templateId');
         const isVisible = searchParams.get('isVisible') === 'true' ? true : searchParams.get('isVisible') === 'false' ? false : undefined;
 
@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
         const where: any = {};
         if (pageId) where.pageId = pageId;
         if (postId) where.postId = postId;
-        if (landingPageId) where.landingPageId = landingPageId;
+        // Convert deprecated landingPageId to pageId
+        if (landingPageId) where.pageId = landingPageId;
         if (templateId) where.templateId = templateId;
         if (isVisible !== undefined) where.isVisible = isVisible;
 
@@ -94,6 +95,9 @@ export async function POST(request: NextRequest) {
 
         const data = validationResult.data;
 
+        // Convert deprecated landingPageId to pageId for backward compatibility
+        const pageId = data.pageId || data.landingPageId;
+
         // Verify template exists
         const template = await prisma.blockTemplate.findUnique({
             where: { id: data.templateId },
@@ -110,9 +114,8 @@ export async function POST(request: NextRequest) {
         if (order === undefined) {
             const maxOrder = await prisma.contentBlock.aggregate({
                 where: {
-                    pageId: data.pageId,
+                    pageId: pageId,
                     postId: data.postId,
-                    landingPageId: data.landingPageId,
                 },
                 _max: { order: true },
             });
@@ -123,9 +126,8 @@ export async function POST(request: NextRequest) {
         const block = await prisma.contentBlock.create({
             data: {
                 templateId: data.templateId,
-                pageId: data.pageId,
+                pageId: pageId,
                 postId: data.postId,
-                landingPageId: data.landingPageId,
                 config: data.config,
                 customCss: data.customCss,
                 customClasses: data.customClasses,

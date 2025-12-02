@@ -9,7 +9,7 @@ export async function GET(
     try {
         const { slug } = await params;
 
-        const page = await prisma.landingPage.findUnique({
+        const page = await prisma.page.findUnique({
             where: {
                 slug
                 // Removed status filter to allow previewing draft pages
@@ -39,7 +39,7 @@ export async function GET(
         }
 
         // Increment view count
-        await prisma.landingPage.update({
+        await prisma.page.update({
             where: { id: page.id },
             data: {
                 viewCount: {

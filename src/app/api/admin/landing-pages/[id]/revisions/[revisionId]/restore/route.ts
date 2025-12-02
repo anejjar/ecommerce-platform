@@ -17,7 +17,7 @@ export async function POST(
         const { id, revisionId } = await params;
 
         // Get revision
-        const revision = await prisma.landingPageRevision.findUnique({
+        const revision = await prisma.pageRevision.findUnique({
             where: { id: revisionId },
             include: {
                 page: true,
@@ -33,7 +33,7 @@ export async function POST(
         }
 
         // Restore page data
-        const updatedPage = await prisma.landingPage.update({
+        const updatedPage = await prisma.page.update({
             where: { id },
             data: {
                 title: revision.title,
@@ -58,8 +58,7 @@ export async function POST(
         // Delete existing blocks
         await prisma.contentBlock.deleteMany({
             where: {
-                blockableType: 'LandingPage',
-                blockableId: id,
+                pageId: id,
             },
         });
 
@@ -70,8 +69,7 @@ export async function POST(
                     templateId: block.templateId,
                     config: block.config,
                     order: block.order,
-                    blockableType: 'LandingPage',
-                    blockableId: id,
+                    pageId: id,
                 })),
             });
         }
@@ -79,8 +77,8 @@ export async function POST(
         await logActivity({
             userId: session.user.id,
             action: 'RESTORE',
-            entityType: 'LANDING_PAGE',
-            entityId: id,
+            resource: 'PAGE',
+            resourceId: id,
             details: `Restored page from revision #${revision.revisionNumber}`,
         });
 

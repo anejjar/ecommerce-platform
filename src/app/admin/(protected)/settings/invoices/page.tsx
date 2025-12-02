@@ -860,7 +860,7 @@ export default function InvoiceSettingsPage() {
                             setShowLogoMediaPicker(false);
                         }
                     }}
-                    accept="image/*"
+                    type="IMAGE"
                 />
             )}
         </div>

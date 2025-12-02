@@ -84,7 +84,13 @@ export async function GET(request: NextRequest) {
     });
 
     for (const cart of firstReminderCarts) {
-      const cartItems: CartItem[] = JSON.parse(cart.cartSnapshot);
+      const cartItemsRaw: CartItem[] = JSON.parse(cart.cartSnapshot);
+      const cartItems = cartItemsRaw.map(item => ({
+        productId: item.productId,
+        name: item.name || 'Unknown Product',
+        quantity: item.quantity,
+        price: item.price,
+      }));
       const customerName = cart.user?.name || cart.guestName || null;
       const recipientEmail = cart.user?.email || cart.guestEmail;
 
@@ -138,7 +144,13 @@ export async function GET(request: NextRequest) {
     });
 
     for (const cart of secondReminderCarts) {
-      const cartItems: CartItem[] = JSON.parse(cart.cartSnapshot);
+      const cartItemsRaw: CartItem[] = JSON.parse(cart.cartSnapshot);
+      const cartItems = cartItemsRaw.map(item => ({
+        productId: item.productId,
+        name: item.name || 'Unknown Product',
+        quantity: item.quantity,
+        price: item.price,
+      }));
       const customerName = cart.user?.name || cart.guestName || null;
       const recipientEmail = cart.user?.email || cart.guestEmail;
 
@@ -203,7 +215,13 @@ export async function GET(request: NextRequest) {
     });
 
     for (const cart of finalReminderCarts) {
-      const cartItems: CartItem[] = JSON.parse(cart.cartSnapshot);
+      const cartItemsRaw: CartItem[] = JSON.parse(cart.cartSnapshot);
+      const cartItems = cartItemsRaw.map(item => ({
+        productId: item.productId,
+        name: item.name || 'Unknown Product',
+        quantity: item.quantity,
+        price: item.price,
+      }));
       const customerName = cart.user?.name || cart.guestName || null;
       const recipientEmail = cart.user?.email || cart.guestEmail;
 

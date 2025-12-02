@@ -28,7 +28,7 @@ export async function POST(
         const { blocks } = syncBlocksSchema.parse(body);
 
         // Verify page exists and user has access
-        const page = await prisma.landingPage.findUnique({
+        const page = await prisma.page.findUnique({
             where: { id },
             include: { blocks: true },
         });
@@ -47,7 +47,7 @@ export async function POST(
             await prisma.contentBlock.deleteMany({
                 where: {
                     id: { in: blocksToDelete },
-                    landingPageId: id,
+                    pageId: id,
                 },
             });
         }
@@ -63,7 +63,7 @@ export async function POST(
                         templateId: block.templateId,
                         config: block.config,
                         order: block.order,
-                        landingPageId: id,
+                        pageId: id,
                     },
                 });
             } else {
@@ -79,7 +79,7 @@ export async function POST(
         }
 
         // Fetch updated page with blocks
-        const updatedPage = await prisma.landingPage.findUnique({
+        const updatedPage = await prisma.page.findUnique({
             where: { id },
             include: {
                 blocks: {
@@ -97,7 +97,7 @@ export async function POST(
         console.error('Error syncing blocks:', error);
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: 'Invalid request data', details: error.errors },
+                { error: 'Invalid request data', details: error.issues },
                 { status: 400 }
             );
         }

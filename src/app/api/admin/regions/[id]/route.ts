@@ -14,8 +14,8 @@ export async function PATCH(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id: regionId } = await params;
         const data = await request.json();
-        const regionId = id;
 
         const region = await prisma.region.update({
             where: { id: regionId },
@@ -46,7 +46,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const regionId = id;
+        const { id: regionId } = await params;
 
         // Delete region (cities will be cascaded)
         await prisma.region.delete({

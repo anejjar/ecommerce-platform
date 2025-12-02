@@ -41,25 +41,7 @@ export async function GET(
             role: true,
           },
         },
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                sku: true,
-                slug: true,
-              },
-            },
-            variant: {
-              select: {
-                id: true,
-                sku: true,
-                optionValues: true,
-              },
-            },
-          },
-        },
+        items: true,
       },
     })
 

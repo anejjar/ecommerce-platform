@@ -10,6 +10,7 @@ const createLandingPageSchema = z.object({
     title: z.string().min(3).max(200),
     slug: z.string().regex(/^[a-z0-9-]+$/),
     description: z.string().optional().nullable(),
+    content: z.string().optional(),
     seoTitle: z.string().optional().nullable(),
     seoDescription: z.string().optional().nullable(),
     seoKeywords: z.string().optional().nullable(),
@@ -17,6 +18,8 @@ const createLandingPageSchema = z.object({
     ogTitle: z.string().optional().nullable(),
     ogDescription: z.string().optional().nullable(),
     status: z.nativeEnum(PageStatus).optional(),
+    useStorefrontLayout: z.boolean().optional(),
+    useBlockEditor: z.boolean().optional(),
     layoutConfig: z.record(z.string(), z.any()).optional().nullable(),
     customCss: z.string().optional().nullable(),
     customJs: z.string().optional().nullable(),
@@ -55,10 +58,10 @@ export async function GET(request: NextRequest) {
         }
 
         // Get total count
-        const total = await prisma.landingPage.count({ where });
+        const total = await prisma.page.count({ where });
 
         // Get landing pages
-        const pages = await prisma.landingPage.findMany({
+        const pages = await prisma.page.findMany({
             where,
             select: {
                 id: true,
@@ -130,7 +133,7 @@ export async function POST(request: NextRequest) {
         const data = validationResult.data;
 
         // Check if slug already exists
-        const existing = await prisma.landingPage.findUnique({
+        const existing = await prisma.page.findUnique({
             where: { slug: data.slug },
         });
 
@@ -142,11 +145,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Create landing page
-        const page = await prisma.landingPage.create({
+        const page = await prisma.page.create({
             data: {
                 title: data.title,
                 slug: data.slug,
                 description: data.description,
+                content: data.content || '', // Required field
                 seoTitle: data.seoTitle,
                 seoDescription: data.seoDescription,
                 seoKeywords: data.seoKeywords,
@@ -154,6 +158,8 @@ export async function POST(request: NextRequest) {
                 ogTitle: data.ogTitle,
                 ogDescription: data.ogDescription,
                 status: data.status ?? PageStatus.DRAFT,
+                useStorefrontLayout: data.useStorefrontLayout ?? true,
+                useBlockEditor: data.useBlockEditor ?? false,
                 layoutConfig: data.layoutConfig,
                 customCss: data.customCss,
                 customJs: data.customJs,

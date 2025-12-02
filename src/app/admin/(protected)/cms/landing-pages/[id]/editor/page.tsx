@@ -11,7 +11,7 @@ interface EditorPageProps {
 
 export default async function EditorPage({ params }: EditorPageProps) {
     const { id } = await params;
-    const page = await prisma.landingPage.findUnique({
+    const page = await prisma.page.findUnique({
         where: { id },
         include: {
             blocks: {

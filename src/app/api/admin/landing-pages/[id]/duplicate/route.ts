@@ -39,7 +39,7 @@ export async function POST(
         const { title, slug } = validationResult.data;
 
         // Check if original page exists
-        const original = await prisma.landingPage.findUnique({
+        const original = await prisma.page.findUnique({
             where: { id },
             include: {
                 blocks: {
@@ -53,7 +53,7 @@ export async function POST(
         }
 
         // Check if new slug already exists
-        const slugExists = await prisma.landingPage.findUnique({
+        const slugExists = await prisma.page.findUnique({
             where: { slug },
         });
 
@@ -65,11 +65,12 @@ export async function POST(
         }
 
         // Create duplicate with all blocks
-        const duplicate = await prisma.landingPage.create({
+        const duplicate = await prisma.page.create({
             data: {
                 title,
                 slug,
                 description: original.description,
+                content: original.content || '', // Required field
                 seoTitle: original.seoTitle,
                 seoDescription: original.seoDescription,
                 seoKeywords: original.seoKeywords,
@@ -77,6 +78,8 @@ export async function POST(
                 ogTitle: original.ogTitle,
                 ogDescription: original.ogDescription,
                 status: PageStatus.DRAFT, // Always create duplicates as drafts
+                useStorefrontLayout: original.useStorefrontLayout ?? true,
+                useBlockEditor: original.useBlockEditor ?? false,
                 layoutConfig: original.layoutConfig,
                 customCss: original.customCss,
                 customJs: original.customJs,

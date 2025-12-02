@@ -39,7 +39,7 @@ export async function GET(
         const { searchParams } = new URL(request.url);
         const includeBlocks = searchParams.get('includeBlocks') !== 'false';
 
-        const page = await prisma.landingPage.findUnique({
+        const page = await prisma.page.findUnique({
             where: { id },
             include: {
                 author: {
@@ -101,7 +101,7 @@ export async function PUT(
         }
 
         // Check if page exists
-        const existing = await prisma.landingPage.findUnique({
+        const existing = await prisma.page.findUnique({
             where: { id },
         });
 
@@ -113,7 +113,7 @@ export async function PUT(
 
         // If slug is being changed, check for conflicts
         if (data.slug && data.slug !== existing.slug) {
-            const slugExists = await prisma.landingPage.findUnique({
+            const slugExists = await prisma.page.findUnique({
                 where: { slug: data.slug },
             });
 
@@ -126,7 +126,7 @@ export async function PUT(
         }
 
         // Update page
-        const page = await prisma.landingPage.update({
+        const page = await prisma.page.update({
             where: { id: id },
             data,
             include: {
@@ -174,7 +174,7 @@ export async function DELETE(
         }
 
         // Check if page exists
-        const page = await prisma.landingPage.findUnique({
+        const page = await prisma.page.findUnique({
             where: { id },
             include: {
                 _count: {
@@ -190,7 +190,7 @@ export async function DELETE(
         const deletedBlocksCount = page._count.blocks;
 
         // Delete page (blocks will be cascade deleted)
-        await prisma.landingPage.delete({
+        await prisma.page.delete({
             where: { id: id },
         });
 

@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         previewImage: loadedTheme.previewImage,
         isBuiltIn: false,
         isActive: false,
-        themeConfig: loadedTheme.config,
+        themeConfig: loadedTheme.config as any,
       },
     });
 

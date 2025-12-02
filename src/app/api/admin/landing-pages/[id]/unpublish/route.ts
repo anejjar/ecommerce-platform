@@ -19,7 +19,7 @@ export async function POST(
         }
 
         // Check if page exists
-        const page = await prisma.landingPage.findUnique({
+        const page = await prisma.page.findUnique({
             where: { id },
         });
 
@@ -28,7 +28,7 @@ export async function POST(
         }
 
         // Update page status to DRAFT
-        const updated = await prisma.landingPage.update({
+        const updated = await prisma.page.update({
             where: { id },
             data: {
                 status: PageStatus.DRAFT,

@@ -159,7 +159,7 @@ export default function NewProductPage() {
         preventDefault: () => { },
         currentTarget: formRef.current,
         target: formRef.current,
-      } as React.FormEvent<HTMLFormElement>;
+      } as unknown as React.FormEvent<HTMLFormElement>;
       handleSubmit(syntheticEvent);
     }
   };

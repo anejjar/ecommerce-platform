@@ -16,7 +16,7 @@ export async function GET(
 
         const { id } = await params;
 
-        const revisions = await prisma.landingPageRevision.findMany({
+        const revisions = await prisma.pageRevision.findMany({
             where: { pageId: id },
             include: {
                 createdBy: {
@@ -57,7 +57,7 @@ export async function POST(
         const { note } = body;
 
         // Get current page data
-        const page = await prisma.landingPage.findUnique({
+        const page = await prisma.page.findUnique({
             where: { id },
             include: {
                 blocks: {
@@ -76,7 +76,7 @@ export async function POST(
         }
 
         // Get latest revision number
-        const latestRevision = await prisma.landingPageRevision.findFirst({
+        const latestRevision = await prisma.pageRevision.findFirst({
             where: { pageId: id },
             orderBy: { revisionNumber: 'desc' },
             select: { revisionNumber: true },
@@ -85,12 +85,13 @@ export async function POST(
         const revisionNumber = (latestRevision?.revisionNumber || 0) + 1;
 
         // Create revision snapshot
-        const revision = await prisma.landingPageRevision.create({
+        const revision = await prisma.pageRevision.create({
             data: {
                 pageId: id,
                 title: page.title,
                 slug: page.slug,
                 description: page.description,
+                content: page.content || '',
                 seoTitle: page.seoTitle,
                 seoDescription: page.seoDescription,
                 seoKeywords: page.seoKeywords,
@@ -98,9 +99,13 @@ export async function POST(
                 ogTitle: page.ogTitle,
                 ogDescription: page.ogDescription,
                 status: page.status,
+                useBlockEditor: page.useBlockEditor ?? false,
+                useStorefrontLayout: page.useStorefrontLayout ?? true,
                 layoutConfig: page.layoutConfig,
                 customCss: page.customCss,
                 customJs: page.customJs,
+                overridesStorefrontPage: page.overridesStorefrontPage ?? false,
+                overriddenPageType: page.overriddenPageType,
                 blocksSnapshot: page.blocks.map(block => ({
                     id: block.id,
                     templateId: block.templateId,
@@ -125,8 +130,8 @@ export async function POST(
         await logActivity({
             userId: session.user.id,
             action: 'CREATE',
-            entityType: 'LANDING_PAGE_REVISION',
-            entityId: revision.id,
+            resource: 'PAGE_REVISION',
+            resourceId: revision.id,
             details: `Created revision #${revisionNumber} for page "${page.title}"`,
         });
 

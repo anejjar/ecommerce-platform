@@ -36,7 +36,7 @@ export async function POST(
         }
 
         // Check if page exists
-        const page = await prisma.landingPage.findUnique({
+        const page = await prisma.page.findUnique({
             where: { id },
             include: {
                 _count: {
@@ -60,7 +60,7 @@ export async function POST(
         const { scheduledPublishAt } = validationResult.data;
 
         // Update page status
-        const updated = await prisma.landingPage.update({
+        const updated = await prisma.page.update({
             where: { id },
             data: {
                 status: scheduledPublishAt ? PageStatus.SCHEDULED : PageStatus.PUBLISHED,
