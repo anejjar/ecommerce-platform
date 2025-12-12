@@ -50,7 +50,7 @@ ALTER TABLE `productvariant` DROP COLUMN `name`,
 ALTER TABLE `review` ADD COLUMN `approved` BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `communicationPreferences` TEXT NULL,
+ALTER TABLE `User` ADD COLUMN `communicationPreferences` TEXT NULL,
     ADD COLUMN `sessionsInvalidatedAt` DATETIME(3) NULL,
     MODIFY `role` ENUM('CUSTOMER', 'ADMIN', 'SUPERADMIN', 'MANAGER', 'EDITOR', 'SUPPORT', 'VIEWER') NOT NULL DEFAULT 'CUSTOMER';
 

@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `adminNotes` TEXT NULL;
+ALTER TABLE `User` ADD COLUMN `adminNotes` TEXT NULL;
