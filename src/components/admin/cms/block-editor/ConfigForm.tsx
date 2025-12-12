@@ -36,7 +36,8 @@ interface ConfigFormProps {
             defaultOpen?: boolean;
         }>;
     };
-    data: any;
+    data?: any;
+    config?: any;
     onChange: (data: any) => void;
 }
 
@@ -162,6 +163,7 @@ const renderField = (field: any, data: any, handleChange: (name: string, value: 
             );
         case 'checkbox':
         case 'boolean':
+        case 'toggle':
             return (
                 <ToggleField
                     key={field.name}
@@ -298,11 +300,15 @@ const renderField = (field: any, data: any, handleChange: (name: string, value: 
 export const ConfigForm: React.FC<ConfigFormProps> = ({
     schema,
     data,
+    config,
     onChange
 }) => {
+    // Support both data and config props for backward compatibility
+    const actualData = data ?? config ?? {};
+
     const handleChange = (fieldName: string, value: any) => {
         onChange({
-            ...data,
+            ...actualData,
             [fieldName]: value
         });
     };
@@ -311,7 +317,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
     const renderFields = (fields: any[]) => {
         return (
             <div className="space-y-6">
-                {fields.map((field) => renderField(field, data, handleChange))}
+                {fields.map((field) => renderField(field, actualData, handleChange))}
             </div>
         );
     };
@@ -323,7 +329,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             return (
                 <Accordion type="multiple" defaultValue={sections.filter(s => s.defaultOpen).map(s => s.id)} className="space-y-2">
                     {sections.map((section) => {
-                        const visibleFields = section.fields.filter((f: any) => shouldShowField(f, data));
+                        const visibleFields = section.fields.filter((f: any) => shouldShowField(f, actualData));
                         if (visibleFields.length === 0) return null;
 
                         return (
@@ -340,7 +346,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-6 pt-2">
-                                        {section.fields.map((field: any) => renderField(field, data, handleChange))}
+                                        {section.fields.map((field: any) => renderField(field, actualData, handleChange))}
                                     </div>
                                 </AccordionContent>
                             </AccordionItem>
@@ -353,7 +359,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             return (
                 <div className="space-y-8">
                     {sections.map((section, index) => {
-                        const visibleFields = section.fields.filter((f: any) => shouldShowField(f, data));
+                        const visibleFields = section.fields.filter((f: any) => shouldShowField(f, actualData));
                         if (visibleFields.length === 0) return null;
 
                         return (
@@ -365,7 +371,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
                                     )}
                                 </div>
                                 <div className="space-y-6 pl-4 border-l-2 border-border">
-                                    {section.fields.map((field: any) => renderField(field, data, handleChange))}
+                                    {section.fields.map((field: any) => renderField(field, actualData, handleChange))}
                                 </div>
                                 {index < sections.length - 1 && <Separator className="my-6" />}
                             </div>
@@ -388,12 +394,12 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
                     ))}
                 </TabsList>
                 {tabs.map((tab) => {
-                    const visibleFields = tab.fields.filter((f: any) => shouldShowField(f, data));
+                    const visibleFields = tab.fields.filter((f: any) => shouldShowField(f, actualData));
                     if (visibleFields.length === 0) return null;
 
                     return (
                         <TabsContent key={tab.id} value={tab.id} className="mt-4 space-y-6">
-                            {tab.fields.map((field: any) => renderField(field, data, handleChange))}
+                            {tab.fields.map((field: any) => renderField(field, actualData, handleChange))}
                         </TabsContent>
                     );
                 })}

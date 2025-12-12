@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
-import { handleImageError } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 
 export function CartContent() {
   const t = useTranslations();
@@ -85,20 +85,19 @@ export function CartContent() {
                   href={`/product/${item.productId || '#'}`}
                   className="relative w-24 h-24 md:w-28 md:h-28 bg-muted rounded-lg overflow-hidden flex-shrink-0 group"
                 >
-                  {item.image ? (
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform"
-                      sizes="112px"
-                      onError={handleImageError}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-12 h-12 border-2 border-dashed border-muted-foreground/20 rounded" />
-                    </div>
-                  )}
+                  <Image
+                    src={item.image || PLACEHOLDER_PRODUCT_IMAGE}
+                    alt={item.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform"
+                    sizes="112px"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.onerror = null;
+                      target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                    }}
+                    unoptimized={item.image?.startsWith('data:') || false}
+                  />
                 </Link>
 
                 {/* Product Info */}

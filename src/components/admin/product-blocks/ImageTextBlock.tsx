@@ -1,5 +1,7 @@
 'use client';
 
+import { handleNativeImageError } from '@/lib/image-utils';
+
 interface ImageTextBlockProps {
   config: {
     image?: string;
@@ -29,7 +31,12 @@ export function ImageTextBlock({ config }: ImageTextBlockProps) {
       <div className={`flex flex-col md:flex-row gap-6 p-6 ${isImageLeft ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
         <div className="flex-shrink-0 w-full md:w-1/2">
           {image ? (
-            <img src={image} alt={heading} className="w-full h-auto rounded-lg" />
+            <img
+              src={image}
+              alt={heading}
+              className="w-full h-auto rounded-lg"
+              onError={handleNativeImageError}
+            />
           ) : (
             <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
               <p className="text-gray-400">No image selected</p>

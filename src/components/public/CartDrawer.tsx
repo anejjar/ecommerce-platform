@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
-import { handleImageError } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 
 export function CartDrawer() {
   const t = useTranslations();
@@ -131,20 +131,19 @@ export function CartDrawer() {
                           className="flex items-center gap-3 p-3 bg-muted/50 hover:bg-muted rounded-lg transition-colors group"
                         >
                           <div className="relative w-16 h-16 bg-background rounded-lg overflow-hidden flex-shrink-0">
-                            {product.images[0] ? (
-                              <Image
-                                src={product.images[0].url}
-                                alt={product.name}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform"
-                                sizes="64px"
-                                onError={handleImageError}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <div className="w-8 h-8 border-2 border-dashed border-muted-foreground/20 rounded" />
-                              </div>
-                            )}
+                            <Image
+                              src={product.images[0]?.url || PLACEHOLDER_PRODUCT_IMAGE}
+                              alt={product.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform"
+                              sizes="64px"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.onerror = null;
+                                target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                              }}
+                              unoptimized={product.images[0]?.url?.startsWith('data:') || false}
+                            />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
@@ -185,20 +184,19 @@ export function CartDrawer() {
                       onClick={() => dispatch(closeCart())}
                       className="relative w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0 group"
                     >
-                      {item.image ? (
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform"
-                          sizes="80px"
-                          onError={handleImageError}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-8 h-8 border-2 border-dashed border-muted-foreground/20 rounded" />
-                        </div>
-                      )}
+                      <Image
+                        src={item.image || PLACEHOLDER_PRODUCT_IMAGE}
+                        alt={item.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform"
+                        sizes="80px"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.onerror = null;
+                          target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                        }}
+                        unoptimized={item.image?.startsWith('data:') || false}
+                      />
                     </Link>
 
                     {/* Product Details */}

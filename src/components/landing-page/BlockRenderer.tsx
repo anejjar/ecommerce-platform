@@ -49,6 +49,20 @@ import { BlogPostContent } from './blocks/BlogPostContent';
 import { BlogCategories } from './blocks/BlogCategories';
 import { RecentPostsWidget } from './blocks/RecentPostsWidget';
 
+// New Elementor-style widgets
+import { Heading } from './blocks/Heading';
+import { TextEditor } from './blocks/TextEditor';
+import { ButtonBlock } from './blocks/Button';
+import { Icon } from './blocks/Icon';
+import { ImageBlock } from './blocks/Image';
+import { DividerWidget } from './blocks/DividerWidget';
+import { SpacerWidget } from './blocks/SpacerWidget';
+import { AccordionWidget } from './blocks/AccordionWidget';
+import { TabsWidget } from './blocks/TabsWidget';
+import { Counter } from './blocks/Counter';
+import { ProgressBar } from './blocks/ProgressBar';
+import { SocialIconsWidget } from './blocks/SocialIconsWidget';
+
 interface BlockRendererProps {
   block: {
     id: string;
@@ -226,6 +240,32 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({ block, landingPage
         return <BlogCategories config={block.config} />;
       case 'recent-posts-widget':
         return <RecentPostsWidget config={block.config} />;
+
+      // New Elementor-style widgets
+      case 'heading':
+        return <Heading config={block.config} />;
+      case 'text-editor':
+        return <TextEditor config={block.config} />;
+      case 'button':
+        return <ButtonBlock config={block.config} />;
+      case 'icon':
+        return <Icon config={block.config} />;
+      case 'image':
+        return <ImageBlock config={block.config} />;
+      case 'divider-widget':
+        return <DividerWidget config={block.config} />;
+      case 'spacer-widget':
+        return <SpacerWidget config={block.config} />;
+      case 'accordion':
+        return <AccordionWidget config={block.config} />;
+      case 'tabs':
+        return <TabsWidget config={block.config} />;
+      case 'counter':
+        return <Counter config={block.config} />;
+      case 'progress-bar':
+        return <ProgressBar config={block.config} />;
+      case 'social-icons':
+        return <SocialIconsWidget config={block.config} />;
 
       // Default fallback: render from componentCode
       default:

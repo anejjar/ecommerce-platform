@@ -31,6 +31,11 @@ interface ExportFilters {
   hasOrders?: boolean;
   parentCategoryId?: string;
   lowStock?: boolean;
+  rating?: string;
+  verified?: string;
+  approved?: string;
+  type?: string;
+  active?: string;
 }
 
 export function ExportForm({ onExportCreated }: ExportFormProps) {
@@ -310,6 +315,154 @@ export function ExportForm({ onExportCreated }: ExportFormProps) {
           </div>
         );
 
+      case 'BLOG_POSTS':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Post Status</Label>
+              <Select
+                value={filters.status || 'all'}
+                onValueChange={(value) => setFilters({ ...filters, status: value === 'all' ? undefined : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="PUBLISHED">Published</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'PAGES':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Page Status</Label>
+              <Select
+                value={filters.status || 'all'}
+                onValueChange={(value) => setFilters({ ...filters, status: value === 'all' ? undefined : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="PUBLISHED">Published</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'REVIEWS':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Rating</Label>
+              <Select
+                value={filters.rating?.toString() || 'all'}
+                onValueChange={(value) => setFilters({ ...filters, rating: value === 'all' ? undefined : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All ratings" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All ratings</SelectItem>
+                  <SelectItem value="5">5 Stars</SelectItem>
+                  <SelectItem value="4">4 Stars</SelectItem>
+                  <SelectItem value="3">3 Stars</SelectItem>
+                  <SelectItem value="2">2 Stars</SelectItem>
+                  <SelectItem value="1">1 Star</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="verified"
+                checked={filters.verified === 'true'}
+                onCheckedChange={(checked) =>
+                  setFilters({ ...filters, verified: checked ? 'true' : undefined })
+                }
+              />
+              <Label htmlFor="verified" className="font-normal">
+                Verified purchases only
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="approved"
+                checked={filters.approved === 'true'}
+                onCheckedChange={(checked) =>
+                  setFilters({ ...filters, approved: checked ? 'true' : undefined })
+                }
+              />
+              <Label htmlFor="approved" className="font-normal">
+                Approved reviews only
+              </Label>
+            </div>
+          </div>
+        );
+
+      case 'DISCOUNT_CODES':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Discount Type</Label>
+              <Select
+                value={filters.type || 'all'}
+                onValueChange={(value) => setFilters({ ...filters, type: value === 'all' ? undefined : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All types</SelectItem>
+                  <SelectItem value="PERCENTAGE">Percentage</SelectItem>
+                  <SelectItem value="FIXED">Fixed Amount</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="active"
+                checked={filters.active === 'true'}
+                onCheckedChange={(checked) =>
+                  setFilters({ ...filters, active: checked ? 'true' : undefined })
+                }
+              />
+              <Label htmlFor="active" className="font-normal">
+                Active codes only
+              </Label>
+            </div>
+          </div>
+        );
+
+      case 'NEWSLETTER_SUBSCRIBERS':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="activeSubscribers"
+                checked={filters.active === 'true'}
+                onCheckedChange={(checked) =>
+                  setFilters({ ...filters, active: checked ? 'true' : undefined })
+                }
+              />
+              <Label htmlFor="activeSubscribers" className="font-normal">
+                Active subscribers only
+              </Label>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -339,10 +492,18 @@ export function ExportForm({ onExportCreated }: ExportFormProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="PRODUCTS">Products</SelectItem>
+                <SelectItem value="PRODUCT_IMAGES">Product Images</SelectItem>
+                <SelectItem value="PRODUCT_VARIANTS">Product Variants</SelectItem>
                 <SelectItem value="ORDERS">Orders</SelectItem>
                 <SelectItem value="CUSTOMERS">Customers</SelectItem>
                 <SelectItem value="CATEGORIES">Categories</SelectItem>
                 <SelectItem value="INVENTORY">Inventory</SelectItem>
+                <SelectItem value="BLOG_POSTS">Blog Posts</SelectItem>
+                <SelectItem value="PAGES">Pages</SelectItem>
+                <SelectItem value="MEDIA_LIBRARY">Media Library</SelectItem>
+                <SelectItem value="REVIEWS">Reviews</SelectItem>
+                <SelectItem value="NEWSLETTER_SUBSCRIBERS">Newsletter Subscribers</SelectItem>
+                <SelectItem value="DISCOUNT_CODES">Discount Codes</SelectItem>
               </SelectContent>
             </Select>
           </div>

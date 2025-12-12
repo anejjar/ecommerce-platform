@@ -11,6 +11,13 @@ interface EditorPageProps {
 
 export default async function EditorPage({ params }: EditorPageProps) {
     const { id } = await params;
+
+    // Debug logging
+    console.log('----------------------------------------');
+    console.log('[EditorPage] Debugging 404 error');
+    console.log('[EditorPage] Route params id:', id);
+    console.log('----------------------------------------');
+
     const page = await prisma.page.findUnique({
         where: { id },
         include: {
@@ -25,7 +32,10 @@ export default async function EditorPage({ params }: EditorPageProps) {
         }
     });
 
+    console.log('[EditorPage] Page query result:', page ? 'Found' : 'Null');
+
     if (!page) {
+        console.log('[EditorPage] Triggering notFound()');
         notFound();
     }
 

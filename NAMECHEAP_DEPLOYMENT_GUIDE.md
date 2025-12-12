@@ -52,7 +52,7 @@ Before you begin, ensure you have:
    - Scroll to **"MySQL Users"** section
    - Under **"Add New User"**:
      - Username: `ecommerce_user`
-     - Password: Generate a strong password (click "Password Generator")
+     - Password: `%Ngx>#*^eLp7*T=`
      - Save this password securely!
    - Click **"Create User"**
 
@@ -66,9 +66,9 @@ Before you begin, ensure you have:
 
 5. **Note Your Database Details**:
    ```
-   Database Name: yourusername_ecommerce_db
-   Database User: yourusername_ecommerce_user
-   Database Password: [your generated password]
+   Database Name: `argawftz_ecommerce_db`
+   Database User: `argawftz_ecommerce_user`
+   Database Password: `%Ngx>#*^eLp7*T=`
    Database Host: localhost (or as shown in cPanel)
    ```
    *(Note: cPanel usually prefixes database names with your username)*

@@ -14,7 +14,8 @@ import { useFlashSale } from '@/hooks/useFlashSale';
 import { useTheme } from '@/hooks/useTheme';
 import { FlashSaleBadge } from '@/components/public/FlashSaleBadge';
 import { cn } from '@/lib/utils';
-import { handleImageError, getProductImageUrl } from '@/lib/image-utils';
+import { useImageErrorHandler } from '@/lib/image-utils';
+import { useState } from 'react';
 
 interface Product {
     id: string;
@@ -38,6 +39,9 @@ export function ProductCard({ product }: ProductCardProps) {
     const { format } = useCurrency();
     const { theme } = useTheme();
     const { flashSale, product: flashSaleProduct, loading: flashSaleLoading } = useFlashSale(product.id);
+
+    // Use error handler hook for reliable image loading
+    const { imageSrc, handleError } = useImageErrorHandler(product.images[0]?.url);
 
     // Use flash sale price if available, otherwise use regular price
     const displayPrice = flashSaleProduct?.salePrice ?? Number(product.price);
@@ -89,21 +93,15 @@ export function ProductCard({ product }: ProductCardProps) {
                     aspectRatio: imageAspectRatio,
                 }}
             >
-                {product.images[0] ? (
-                    <Image
-                        src={getProductImageUrl(product.images[0].url)}
-                        alt={product.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        onError={handleImageError}
-                        unoptimized={product.images[0].url?.startsWith('data:') || false}
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-muted">
-                        <div className="w-16 h-16 border-2 border-dashed border-muted-foreground/20 rounded-lg" />
-                    </div>
-                )}
+                <Image
+                    src={imageSrc}
+                    alt={product.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={handleError}
+                    unoptimized={imageSrc?.startsWith('data:') || false}
+                />
 
                 {/* Single Badge Position - Top Left */}
                 <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">

@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ProductActions } from '@/components/admin/ProductActions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Star, Trash2, Eye, EyeOff } from 'lucide-react';
-import { handleImageError } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 
 interface Product {
   id: string;
@@ -235,22 +235,21 @@ export function ProductsTable({ products }: ProductsTableProps) {
                   />
                 </TableCell>
                 <TableCell>
-                  {product.images[0] ? (
-                    <div className="relative w-12 h-12 rounded overflow-hidden bg-muted">
-                      <Image
-                        src={product.images[0].url}
-                        alt={product.images[0].alt || product.name}
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                        onError={handleImageError}
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-12 h-12 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                      No image
-                    </div>
-                  )}
+                  <div className="relative w-12 h-12 rounded overflow-hidden bg-muted">
+                    <Image
+                      src={product.images[0]?.url || PLACEHOLDER_PRODUCT_IMAGE}
+                      alt={product.images[0]?.alt || product.name}
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.onerror = null;
+                        target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                      }}
+                      unoptimized={product.images[0]?.url?.startsWith('data:') || false}
+                    />
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">

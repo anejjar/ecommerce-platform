@@ -1728,10 +1728,18 @@ enum ExportFormat {
 
 enum ExportType {
   PRODUCTS
+  PRODUCT_IMAGES
+  PRODUCT_VARIANTS
   ORDERS
   CUSTOMERS
   CATEGORIES
   INVENTORY
+  BLOG_POSTS
+  PAGES
+  MEDIA_LIBRARY
+  REVIEWS
+  NEWSLETTER_SUBSCRIBERS
+  DISCOUNT_CODES
   CUSTOM
 }
 
@@ -2038,6 +2046,16 @@ enum BlockCategory {
   CUSTOM
   PRODUCT
   BLOG
+  CONTAINER // NEW: For container blocks
+  LAYOUT    // NEW: For layout blocks
+}
+
+// NEW: Container types for layout system
+enum ContainerType {
+  BLOCK     // Regular block (no children)
+  SECTION   // Full-width section container
+  FLEXBOX   // Flexbox container
+  GRID      // Grid container
 }
 
 model BlockTemplate {
@@ -2096,8 +2114,22 @@ model ContentBlock {
   postId String?
   post   BlogPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  // Custom Configuration (overrides template defaults)
-  config Json
+  // NEW: Container/Nesting Support
+  containerType ContainerType @default(BLOCK)
+  parentId      String?
+  parent        ContentBlock?  @relation("BlockToBlock", fields: [parentId], references: [id], onDelete: Cascade)
+  children      ContentBlock[] @relation("BlockToBlock")
+
+  // NEW: Three-Tab Configuration Structure
+  contentConfig  Json  // Content tab settings (text, images, links)
+  styleConfig    Json? // Style tab settings (colors, typography, spacing)
+  advancedConfig Json? // Advanced tab settings (custom CSS, animations, positioning)
+
+  // Legacy config field (for backwards compatibility - can be removed after migration)
+  config Json?
+
+  // NEW: Layout Settings (for container-type blocks)
+  layoutSettings Json? // Flexbox/Grid settings (direction, gap, columns, etc.)
 
   // Styling Overrides
   customCss     String? @db.Text
@@ -2126,6 +2158,8 @@ model ContentBlock {
   @@index([pageId, order])
   @@index([postId, order])
   @@index([templateId])
+  @@index([parentId])
+  @@index([containerType])
 }
 
 enum PageStatus {

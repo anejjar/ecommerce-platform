@@ -138,6 +138,98 @@ export async function POST(
       }
     }
 
+    if (dataImport.type === 'BLOG_POSTS') {
+      const slugs = data.map((row) => row.Slug).filter(Boolean)
+      const uniqueSlugs = new Set(slugs)
+      if (slugs.length !== uniqueSlugs.size) {
+        detailedResults.warnings.push('Duplicate slugs found in file')
+      }
+
+      if (dataImport.mode === 'CREATE') {
+        const existingPosts = await prisma.blogPost.findMany({
+          where: {
+            slug: { in: Array.from(uniqueSlugs) },
+          },
+          select: { slug: true },
+        })
+
+        if (existingPosts.length > 0) {
+          detailedResults.warnings.push(
+            `${existingPosts.length} slugs already exist in database. Use UPDATE or UPSERT mode.`
+          )
+        }
+      }
+    }
+
+    if (dataImport.type === 'PAGES') {
+      const slugs = data.map((row) => row.Slug).filter(Boolean)
+      const uniqueSlugs = new Set(slugs)
+      if (slugs.length !== uniqueSlugs.size) {
+        detailedResults.warnings.push('Duplicate slugs found in file')
+      }
+
+      if (dataImport.mode === 'CREATE') {
+        const existingPages = await prisma.page.findMany({
+          where: {
+            slug: { in: Array.from(uniqueSlugs) },
+          },
+          select: { slug: true },
+        })
+
+        if (existingPages.length > 0) {
+          detailedResults.warnings.push(
+            `${existingPages.length} slugs already exist in database. Use UPDATE or UPSERT mode.`
+          )
+        }
+      }
+    }
+
+    if (dataImport.type === 'NEWSLETTER_SUBSCRIBERS') {
+      const emails = data.map((row) => row.Email).filter(Boolean)
+      const uniqueEmails = new Set(emails)
+      if (emails.length !== uniqueEmails.size) {
+        detailedResults.warnings.push('Duplicate emails found in file')
+      }
+
+      if (dataImport.mode === 'CREATE') {
+        const existingSubscribers = await prisma.newsletterSubscriber.findMany({
+          where: {
+            email: { in: Array.from(uniqueEmails) },
+          },
+          select: { email: true },
+        })
+
+        if (existingSubscribers.length > 0) {
+          detailedResults.warnings.push(
+            `${existingSubscribers.length} emails already exist in database. Use UPDATE or UPSERT mode.`
+          )
+        }
+      }
+    }
+
+    if (dataImport.type === 'DISCOUNT_CODES') {
+      const codes = data.map((row) => row.Code).filter(Boolean)
+      const uniqueCodes = new Set(codes)
+      if (codes.length !== uniqueCodes.size) {
+        detailedResults.warnings.push('Duplicate discount codes found in file')
+      }
+
+      if (dataImport.mode === 'CREATE') {
+        const existingCodes = await prisma.discountCode.findMany({
+          where: {
+            code: { in: Array.from(uniqueCodes) },
+          },
+          select: { code: true },
+        })
+
+        if (existingCodes.length > 0) {
+          detailedResults.warnings.push(
+            `${existingCodes.length} discount codes already exist in database. Use UPDATE or UPSERT mode.`
+          )
+        }
+      }
+    }
+
     // Update import record with validation results
     await prisma.dataImport.update({
       where: { id },

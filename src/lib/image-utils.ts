@@ -2,13 +2,26 @@ import { useState, useEffect, useCallback } from 'react';
 
 /**
  * Placeholder image data URL for product images
- * A simple SVG placeholder that works as a data URL
+ * A professional SVG placeholder with icon
  */
 export const PLACEHOLDER_PRODUCT_IMAGE = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
   `<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
-    <rect width="400" height="400" fill="#f3f4f6"/>
-    <rect x="150" y="150" width="100" height="100" fill="#d1d5db" rx="8"/>
-    <path d="M170 190 L200 160 L230 190 L230 230 L170 230 Z" fill="#9ca3af"/>
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#f9fafb;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#f3f4f6;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    <rect width="400" height="400" fill="url(#bg)"/>
+    <g transform="translate(200, 200)">
+      <!-- Shopping bag icon -->
+      <path d="M-40 -20 L-40 60 L40 60 L40 -20 Z" fill="#e5e7eb" stroke="#d1d5db" stroke-width="2"/>
+      <rect x="-35" y="-15" width="70" height="70" fill="#e5e7eb"/>
+      <path d="M-25 -20 Q-25 -45 0 -45 Q25 -45 25 -20" fill="none" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
+      <!-- Shopping bag icon bottom -->
+      <circle cx="0" cy="20" r="3" fill="#9ca3af"/>
+    </g>
+    <text x="200" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#9ca3af" text-anchor="middle" font-weight="500">No Image Available</text>
   </svg>`
 )}`;
 
@@ -20,7 +33,7 @@ export function handleImageError(e: React.SyntheticEvent<HTMLImageElement, Event
   const target = e.currentTarget;
   // Prevent infinite loop if placeholder also fails
   const currentSrc = target.src || target.getAttribute('src') || '';
-  
+
   if (currentSrc && !currentSrc.includes('data:image/svg+xml') && !currentSrc.includes('placeholder')) {
     try {
       // For Next.js Image, we need to update the src directly
@@ -32,6 +45,20 @@ export function handleImageError(e: React.SyntheticEvent<HTMLImageElement, Event
       // If setting src fails, try to hide the image and show placeholder
       console.warn('Failed to set placeholder image:', error);
     }
+  }
+}
+
+/**
+ * Handle image error for native HTML img elements
+ * Use this for standard <img> tags (non-Next.js Image components)
+ */
+export function handleNativeImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
+  const target = e.currentTarget;
+  const currentSrc = target.src || '';
+
+  if (currentSrc && !currentSrc.includes('data:image/svg+xml') && !currentSrc.includes('placeholder')) {
+    target.onerror = null; // Prevent infinite loop
+    target.src = PLACEHOLDER_PRODUCT_IMAGE;
   }
 }
 
@@ -71,4 +98,3 @@ export function useImageErrorHandler(initialSrc: string | null | undefined) {
 
   return { imageSrc, handleError, hasError };
 }
-

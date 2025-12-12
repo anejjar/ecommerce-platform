@@ -16,7 +16,10 @@
     "error": "An error occurred",
     "success": "Success",
     "addedToCart": "Added to cart successfully!",
-    "note": "Note:"
+    "note": "Note:",
+    "loading": "Loading...",
+    "optional": "optional",
+    "submitting": "Submitting..."
   },
   "header": {
     "searchPlaceholder": "Search products...",
@@ -146,6 +149,14 @@
       "quality": {
         "title": "Premium Quality",
         "desc": "Certified excellence"
+      },
+      "returns": {
+        "title": "Easy Returns",
+        "desc": "Hassle-free returns within 30 days"
+      },
+      "award": {
+        "title": "Award Winning",
+        "desc": "Recognized for excellence"
       }
     },
     "origins": {
@@ -203,6 +214,11 @@
     "newsletter": {
       "title": "Stay Informed",
       "subtitle": "Subscribe to our newsletter to receive our exclusive offers and discover our new coffees"
+    },
+    "blog": {
+      "title": "From Our Blog",
+      "subtitle": "Latest news and stories",
+      "readMore": "Read More"
     }
   },
   "shop": {
@@ -221,6 +237,8 @@
     "priceHighLow": "Price: High to Low",
     "nameAZ": "Name: A-Z",
     "showing": "Showing",
+    "to": "to",
+    "of": "of",
     "products": "products",
     "productCount": "{count, plural, =0 {No products} one {1 product} other {# products}} found",
     "activeFilters": "Active Filters:",

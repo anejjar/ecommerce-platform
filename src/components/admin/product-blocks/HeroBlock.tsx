@@ -1,5 +1,7 @@
 'use client';
 
+import { handleNativeImageError } from '@/lib/image-utils';
+
 interface HeroBlockProps {
   config: {
     image?: string;
@@ -27,7 +29,12 @@ export function HeroBlock({ config }: HeroBlockProps) {
       style={{ backgroundColor }}
     >
       {image ? (
-        <img src={image} alt={headline} className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={image}
+          alt={headline}
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={handleNativeImageError}
+        />
       ) : (
         <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
           <p className="text-gray-400">No image selected</p>

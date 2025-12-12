@@ -8,8 +8,16 @@ const syncBlocksSchema = z.object({
     blocks: z.array(z.object({
         id: z.string().optional(), // Optional for new blocks
         templateId: z.string(),
-        config: z.any(),
+        containerType: z.enum(['BLOCK', 'SECTION', 'FLEXBOX', 'GRID']).optional().default('BLOCK'),
+        parentId: z.string().nullable().optional(),
+        contentConfig: z.any(),
+        styleConfig: z.any().optional(),
+        advancedConfig: z.any().optional(),
+        layoutSettings: z.any().optional(),
         order: z.number(),
+        isVisible: z.boolean().optional().default(true),
+        // Legacy config for backwards compatibility
+        config: z.any().optional(),
     })),
 });
 
@@ -41,6 +49,32 @@ export async function POST(
         const existingBlockIds = page.blocks.map(b => b.id);
         const incomingBlockIds = blocks.filter(b => b.id && !b.id.startsWith('temp-')).map(b => b.id!);
 
+        // Validate all template IDs exist before proceeding
+        const uniqueTemplateIds = [...new Set(blocks.map(b => b.templateId).filter(Boolean))];
+        if (uniqueTemplateIds.length > 0) {
+            const existingTemplates = await prisma.blockTemplate.findMany({
+                where: {
+                    id: { in: uniqueTemplateIds },
+                },
+                select: { id: true },
+            });
+
+            const existingTemplateIds = new Set(existingTemplates.map(t => t.id));
+            const missingTemplateIds = uniqueTemplateIds.filter(id => !existingTemplateIds.has(id));
+
+            if (missingTemplateIds.length > 0) {
+                console.error('Missing template IDs:', missingTemplateIds);
+                return NextResponse.json(
+                    {
+                        error: 'Invalid template IDs',
+                        details: `The following template IDs do not exist: ${missingTemplateIds.join(', ')}`,
+                        missingTemplateIds,
+                    },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Delete blocks that are no longer in the list
         const blocksToDelete = existingBlockIds.filter(id => !incomingBlockIds.includes(id));
         if (blocksToDelete.length > 0) {
@@ -56,25 +90,50 @@ export async function POST(
         for (const block of blocks) {
             const isNewBlock = !block.id || block.id.startsWith('temp-');
 
-            if (isNewBlock) {
-                // Create new block
-                await prisma.contentBlock.create({
-                    data: {
-                        templateId: block.templateId,
-                        config: block.config,
-                        order: block.order,
-                        pageId: id,
-                    },
+            // Validate templateId
+            if (!block.templateId) {
+                console.error('Block missing templateId:', block);
+                continue; // Skip this block
+            }
+
+            // Prepare block data
+            const blockData = {
+                templateId: block.templateId,
+                containerType: block.containerType || 'BLOCK',
+                parentId: block.parentId || null,
+                contentConfig: block.contentConfig || block.config || {},
+                styleConfig: block.styleConfig || {},
+                advancedConfig: block.advancedConfig || {},
+                layoutSettings: block.layoutSettings || null,
+                order: block.order,
+                isVisible: block.isVisible !== false,
+                // Keep legacy config for backwards compatibility
+                config: block.config || block.contentConfig || {},
+            };
+
+            try {
+                if (isNewBlock) {
+                    // Create new block
+                    await prisma.contentBlock.create({
+                        data: {
+                            ...blockData,
+                            pageId: id,
+                        },
+                    });
+                } else {
+                    // Update existing block
+                    await prisma.contentBlock.update({
+                        where: { id: block.id },
+                        data: blockData,
+                    });
+                }
+            } catch (blockError) {
+                console.error('Error saving block:', {
+                    blockId: block.id,
+                    templateId: block.templateId,
+                    error: blockError,
                 });
-            } else {
-                // Update existing block
-                await prisma.contentBlock.update({
-                    where: { id: block.id },
-                    data: {
-                        config: block.config,
-                        order: block.order,
-                    },
-                });
+                // Continue with other blocks instead of failing completely
             }
         }
 

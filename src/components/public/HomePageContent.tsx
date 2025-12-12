@@ -48,18 +48,18 @@ export function HomePageContent({
     },
     {
       icon: ShieldCheck,
-      title: t('features.quality.title') || 'Quality Guaranteed',
-      description: t('features.quality.desc') || 'Premium products you can trust'
+      title: t('features.quality.title'),
+      description: t('features.quality.desc')
     },
     {
       icon: RefreshCw,
-      title: t('features.returns.title') || 'Easy Returns',
-      description: t('features.returns.desc') || 'Hassle-free returns within 30 days'
+      title: t('features.returns.title'),
+      description: t('features.returns.desc')
     },
     {
       icon: Award,
-      title: t('features.award.title') || 'Award Winning',
-      description: t('features.award.desc') || 'Recognized for excellence'
+      title: t('features.award.title'),
+      description: t('features.award.desc')
     }
   ];
 
@@ -184,12 +184,12 @@ export function HomePageContent({
           <div className="container mx-auto px-4 sm:px-6 lg:px-8" style={{ maxWidth: theme?.layout?.containerMaxWidth || '1280px' }}>
             <div className="flex items-center justify-between mb-12">
               <div>
-                <h2 className="text-3xl md:text-4xl font-medium mb-3">From Our Blog</h2>
-                <p className="text-muted-foreground">Latest news and stories</p>
+                <h2 className="text-3xl md:text-4xl font-medium mb-3">{t('blog.title')}</h2>
+                <p className="text-muted-foreground">{t('blog.subtitle')}</p>
               </div>
               <Link href="/blog">
                 <Button variant="outline" className="gap-2">
-                  Read More
+                  {t('blog.readMore')}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>

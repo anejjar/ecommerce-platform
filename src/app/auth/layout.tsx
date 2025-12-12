@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { defaultLocale } from '@/i18n';
 import { StoreProvider } from '@/lib/redux/StoreProvider';
 import { SettingsProvider } from '@/contexts/SettingsContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +31,11 @@ export default async function AuthLayout({
     <SessionProvider>
       <NextIntlClientProvider locale={locale} messages={messages}>
         <SettingsProvider>
-          <StoreProvider>
-            {children}
-          </StoreProvider>
+          <ThemeProvider>
+            <StoreProvider>
+              {children}
+            </StoreProvider>
+          </ThemeProvider>
         </SettingsProvider>
       </NextIntlClientProvider>
     </SessionProvider>

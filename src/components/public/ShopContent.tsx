@@ -133,12 +133,12 @@ export function ShopContent({
         <p className="text-sm text-muted-foreground">
           {products.length > 0 ? (
             <>
-              Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
+              {t('shop.showing')} {(pagination.page - 1) * pagination.limit + 1} {t('shop.to')}{' '}
+              {Math.min(pagination.page * pagination.limit, pagination.total)} {t('shop.of')} {pagination.total}{' '}
               {pagination.total === 1 ? t('cart.item') : t('cart.items')}
             </>
           ) : (
-            <>No products found</>
+            <>{t('shop.noProducts')}</>
           )}
         </p>
       </div>

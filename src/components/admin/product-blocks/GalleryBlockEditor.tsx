@@ -93,7 +93,16 @@ export function GalleryBlockEditor({ config, onUpdate }: GalleryBlockEditorProps
           <div className="grid grid-cols-3 gap-2">
             {images.map((image: string, index: number) => (
               <div key={index} className="relative aspect-square">
-                <img src={image} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover rounded" />
+                <img
+                  src={image}
+                  alt={`Gallery ${index + 1}`}
+                  className="w-full h-full object-cover rounded"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.onerror = null;
+                    target.src = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="#f3f4f6" width="100" height="100"/><text x="50" y="50" text-anchor="middle" fill="#9ca3af" font-size="12">Error</text></svg>')}`;
+                  }}
+                />
                 <Button
                   type="button"
                   variant="destructive"

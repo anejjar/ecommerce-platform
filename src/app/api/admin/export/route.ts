@@ -92,13 +92,27 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json()
     const {
-      type, // PRODUCTS, ORDERS, CUSTOMERS, CATEGORIES, INVENTORY
+      type, // All supported entity types
       format = 'CSV', // CSV, JSON, XLSX
       filters = {},
     } = body
 
     // Validate type
-    const validTypes = ['PRODUCTS', 'ORDERS', 'CUSTOMERS', 'CATEGORIES', 'INVENTORY']
+    const validTypes = [
+      'PRODUCTS',
+      'PRODUCT_IMAGES',
+      'PRODUCT_VARIANTS',
+      'ORDERS',
+      'CUSTOMERS',
+      'CATEGORIES',
+      'INVENTORY',
+      'BLOG_POSTS',
+      'PAGES',
+      'MEDIA_LIBRARY',
+      'REVIEWS',
+      'NEWSLETTER_SUBSCRIBERS',
+      'DISCOUNT_CODES',
+    ]
     if (!type || !validTypes.includes(type)) {
       return NextResponse.json({ error: 'Invalid export type' }, { status: 400 })
     }
@@ -226,6 +240,200 @@ export async function POST(request: NextRequest) {
                   },
                 }
                 : undefined,
+            })
+            recordCount = data.length
+            break
+
+          case 'PRODUCT_IMAGES':
+            const imageWhere: any = {}
+            if (filters.productId) {
+              imageWhere.productId = filters.productId
+            }
+
+            data = await prisma.productImage.findMany({
+              where: imageWhere,
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                    sku: true,
+                  },
+                },
+              },
+              orderBy: [
+                { productId: 'asc' },
+                { position: 'asc' },
+              ],
+            })
+            recordCount = data.length
+            break
+
+          case 'PRODUCT_VARIANTS':
+            const variantWhere: any = {}
+            if (filters.productId) {
+              variantWhere.productId = filters.productId
+            }
+
+            data = await prisma.productVariant.findMany({
+              where: variantWhere,
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                    sku: true,
+                  },
+                },
+              },
+              orderBy: { productId: 'asc' },
+            })
+            recordCount = data.length
+            break
+
+          case 'BLOG_POSTS':
+            const blogWhere: any = {}
+            if (filters.status) {
+              blogWhere.status = filters.status
+            }
+            if (filters.categoryId) {
+              blogWhere.categoryId = filters.categoryId
+            }
+            if (filters.authorId) {
+              blogWhere.authorId = filters.authorId
+            }
+
+            data = await prisma.blogPost.findMany({
+              where: blogWhere,
+              include: {
+                category: {
+                  select: {
+                    name: true,
+                    slug: true,
+                  },
+                },
+                author: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: 'desc' },
+            })
+            recordCount = data.length
+            break
+
+          case 'PAGES':
+            const pageWhere: any = {}
+            if (filters.status) {
+              pageWhere.status = filters.status
+            }
+            if (filters.template) {
+              pageWhere.template = filters.template
+            }
+
+            data = await prisma.page.findMany({
+              where: pageWhere,
+              include: {
+                parent: {
+                  select: {
+                    title: true,
+                    slug: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: 'desc' },
+            })
+            recordCount = data.length
+            break
+
+          case 'MEDIA_LIBRARY':
+            const mediaWhere: any = {}
+            if (filters.mimeType) {
+              mediaWhere.mimeType = { contains: filters.mimeType }
+            }
+            if (filters.uploadedById) {
+              mediaWhere.uploadedById = filters.uploadedById
+            }
+
+            data = await prisma.file.findMany({
+              where: mediaWhere,
+              include: {
+                uploadedBy: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+              orderBy: { uploadedAt: 'desc' },
+            })
+            recordCount = data.length
+            break
+
+          case 'REVIEWS':
+            const reviewWhere: any = {}
+            if (filters.productId) {
+              reviewWhere.productId = filters.productId
+            }
+            if (filters.rating) {
+              reviewWhere.rating = parseInt(filters.rating)
+            }
+            if (filters.approved !== undefined) {
+              reviewWhere.approved = filters.approved === 'true'
+            }
+            if (filters.verified !== undefined) {
+              reviewWhere.verified = filters.verified === 'true'
+            }
+
+            data = await prisma.review.findMany({
+              where: reviewWhere,
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                    sku: true,
+                  },
+                },
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: 'desc' },
+            })
+            recordCount = data.length
+            break
+
+          case 'NEWSLETTER_SUBSCRIBERS':
+            const subscriberWhere: any = {}
+            if (filters.active !== undefined) {
+              subscriberWhere.active = filters.active === 'true'
+            }
+            if (filters.source) {
+              subscriberWhere.source = filters.source
+            }
+
+            data = await prisma.newsletterSubscriber.findMany({
+              where: subscriberWhere,
+              orderBy: { subscribedAt: 'desc' },
+            })
+            recordCount = data.length
+            break
+
+          case 'DISCOUNT_CODES':
+            const discountWhere: any = {}
+            if (filters.active !== undefined) {
+              discountWhere.active = filters.active === 'true'
+            }
+            if (filters.type) {
+              discountWhere.type = filters.type
+            }
+
+            data = await prisma.discountCode.findMany({
+              where: discountWhere,
+              orderBy: { createdAt: 'desc' },
             })
             recordCount = data.length
             break

@@ -324,23 +324,54 @@ Automatically generate professional PDF invoices and packing slips.
 
 ---
 
-### 11. Product Import/Export
-**Feature ID:** `product_import_export`
+### 11. Data Import/Export (Unified)
+**Feature ID:** `data_import_export`
 **Tier:** PRO
-**Status:** ⏳ Pending
+**Status:** 🚧 In Development
+**Replaces:** `product_import_export`
 
 **Description:**
-Bulk manage products via CSV import/export.
+Comprehensive bulk data management via CSV/JSON import/export for all major entities in the system.
 
-**Planned Features:**
-- Export products to CSV
-- Import products from CSV
-- Update existing products via CSV
-- Template CSV download
-- Validation and error reporting
-- Image URL import support
-- Variant import support
-- Category mapping
+**Supported Entities:**
+- **Products**: SKU, pricing, inventory, descriptions, categories
+- **Product Images**: Bulk image upload from URLs, alt text, positioning
+- **Product Variants**: Size, color, and other option combinations
+- **Orders**: Complete order data with line items and addresses
+- **Customers**: Profile data, addresses, preferences, order history
+- **Categories**: Hierarchy, images, descriptions
+- **Blog Posts**: Content, featured images, SEO, categories, tags
+- **Pages**: CMS content with templates and parent-child relationships
+- **Media Library**: Bulk media upload with metadata
+- **Reviews**: Product reviews with ratings and approval status
+- **Newsletter Subscribers**: Email lists with segmentation
+- **Discount Codes**: Bulk coupon creation and management
+
+**Key Features:**
+- **Multiple Formats**: CSV, JSON (Excel/XLSX planned)
+- **Import Modes**: Create, Update, or Upsert (create/update)
+- **Validation**: Pre-import validation with detailed error reporting
+- **Relationship Handling**: Automatic resolution of foreign keys (by slug, email, SKU)
+- **Media Support**: Import images from URLs with automatic Cloudinary upload
+- **Progress Tracking**: Real-time progress for large imports
+- **Template Downloads**: Pre-configured CSV templates for each entity
+- **Data Integrity**: Strict validation for financial data (orders, refunds)
+- **Audit Trail**: Complete logging of all import/export operations
+- **Scheduled Exports**: Automatic recurring exports (planned)
+- **Partial Success**: Continue processing valid rows even if some fail
+
+**Usage:**
+- Navigate to Admin → Export/Import
+- Select entity type and format
+- For exports: Apply filters and generate file
+- For imports: Upload file, validate, then process
+- Download results and error reports
+
+**Technical Details:**
+- Files stored in Cloudinary with 7-day expiration
+- Asynchronous processing for large datasets
+- Transaction-safe imports with rollback support
+- SUPERADMIN required for imports, ADMIN for exports
 
 ---
 

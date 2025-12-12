@@ -13,7 +13,7 @@ import { removeFromWishlist } from '@/lib/redux/features/wishlistSlice';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { handleImageError } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 
 export function WishlistContent() {
   const t = useTranslations();
@@ -132,19 +132,18 @@ export function WishlistContent() {
               {/* Product Image */}
               <Link href={`/product/${product.slug}`}>
                 <div className="relative aspect-square bg-gray-100 group">
-                  {product.images[0] ? (
-                    <Image
-                      src={product.images[0].url}
-                      alt={product.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform"
-                      onError={handleImageError}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span className="text-4xl">📦</span>
-                    </div>
-                  )}
+                  <Image
+                    src={product.images[0]?.url || PLACEHOLDER_PRODUCT_IMAGE}
+                    alt={product.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.onerror = null;
+                      target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                    }}
+                    unoptimized={product.images[0]?.url?.startsWith('data:') || false}
+                  />
                   {discount && (
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
                       -{discount}%

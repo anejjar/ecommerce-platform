@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { ZoomIn, ZoomOut, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { handleImageError } from '@/lib/image-utils';
+import { useImageErrorHandler, PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 
 interface ProductImage {
   id: string;
@@ -36,11 +36,14 @@ export function ProductImageGallery({
   const lightboxRef = useRef<HTMLDivElement>(null);
 
   // Use variant image if provided, otherwise use selected image
-  const displayImages = variantImage && images.length === 0 
+  const displayImages = variantImage && images.length === 0
     ? [{ id: 'variant', url: variantImage, alt: productName }]
     : images;
-  
+
   const currentImage = displayImages[selectedIndex] || displayImages[0];
+
+  // Use error handler for main image
+  const { imageSrc: mainImageSrc, handleError: handleMainError } = useImageErrorHandler(currentImage?.url);
 
   // Handle swipe gestures for mobile
   const minSwipeDistance = 50;
@@ -134,15 +137,16 @@ export function ProductImageGallery({
           onClick={() => displayImages.length > 0 && setLightboxOpen(true)}
         >
           <Image
-            src={currentImage.url}
-            alt={currentImage.alt || productName}
+            src={mainImageSrc}
+            alt={currentImage?.alt || productName}
             fill
             className={`object-cover transition-transform duration-300 ${
               isZoomed ? 'scale-150' : 'scale-100'
             }`}
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
-            onError={handleImageError}
+            onError={handleMainError}
+            unoptimized={mainImageSrc?.startsWith('data:') || false}
           />
 
           {/* Badges */}
@@ -229,33 +233,42 @@ export function ProductImageGallery({
         {/* Thumbnail Gallery */}
         {displayImages.length > 1 && (
           <div className="grid grid-cols-5 gap-2 md:gap-3">
-            {displayImages.map((image, index) => (
-              <button
-                key={image.id}
-                onClick={() => {
-                  setSelectedIndex(index);
-                  setIsZoomed(false);
-                }}
-                className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedIndex === index
-                    ? 'border-amber-600 ring-2 ring-amber-200'
-                    : 'border-transparent hover:border-amber-300'
-                }`}
-                aria-label={`View image ${index + 1}`}
-              >
-                <Image
-                  src={image.url}
-                  alt={image.alt || `${productName} - Image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 20vw, 10vw"
-                  onError={handleImageError}
-                />
-                {selectedIndex === index && (
-                  <div className="absolute inset-0 bg-amber-600/20" />
-                )}
-              </button>
-            ))}
+            {displayImages.map((image, index) => {
+              // Use individual error handlers for each thumbnail
+              const thumbSrc = image.url || PLACEHOLDER_PRODUCT_IMAGE;
+              return (
+                <button
+                  key={image.id}
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    setIsZoomed(false);
+                  }}
+                  className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                    selectedIndex === index
+                      ? 'border-amber-600 ring-2 ring-amber-200'
+                      : 'border-transparent hover:border-amber-300'
+                  }`}
+                  aria-label={`View image ${index + 1}`}
+                >
+                  <Image
+                    src={thumbSrc}
+                    alt={image.alt || `${productName} - Image ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 20vw, 10vw"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.onerror = null;
+                      target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                    }}
+                    unoptimized={thumbSrc?.startsWith('data:') || false}
+                  />
+                  {selectedIndex === index && (
+                    <div className="absolute inset-0 bg-amber-600/20" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -283,14 +296,14 @@ export function ProductImageGallery({
 
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
             <Image
-              src={currentImage.url}
-              alt={currentImage.alt || productName}
+              src={mainImageSrc}
+              alt={currentImage?.alt || productName}
               fill
               className="object-contain"
-              onError={handleImageError}
+              onError={handleMainError}
               sizes="100vw"
               priority
-              onError={handleImageError}
+              unoptimized={mainImageSrc?.startsWith('data:') || false}
             />
 
             {/* Navigation in Lightbox */}

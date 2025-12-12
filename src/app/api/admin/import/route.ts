@@ -99,7 +99,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate type
-    const validTypes = ['PRODUCTS', 'ORDERS', 'CUSTOMERS', 'CATEGORIES', 'INVENTORY']
+    const validTypes = [
+      'PRODUCTS',
+      'PRODUCT_IMAGES',
+      'PRODUCT_VARIANTS',
+      'ORDERS',
+      'CUSTOMERS',
+      'CATEGORIES',
+      'INVENTORY',
+      'BLOG_POSTS',
+      'PAGES',
+      'MEDIA_LIBRARY',
+      'REVIEWS',
+      'NEWSLETTER_SUBSCRIBERS',
+      'DISCOUNT_CODES',
+    ]
     if (!type || !validTypes.includes(type)) {
       return NextResponse.json({ error: 'Invalid import type' }, { status: 400 })
     }

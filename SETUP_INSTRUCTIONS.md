@@ -3,20 +3,19 @@
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Node.js 18+ and npm
-- MySQL server (via Laragon or standalone)
-- Git (optional, for version control)
+- **Node.js 18+** and npm
+- **MySQL server** (via Laragon, XAMPP, or standalone)
+- **Git** (optional, for version control)
+
+You will also need accounts/credentials for:
+- **Cloudinary** (for image uploads) - [Sign up for free](https://cloudinary.com)
+- **SMTP Server** (for emails) - Can use Gmail, SendGrid, or your hosting provider's SMTP
 
 ## Step-by-Step Setup
 
 ### 1. Database Setup
 
-Make sure your MySQL server is running. The project expects:
-- **Host**: localhost
-- **Port**: 3306
-- **Database**: ecommerce_platform
-- **User**: root
-- **Password**: secret (or update `.env`)
+Make sure your MySQL server is running. The project expects a database (e.g., `ecommerce_platform`).
 
 Create the database:
 ```sql
@@ -25,14 +24,36 @@ CREATE DATABASE ecommerce_platform;
 
 ### 2. Environment Configuration
 
-The `.env` file is already configured with:
-```
+Create a `.env` file in the root directory (copy from `.env.example` if available).
+
+**Required Configuration:**
+
+```env
+# Database Configuration
 DATABASE_URL="mysql://root:secret@localhost:3306/ecommerce_platform"
+
+# Authentication (NextAuth)
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="change-this-to-a-random-secret"
+NEXTAUTH_SECRET="change-this-to-a-random-secret-at-least-32-chars"
+
+# Cloudinary (Images)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your_cloud_name"
+CLOUDINARY_API_KEY="your_api_key"
+CLOUDINARY_API_SECRET="your_api_secret"
+
+# Email Configuration (SMTP)
+SMTP_HOST="smtp.example.com"
+SMTP_PORT=587
+SMTP_USER="your_email@example.com"
+SMTP_PASSWORD="your_email_password"
+SMTP_FROM="noreply@example.com"
+
+# App Settings
+NODE_ENV="development"
 ```
 
-**IMPORTANT**: Change `NEXTAUTH_SECRET` to a random string before production.
+> [!IMPORTANT]
+> Change `NEXTAUTH_SECRET` to a random string. You can generate one with `openssl rand -base64 32`.
 
 ### 3. Install Dependencies
 
@@ -40,28 +61,40 @@ NEXTAUTH_SECRET="change-this-to-a-random-secret"
 npm install
 ```
 
-### 4. Push Database Schema
+### 4. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### 5. Push Database Schema
 
 ```bash
 npm run db:push
 ```
+This creates all necessary tables in your MySQL database.
 
-This command will create all the necessary tables in your MySQL database.
+### 6. Seed the Database
 
-### 5. Seed the Database
+You have two options for seeding:
 
+**Option A: Test Data (Recommended for Development)**
+Includes sample products, categories, users, reviews, and blog posts.
 ```bash
-npm run db:seed
+npm run seed:test
 ```
 
-This will create:
-- **Admin user**:
-  - Email: `admin@example.com`
-  - Password: `admin123`
-- **Sample categories**: Electronics, Clothing, Books
-- **Sample products**: 5 demo products
+**Option B: Production Data (Minimal)**
+Only essential data (admin user, basic settings).
+```bash
+npm run seed:production
+```
 
-### 6. Start the Development Server
+**Default Credentials:**
+- **Admin**: `admin@example.com` / `admin123` (or `password123` check console output)
+- **Customer**: `alice@example.com` / `password123` (if using test seed)
+
+### 7. Start the Development Server
 
 ```bash
 npm run dev
@@ -72,46 +105,7 @@ The application will be available at: `http://localhost:3000`
 ## Accessing the Admin Panel
 
 1. Navigate to: `http://localhost:3000/admin/login`
-2. Login with:
-   - Email: `admin@example.com`
-   - Password: `admin123`
-
-## Admin Features Available
-
-Once logged in, you can:
-
-### Dashboard (`/admin/dashboard`)
-- View total products, orders, and customers
-- See recent orders
-
-### Products (`/admin/products`)
-- View all products in a table
-- Add new products
-- Edit existing products
-- Delete products
-- Each product has:
-  - Name, slug, description
-  - Price and stock quantity
-  - SKU (optional)
-  - Published status
-  - Category (optional)
-
-### Orders (`/admin/orders`)
-- View all customer orders
-- See order details (items, customer info, totals)
-- Update order status:
-  - PENDING
-  - PROCESSING
-  - SHIPPED
-  - DELIVERED
-  - CANCELLED
-
-### Customers (`/admin/customers`)
-- View all registered customers
-- See customer statistics:
-  - Total orders
-  - Total amount spent
-  - Registration date
+2. Login with the admin credentials.
 
 ## Project Structure
 
@@ -119,13 +113,14 @@ Once logged in, you can:
 ecommerce-platform/
 ├── prisma/
 │   ├── schema.prisma      # Database schema
-│   └── seed.ts            # Database seeder
+│   ├── seed-test.ts       # Test data seeder
+│   └── seed-production.ts # Production data seeder
 ├── src/
 │   ├── app/
-│   │   ├── (admin)/       # Admin pages (protected)
-│   │   ├── admin/login/   # Admin login (public)
+│   │   ├── [locale]/      # Internationalized storefront pages
+│   │   ├── admin/         # Admin dashboard pages
 │   │   ├── api/           # API routes
-│   │   └── layout.tsx     # Root layout with providers
+│   │   └── layout.tsx     # Root layout
 │   ├── components/
 │   │   ├── ui/            # Shadcn UI components
 │   │   └── admin/         # Admin-specific components
@@ -145,104 +140,45 @@ ecommerce-platform/
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run db:push` - Push Prisma schema to database
-- `npm run db:seed` - Seed database with sample data
+- `npm run seed:test` - Seed database with comprehensive test data
+- `npm run seed:production` - Seed database with minimal production data
+- `npm run update:contact-form` - Update contact form templates
+
+## Deployment
+
+For detailed deployment instructions, specifically for Namecheap or cPanel hosting, please refer to:
+
+- **[NAMECHEAP_DEPLOYMENT_GUIDE.md](./NAMECHEAP_DEPLOYMENT_GUIDE.md)** - Full step-by-step guide
+- **[NAMECHEAP_QUICK_START.md](./NAMECHEAP_QUICK_START.md)** - Condensed checklist
 
 ## Common Issues & Solutions
 
 ### Issue: Database Connection Error
-**Solution**: Ensure MySQL is running and credentials in `.env` are correct.
+**Solution**: Ensure MySQL is running and credentials in `.env` are correct. Check if the database exists.
 
 ### Issue: "Prisma Client not generated"
 **Solution**: Run `npx prisma generate`
 
+### Issue: Images not uploading
+**Solution**: Verify Cloudinary credentials in `.env`.
+
 ### Issue: Login not working
 **Solution**:
-1. Check if database was seeded: `npm run db:seed`
-2. Verify admin user exists in database
-3. Clear browser cookies and try again
+1. Check if database was seeded.
+2. Verify admin user exists in database.
+3. Clear browser cookies.
 
-### Issue: Port 3000 already in use
-**Solution**: Kill the process using port 3000 or use a different port:
-```bash
-PORT=3001 npm run dev
-```
+## What's Implemented
 
-## Next Steps
-
-Now that the admin panel is working, you can:
-
-1. **Add Categories** (currently not implemented)
-   - Create category management pages
-   - Assign categories to products
-
-2. **Enhance Product Management**
-   - Add product images
-   - Add product variants (sizes, colors)
-   - Bulk operations
-
-3. **Build Storefront** (not yet implemented)
-   - Customer-facing shop pages
-   - Product listing and detail pages
-   - Shopping cart
-   - Checkout process
-
-4. **Add Payment Integration** (deferred)
-   - Stripe integration
-   - Payment processing
-   - Order confirmation emails
-
-## Database Management
-
-### View Database (Prisma Studio)
-```bash
-npx prisma studio
-```
-
-This opens a GUI at `http://localhost:5555` to browse and edit database records.
-
-### Reset Database
-```bash
-npx prisma db push --force-reset
-npm run db:seed
-```
-
-**WARNING**: This deletes all data!
-
-## Security Notes
-
-1. **Change default admin password** after first login
-2. **Update NEXTAUTH_SECRET** to a random string
-3. **Never commit `.env` file** to version control
-4. **Use strong passwords** in production
+✅ **Admin Panel**: Dashboard, Products, Orders, Customers, Analytics
+✅ **Storefront**: Home, Product Listing, Product Details, Cart
+✅ **Internationalization**: Multi-language support (`[locale]`)
+✅ **CMS**: Page Builder, Blog Management
+✅ **Authentication**: Admin and Customer login
+✅ **Database**: MySQL with Prisma ORM
 
 ## Support
 
 For issues or questions, refer to:
 - `DEVELOPMENT_LOG.md` - Detailed development history
 - `README.md` - Project overview
-
-## What's Implemented
-
-✅ Admin authentication
-✅ Product CRUD operations
-✅ Order viewing and status updates
-✅ Customer management
-✅ Dashboard with statistics
-✅ Responsive UI with Shadcn/ui
-✅ MySQL database with Prisma
-
-## What's NOT Implemented (Yet)
-
-❌ Customer-facing storefront
-❌ Shopping cart (UI not connected)
-❌ Checkout process
-❌ Payment integration
-❌ Email notifications
-❌ Product images upload
-❌ Category management UI
-❌ Product reviews
-❌ Search and filtering
-
----
-
-**Happy coding!** 🚀

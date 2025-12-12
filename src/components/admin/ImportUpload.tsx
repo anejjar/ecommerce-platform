@@ -148,10 +148,18 @@ export function ImportUpload({ onUploadComplete }: ImportUploadProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="PRODUCTS">Products</SelectItem>
+                <SelectItem value="PRODUCT_IMAGES">Product Images</SelectItem>
+                <SelectItem value="PRODUCT_VARIANTS">Product Variants</SelectItem>
                 <SelectItem value="ORDERS">Orders</SelectItem>
                 <SelectItem value="CUSTOMERS">Customers</SelectItem>
                 <SelectItem value="CATEGORIES">Categories</SelectItem>
                 <SelectItem value="INVENTORY">Inventory</SelectItem>
+                <SelectItem value="BLOG_POSTS">Blog Posts</SelectItem>
+                <SelectItem value="PAGES">Pages</SelectItem>
+                <SelectItem value="MEDIA_LIBRARY">Media Library</SelectItem>
+                <SelectItem value="REVIEWS">Reviews</SelectItem>
+                <SelectItem value="NEWSLETTER_SUBSCRIBERS">Newsletter Subscribers</SelectItem>
+                <SelectItem value="DISCOUNT_CODES">Discount Codes</SelectItem>
               </SelectContent>
             </Select>
           </div>

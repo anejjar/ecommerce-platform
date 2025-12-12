@@ -1,5 +1,7 @@
 'use client';
 
+import { handleNativeImageError } from '@/lib/image-utils';
+
 interface TestimonialsBlockProps {
   config: {
     heading?: string;
@@ -32,7 +34,12 @@ export function TestimonialsBlock({ config }: TestimonialsBlockProps) {
             <div key={index} className="bg-gray-50 p-6 rounded-lg">
               <div className="flex items-center gap-4 mb-4">
                 {testimonial.image ? (
-                  <img src={testimonial.image} alt={testimonial.name} className="w-12 h-12 rounded-full object-cover" />
+                  <img
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                    onError={handleNativeImageError}
+                  />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
                     <span className="text-gray-600">{testimonial.name?.[0] || '?'}</span>

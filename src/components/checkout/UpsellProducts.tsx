@@ -9,7 +9,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { ShoppingCart, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
-import { handleImageError } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 
 interface Product {
   id: string;
@@ -95,19 +95,18 @@ export function UpsellProducts({ productIds, title, position }: UpsellProductsPr
         return (
           <div key={product.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             <div className="relative aspect-square">
-              {product.images[0]?.url ? (
-                <Image
-                  src={product.images[0].url}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  onError={handleImageError}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                  <ShoppingCart className="w-8 h-8 text-gray-400" />
-                </div>
-              )}
+              <Image
+                src={product.images[0]?.url || PLACEHOLDER_PRODUCT_IMAGE}
+                alt={product.name}
+                fill
+                className="object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.onerror = null;
+                  target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                }}
+                unoptimized={product.images[0]?.url?.startsWith('data:') || false}
+              />
               {discount > 0 && (
                 <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                   -{discount}%

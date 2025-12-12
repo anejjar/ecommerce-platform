@@ -1,6 +1,7 @@
 import React from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import { Card } from '@/components/ui/card';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { HeroBackgroundImage } from '@/components/landing-page/blocks/HeroBackgroundImage';
 import { HeroVideoBackground } from '@/components/landing-page/blocks/HeroVideoBackground';
 import { HeroSplitLayout } from '@/components/landing-page/blocks/HeroSplitLayout';
@@ -47,6 +48,20 @@ import { BlogPostCard } from '@/components/landing-page/blocks/BlogPostCard';
 import { BlogPostContent } from '@/components/landing-page/blocks/BlogPostContent';
 import { BlogCategories } from '@/components/landing-page/blocks/BlogCategories';
 import { RecentPostsWidget } from '@/components/landing-page/blocks/RecentPostsWidget';
+
+// New Elementor-style widgets
+import { Heading } from '@/components/landing-page/blocks/Heading';
+import { TextEditor } from '@/components/landing-page/blocks/TextEditor';
+import { ButtonBlock } from '@/components/landing-page/blocks/Button';
+import { Icon } from '@/components/landing-page/blocks/Icon';
+import { ImageBlock } from '@/components/landing-page/blocks/Image';
+import { DividerWidget } from '@/components/landing-page/blocks/DividerWidget';
+import { SpacerWidget } from '@/components/landing-page/blocks/SpacerWidget';
+import { AccordionWidget } from '@/components/landing-page/blocks/AccordionWidget';
+import { TabsWidget } from '@/components/landing-page/blocks/TabsWidget';
+import { Counter } from '@/components/landing-page/blocks/Counter';
+import { ProgressBar } from '@/components/landing-page/blocks/ProgressBar';
+import { SocialIconsWidget } from '@/components/landing-page/blocks/SocialIconsWidget';
 
 interface BlockPreviewProps {
     template: {
@@ -172,6 +187,32 @@ export const BlockPreview: React.FC<BlockPreviewProps> = ({
                     return <BlogCategories config={config} />;
                 case 'recent-posts-widget':
                     return <RecentPostsWidget config={config} />;
+
+                // New Elementor-style widgets
+                case 'heading':
+                    return <Heading config={config} />;
+                case 'text-editor':
+                    return <TextEditor config={config} />;
+                case 'button':
+                    return <ButtonBlock config={config} />;
+                case 'icon':
+                    return <Icon config={config} />;
+                case 'image':
+                    return <ImageBlock config={config} />;
+                case 'divider-widget':
+                    return <DividerWidget config={config} />;
+                case 'spacer-widget':
+                    return <SpacerWidget config={config} />;
+                case 'accordion':
+                    return <AccordionWidget config={config} />;
+                case 'tabs':
+                    return <TabsWidget config={config} />;
+                case 'counter':
+                    return <Counter config={config} />;
+                case 'progress-bar':
+                    return <ProgressBar config={config} />;
+                case 'social-icons':
+                    return <SocialIconsWidget config={config} />;
             }
         }
 
@@ -242,14 +283,16 @@ export const BlockPreview: React.FC<BlockPreviewProps> = ({
     };
 
     return (
-        <NextIntlClientProvider locale="en" messages={minimalMessages}>
-            <div className="w-full" key={configKey}>
-                {/* We wrap the preview in a div that prevents interaction (links, buttons) 
-                    so they don't interfere with the editor UI */}
-                <div className="pointer-events-none select-none">
-                    {renderBlockContent()}
+        <ThemeProvider>
+            <NextIntlClientProvider locale="en" messages={minimalMessages}>
+                <div className="w-full" key={configKey}>
+                    {/* We wrap the preview in a div that prevents interaction (links, buttons)
+                        so they don't interfere with the editor UI */}
+                    <div className="pointer-events-none select-none">
+                        {renderBlockContent()}
+                    </div>
                 </div>
-            </div>
-        </NextIntlClientProvider>
+            </NextIntlClientProvider>
+        </ThemeProvider>
     );
 };

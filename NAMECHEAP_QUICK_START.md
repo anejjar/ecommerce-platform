@@ -108,7 +108,7 @@ Application startup file: server.js
 ```
 
 **Save the virtual environment command shown!**
-Example: `source /home/yourusername/nodevenv/public_html/shop/18/bin/activate && cd /home/yourusername/public_html/shop`
+Example: `source /home/argawftz/nodevenv/anejjar.com/shop/18/bin/activate && cd /home/argawftz/anejjar.com/shop`
 
 ### 4. Create server.js
 
@@ -192,7 +192,8 @@ Or use: [generate-secret.now.sh/32](https://generate-secret.now.sh/32)
 ```bash
 # Enter virtual environment
 # For subdirectory:
-source /home/yourusername/nodevenv/public_html/shop/18/bin/activate && cd /home/yourusername/public_html/shop
+source /home/argawftz/nodevenv/anejjar.com/shop/22/bin/activate && cd /home/argawftz/anejjar.com/shop
+
 
 # For subdomain:
 # source /home/yourusername/nodevenv/shop/18/bin/activate && cd /home/yourusername/shop

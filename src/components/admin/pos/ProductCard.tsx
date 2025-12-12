@@ -8,7 +8,7 @@ import { addToPosCart, updatePosCartQuantity, removeFromPosCart } from '@/lib/re
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useCurrency } from '@/hooks/useCurrency';
-import { handleImageError, getProductImageUrl } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 
 interface ProductCardProps {
   product: {
@@ -26,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const cart = useAppSelector((state) => state.pos.cart);
   const { format } = useCurrency();
   const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-  const imageUrl = getProductImageUrl(product.images?.[0]?.url);
+  const imageUrl = product.images?.[0]?.url || PLACEHOLDER_PRODUCT_IMAGE;
 
   // Check if product is in cart (no variants for now)
   const cartItem = cart.find((item) => item.productId === product.id && !item.variantId);
@@ -94,7 +94,12 @@ export function ProductCard({ product }: ProductCardProps) {
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onError={handleImageError}
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.onerror = null;
+            target.src = PLACEHOLDER_PRODUCT_IMAGE;
+          }}
+          unoptimized={imageUrl?.startsWith('data:') || false}
         />
         {isOutOfStock && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

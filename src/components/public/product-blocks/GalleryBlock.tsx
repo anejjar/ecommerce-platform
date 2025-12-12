@@ -1,5 +1,7 @@
 'use client';
 
+import { handleNativeImageError } from '@/lib/image-utils';
+
 interface GalleryBlockProps {
   config: {
     heading?: string;
@@ -33,7 +35,12 @@ export function GalleryBlock({ config }: GalleryBlockProps) {
       <div className={`grid grid-cols-1 ${gridCols} gap-4`}>
         {images.map((image, index) => (
           <div key={index} className="aspect-square overflow-hidden rounded-lg">
-            <img src={image} alt={`Gallery image ${index + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+            <img
+              src={image}
+              alt={`Gallery image ${index + 1}`}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              onError={handleNativeImageError}
+            />
           </div>
         ))}
       </div>
