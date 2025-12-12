@@ -2,7 +2,7 @@
 -- This migration ensures all features from feature-docs.ts are present in the database
 -- Uses INSERT ... ON DUPLICATE KEY UPDATE to handle existing features gracefully
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_YW5hbHl0aWNzX2Rhc2hib',
   'analytics_dashboard',
@@ -21,7 +21,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_cmVmdW5kX21hbmFnZW1lb',
   'refund_management',
@@ -40,7 +40,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_YWJhbmRvbmVkX2NhcnQ',
   'abandoned_cart',
@@ -59,7 +59,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_Y21z',
   'cms',
@@ -78,7 +78,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_dGVtcGxhdGVfbWFuYWdlc',
   'template_manager',
@@ -97,7 +97,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_bG95YWx0eV9wcm9ncmFt',
   'loyalty_program',
@@ -116,7 +116,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_d2lzaGxpc3Q',
   'wishlist',
@@ -135,7 +135,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_YWR2YW5jZWRfcmV2aWV3c',
   'advanced_reviews',
@@ -154,7 +154,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_YWR2YW5jZWRfc2VhcmNo',
   'advanced_search',
@@ -173,7 +173,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_cHJvZHVjdF9yZWNvbW1lb',
   'product_recommendations',
@@ -192,7 +192,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_bGl2ZV9jaGF0',
   'live_chat',
@@ -211,7 +211,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_bXVsdGlfY3VycmVuY3k',
   'multi_currency',
@@ -230,7 +230,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_aW52ZW50b3J5X3RyYWNra',
   'inventory_tracking',
@@ -249,7 +249,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_aW52ZW50b3J5X21hbmFnZ',
   'inventory_management',
@@ -268,7 +268,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_Y3VzdG9tX3JlcG9ydHM',
   'custom_reports',
@@ -287,7 +287,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_c2FsZXNfcmVwb3J0cw',
   'sales_reports',
@@ -306,7 +306,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_Y3VzdG9tZXJfYW5hbHl0a',
   'customer_analytics',
@@ -325,7 +325,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_cHJvZHVjdF9wZXJmb3JtY',
   'product_performance',
@@ -344,7 +344,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_YnVsa19vcGVyYXRpb25z',
   'bulk_operations',
@@ -363,7 +363,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_YWN0aXZpdHlfbG9n',
   'activity_log',
@@ -382,7 +382,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_bXVsdGlfYWRtaW4',
   'multi_admin',
@@ -401,7 +401,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_aW52b2ljZV9nZW5lcmF0b',
   'invoice_generator',
@@ -420,7 +420,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_cHJvZHVjdF9pbXBvcnRfZ',
   'product_import_export',
@@ -439,7 +439,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_Y3VzdG9tZXJfc2VnbWVud',
   'customer_segments',
@@ -458,7 +458,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_Zmxhc2hfc2FsZXM',
   'flash_sales',
@@ -477,7 +477,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_YWR2YW5jZWRfc2hpcHBpb',
   'advanced_shipping',
@@ -496,7 +496,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_Y2hlY2tvdXRfY3VzdG9ta',
   'checkout_customization',
@@ -515,7 +515,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_c2VvX3Rvb2xraXQ',
   'seo_toolkit',
@@ -534,7 +534,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_Y3VzdG9tZXJfYWNjb3Vud',
   'customer_account_features',
@@ -553,7 +553,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_cHJvZHVjdF9jdXN0b21pe',
   'product_customization',
@@ -572,7 +572,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_ZXhpdF9pbnRlbnRfcG9wd',
   'exit_intent_popups',
@@ -591,7 +591,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_ZW1haWxfY2FtcGFpZ25z',
   'email_campaigns',
@@ -610,7 +610,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_cG9zX3N5c3RlbQ',
   'pos_system',
@@ -629,7 +629,7 @@ ON DUPLICATE KEY UPDATE
   `tier` = VALUES(`tier`),
   `updatedAt` = NOW();
 
-INSERT INTO `FeatureFlag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
+INSERT INTO `featureflag` (`id`, `name`, `displayName`, `description`, `category`, `tier`, `enabled`, `createdAt`, `updatedAt`)
 VALUES (
   'feat_c3RvcmVmcm9udF9lbmFibGVk',
   'storefront_enabled',
