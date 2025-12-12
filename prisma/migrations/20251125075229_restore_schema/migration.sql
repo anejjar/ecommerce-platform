@@ -9,22 +9,22 @@
 
 */
 -- DropForeignKey
-ALTER TABLE `cartitem` DROP FOREIGN KEY `CartItem_cartId_fkey`;
+ALTER TABLE `CartItem` DROP FOREIGN KEY `CartItem_cartId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `order` DROP FOREIGN KEY `Order_userId_fkey`;
+ALTER TABLE `Order` DROP FOREIGN KEY `Order_userId_fkey`;
 
 -- DropIndex
-DROP INDEX `CartItem_cartId_productId_key` ON `cartitem`;
+DROP INDEX `CartItem_cartId_productId_key` ON `CartItem`;
 
 -- DropIndex
-DROP INDEX `Order_userId_fkey` ON `order`;
+DROP INDEX `Order_userId_fkey` ON `Order`;
 
 -- AlterTable
-ALTER TABLE `cartitem` ADD COLUMN `variantId` VARCHAR(191) NULL;
+ALTER TABLE `CartItem` ADD COLUMN `variantId` VARCHAR(191) NULL;
 
 -- AlterTable
-ALTER TABLE `order` ADD COLUMN `carrier` VARCHAR(191) NULL,
+ALTER TABLE `Order` ADD COLUMN `carrier` VARCHAR(191) NULL,
     ADD COLUMN `deliveredAt` DATETIME(3) NULL,
     ADD COLUMN `discountAmount` DECIMAL(10, 2) NOT NULL DEFAULT 0,
     ADD COLUMN `discountCodeId` VARCHAR(191) NULL,
@@ -36,10 +36,10 @@ ALTER TABLE `order` ADD COLUMN `carrier` VARCHAR(191) NULL,
     MODIFY `userId` VARCHAR(191) NULL;
 
 -- AlterTable
-ALTER TABLE `orderitem` ADD COLUMN `variantId` VARCHAR(191) NULL;
+ALTER TABLE `OrderItem` ADD COLUMN `variantId` VARCHAR(191) NULL;
 
 -- AlterTable
-ALTER TABLE `productvariant` DROP COLUMN `name`,
+ALTER TABLE `ProductVariant` DROP COLUMN `name`,
     DROP COLUMN `value`,
     ADD COLUMN `comparePrice` DECIMAL(10, 2) NULL,
     ADD COLUMN `image` VARCHAR(191) NULL,
@@ -47,7 +47,7 @@ ALTER TABLE `productvariant` DROP COLUMN `name`,
     MODIFY `stock` INTEGER NOT NULL DEFAULT 0;
 
 -- AlterTable
-ALTER TABLE `review` ADD COLUMN `approved` BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE `Review` ADD COLUMN `approved` BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable
 ALTER TABLE `User` ADD COLUMN `communicationPreferences` TEXT NULL,
