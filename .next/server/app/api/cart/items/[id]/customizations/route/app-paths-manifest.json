@@ -1,0 +1,3 @@
+{
+  "/api/cart/items/[id]/customizations/route": "app/api/cart/items/[id]/customizations/route.js"
+}

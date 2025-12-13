@@ -1,0 +1,3 @@
+{
+  "/api/admin/flash-sales/[id]/activate/route": "app/api/admin/flash-sales/[id]/activate/route.js"
+}

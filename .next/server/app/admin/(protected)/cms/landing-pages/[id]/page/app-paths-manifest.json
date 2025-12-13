@@ -1,0 +1,3 @@
+{
+  "/admin/(protected)/cms/landing-pages/[id]/page": "app/admin/(protected)/cms/landing-pages/[id]/page.js"
+}

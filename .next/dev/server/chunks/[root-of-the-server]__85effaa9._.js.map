@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "eee78545-c053-0336-9df5-a0f824314384",
+  "sections": [
+    {"offset": {"line": 203, "column": 0}, "map": {"version":3,"sources":["file:///C:/laragon/www/claude/ecommerce-platform/src/instrumentation.ts"],"sourcesContent":[";globalThis[\"_sentryNextJsVersion\"] = \"16.0.3\";globalThis[\"_sentryRewritesTunnelPath\"] = \"/monitoring\";import * as Sentry from '@sentry/nextjs';\n\nexport async function register() {\n  if (process.env.NEXT_RUNTIME === 'nodejs') {\n    await import('../sentry.server.config');\n  }\n\n  if (process.env.NEXT_RUNTIME === 'edge') {\n    await import('../sentry.edge.config');\n  }\n}\n\nexport const onRequestError = Sentry.captureRequestError;\n"],"names":[],"mappings":";;;;;;AAAuG;AAAtG,UAAU,CAAC,uBAAuB,GAAG;AAAS,UAAU,CAAC,4BAA4B,GAAG;;AAElF,eAAe;IACpB,wCAA2C;QACzC;IACF;IAEA;;AAGF;AAEO,MAAM,iBAAiB,iMAA0B"}}]
+}

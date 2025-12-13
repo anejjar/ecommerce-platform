@@ -1,0 +1,3 @@
+{
+  "/api/admin/products/[id]/customization-fields/[fieldId]/route": "app/api/admin/products/[id]/customization-fields/[fieldId]/route.js"
+}

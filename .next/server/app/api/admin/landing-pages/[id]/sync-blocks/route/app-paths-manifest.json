@@ -1,0 +1,3 @@
+{
+  "/api/admin/landing-pages/[id]/sync-blocks/route": "app/api/admin/landing-pages/[id]/sync-blocks/route.js"
+}

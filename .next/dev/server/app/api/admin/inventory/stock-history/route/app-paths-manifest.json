@@ -1,0 +1,3 @@
+{
+  "/api/admin/inventory/stock-history/route": "app/api/admin/inventory/stock-history/route.js"
+}

@@ -1,0 +1,3 @@
+{
+  "/admin/(protected)/marketing/email-campaigns/[id]/page": "app/admin/(protected)/marketing/email-campaigns/[id]/page.js"
+}

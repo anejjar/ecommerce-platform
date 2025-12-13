@@ -1,0 +1,441 @@
+{
+  "version": 1,
+  "config": {
+    "env": {
+      "_sentryRewriteFramesDistDir": ".next",
+      "_sentryRewriteFramesAssetPrefixPath": "",
+      "_sentryRewritesTunnelPath": "/monitoring",
+      "_sentryRelease": "4f177240885a9679f2d77680ccac91406a664b2d"
+    },
+    "webpack": null,
+    "typescript": {
+      "ignoreBuildErrors": true
+    },
+    "typedRoutes": false,
+    "distDir": ".next",
+    "cleanDistDir": true,
+    "assetPrefix": "",
+    "cacheMaxMemorySize": 52428800,
+    "configOrigin": "next.config.ts",
+    "useFileSystemPublicRoutes": true,
+    "generateEtags": true,
+    "pageExtensions": [
+      "tsx",
+      "ts",
+      "jsx",
+      "js"
+    ],
+    "poweredByHeader": true,
+    "compress": true,
+    "images": {
+      "deviceSizes": [
+        640,
+        750,
+        828,
+        1080,
+        1200,
+        1920,
+        2048,
+        3840
+      ],
+      "imageSizes": [
+        32,
+        48,
+        64,
+        96,
+        128,
+        256,
+        384
+      ],
+      "path": "/_next/image",
+      "loader": "default",
+      "loaderFile": "",
+      "domains": [],
+      "disableStaticImages": false,
+      "minimumCacheTTL": 14400,
+      "formats": [
+        "image/webp"
+      ],
+      "maximumRedirects": 3,
+      "dangerouslyAllowLocalIP": false,
+      "dangerouslyAllowSVG": false,
+      "contentSecurityPolicy": "script-src 'none'; frame-src 'none'; sandbox;",
+      "contentDispositionType": "attachment",
+      "localPatterns": [
+        {
+          "pathname": "**",
+          "search": ""
+        }
+      ],
+      "remotePatterns": [
+        {
+          "protocol": "https",
+          "hostname": "res.cloudinary.com",
+          "pathname": "/**"
+        },
+        {
+          "protocol": "http",
+          "hostname": "res.cloudinary.com",
+          "pathname": "/**"
+        },
+        {
+          "protocol": "https",
+          "hostname": "images.unsplash.com",
+          "pathname": "/**"
+        }
+      ],
+      "qualities": [
+        75
+      ],
+      "unoptimized": false
+    },
+    "devIndicators": {
+      "position": "bottom-left"
+    },
+    "onDemandEntries": {
+      "maxInactiveAge": 60000,
+      "pagesBufferLength": 5
+    },
+    "basePath": "",
+    "sassOptions": {},
+    "trailingSlash": false,
+    "i18n": null,
+    "productionBrowserSourceMaps": false,
+    "excludeDefaultMomentLocales": true,
+    "reactProductionProfiling": false,
+    "reactStrictMode": null,
+    "reactMaxHeadersLength": 6000,
+    "httpAgentOptions": {
+      "keepAlive": true
+    },
+    "logging": {},
+    "compiler": {},
+    "expireTime": 31536000,
+    "staticPageGenerationTimeout": 60,
+    "modularizeImports": {
+      "@mui/icons-material": {
+        "transform": "@mui/icons-material/{{member}}"
+      },
+      "lodash": {
+        "transform": "lodash/{{member}}"
+      }
+    },
+    "outputFileTracingRoot": "C:\\laragon\\www\\claude\\ecommerce-platform",
+    "cacheComponents": false,
+    "cacheLife": {
+      "default": {
+        "stale": 300,
+        "revalidate": 900,
+        "expire": 4294967294
+      },
+      "seconds": {
+        "stale": 30,
+        "revalidate": 1,
+        "expire": 60
+      },
+      "minutes": {
+        "stale": 300,
+        "revalidate": 60,
+        "expire": 3600
+      },
+      "hours": {
+        "stale": 300,
+        "revalidate": 3600,
+        "expire": 86400
+      },
+      "days": {
+        "stale": 300,
+        "revalidate": 86400,
+        "expire": 604800
+      },
+      "weeks": {
+        "stale": 300,
+        "revalidate": 604800,
+        "expire": 2592000
+      },
+      "max": {
+        "stale": 300,
+        "revalidate": 2592000,
+        "expire": 31536000
+      }
+    },
+    "cacheHandlers": {},
+    "experimental": {
+      "useSkewCookie": false,
+      "cssChunking": true,
+      "multiZoneDraftMode": false,
+      "appNavFailHandling": false,
+      "prerenderEarlyExit": true,
+      "serverMinification": true,
+      "serverSourceMaps": false,
+      "linkNoTouchStart": false,
+      "caseSensitiveRoutes": false,
+      "dynamicOnHover": false,
+      "preloadEntriesOnStart": true,
+      "clientRouterFilter": true,
+      "clientRouterFilterRedirects": false,
+      "fetchCacheKeyPrefix": "",
+      "proxyPrefetch": "flexible",
+      "optimisticClientCache": true,
+      "manualClientBasePath": false,
+      "cpus": 7,
+      "memoryBasedWorkersCount": false,
+      "imgOptConcurrency": null,
+      "imgOptTimeoutInSeconds": 7,
+      "imgOptMaxInputPixels": 268402689,
+      "imgOptSequentialRead": null,
+      "imgOptSkipMetadata": null,
+      "isrFlushToDisk": true,
+      "workerThreads": false,
+      "optimizeCss": false,
+      "nextScriptWorkers": false,
+      "scrollRestoration": false,
+      "externalDir": false,
+      "disableOptimizedLoading": false,
+      "gzipSize": true,
+      "craCompat": false,
+      "esmExternals": true,
+      "fullySpecified": false,
+      "swcTraceProfiling": false,
+      "forceSwcTransforms": false,
+      "largePageDataBytes": 128000,
+      "typedEnv": false,
+      "clientTraceMetadata": [
+        "baggage",
+        "sentry-trace"
+      ],
+      "parallelServerCompiles": false,
+      "parallelServerBuildTraces": false,
+      "ppr": false,
+      "authInterrupts": false,
+      "webpackMemoryOptimizations": false,
+      "optimizeServerReact": true,
+      "viewTransition": false,
+      "removeUncaughtErrorAndRejectionListeners": false,
+      "validateRSCRequestHeaders": false,
+      "staleTimes": {
+        "dynamic": 0,
+        "static": 300
+      },
+      "reactDebugChannel": false,
+      "serverComponentsHmrCache": true,
+      "staticGenerationMaxConcurrency": 8,
+      "staticGenerationMinPagesPerWorker": 25,
+      "inlineCss": false,
+      "useCache": false,
+      "globalNotFound": false,
+      "browserDebugInfoInTerminal": false,
+      "lockDistDir": true,
+      "isolatedDevBuild": true,
+      "proxyClientMaxBodySize": 10485760,
+      "hideLogsAfterAbort": false,
+      "mcpServer": true,
+      "optimizePackageImports": [
+        "lucide-react",
+        "date-fns",
+        "lodash-es",
+        "ramda",
+        "antd",
+        "react-bootstrap",
+        "ahooks",
+        "@ant-design/icons",
+        "@headlessui/react",
+        "@headlessui-float/react",
+        "@heroicons/react/20/solid",
+        "@heroicons/react/24/solid",
+        "@heroicons/react/24/outline",
+        "@visx/visx",
+        "@tremor/react",
+        "rxjs",
+        "@mui/material",
+        "@mui/icons-material",
+        "recharts",
+        "react-use",
+        "effect",
+        "@effect/schema",
+        "@effect/platform",
+        "@effect/platform-node",
+        "@effect/platform-browser",
+        "@effect/platform-bun",
+        "@effect/sql",
+        "@effect/sql-mssql",
+        "@effect/sql-mysql2",
+        "@effect/sql-pg",
+        "@effect/sql-sqlite-node",
+        "@effect/sql-sqlite-bun",
+        "@effect/sql-sqlite-wasm",
+        "@effect/sql-sqlite-react-native",
+        "@effect/rpc",
+        "@effect/rpc-http",
+        "@effect/typeclass",
+        "@effect/experimental",
+        "@effect/opentelemetry",
+        "@material-ui/core",
+        "@material-ui/icons",
+        "@tabler/icons-react",
+        "mui-core",
+        "react-icons/ai",
+        "react-icons/bi",
+        "react-icons/bs",
+        "react-icons/cg",
+        "react-icons/ci",
+        "react-icons/di",
+        "react-icons/fa",
+        "react-icons/fa6",
+        "react-icons/fc",
+        "react-icons/fi",
+        "react-icons/gi",
+        "react-icons/go",
+        "react-icons/gr",
+        "react-icons/hi",
+        "react-icons/hi2",
+        "react-icons/im",
+        "react-icons/io",
+        "react-icons/io5",
+        "react-icons/lia",
+        "react-icons/lib",
+        "react-icons/lu",
+        "react-icons/md",
+        "react-icons/pi",
+        "react-icons/ri",
+        "react-icons/rx",
+        "react-icons/si",
+        "react-icons/sl",
+        "react-icons/tb",
+        "react-icons/tfi",
+        "react-icons/ti",
+        "react-icons/vsc",
+        "react-icons/wi"
+      ],
+      "trustHostHeader": false,
+      "isExperimentalCompile": false
+    },
+    "htmlLimitedBots": "[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight",
+    "bundlePagesRouterDependencies": false,
+    "configFileName": "next.config.ts",
+    "turbopack": {
+      "resolveAlias": {
+        "next-intl/config": "./src/i18n.ts"
+      },
+      "rules": {
+        "**/instrumentation-client.*": {
+          "loaders": [
+            {
+              "loader": "C:\\laragon\\www\\claude\\ecommerce-platform\\node_modules\\@sentry\\nextjs\\build\\cjs\\config\\loaders\\valueInjectionLoader.js",
+              "options": {
+                "values": {
+                  "_sentryRouteManifest": "{\"dynamicRoutes\":[{\"path\":\"/admin/categories/:id\",\"regex\":\"^/admin/categories/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/cms/landing-pages/:id\",\"regex\":\"^/admin/cms/landing-pages/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/cms/landing-pages/:id/editor\",\"regex\":\"^/admin/cms/landing-pages/([^/]+)/editor$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/cms/pages/:id\",\"regex\":\"^/admin/cms/pages/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/cms/pages/:id/editor\",\"regex\":\"^/admin/cms/pages/([^/]+)/editor$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/cms/posts/:id\",\"regex\":\"^/admin/cms/posts/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/cms/templates/:id\",\"regex\":\"^/admin/cms/templates/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/cms/templates/:id/edit\",\"regex\":\"^/admin/cms/templates/([^/]+)/edit$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/customers/:id\",\"regex\":\"^/admin/customers/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/features/docs/:featureKey\",\"regex\":\"^/admin/features/docs/([^/]+)$\",\"paramNames\":[\"featureKey\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/inventory/purchase-orders/:id\",\"regex\":\"^/admin/inventory/purchase-orders/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/inventory/suppliers/:id\",\"regex\":\"^/admin/inventory/suppliers/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/invoices/:id\",\"regex\":\"^/admin/invoices/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/marketing/email-campaigns/:id\",\"regex\":\"^/admin/marketing/email-campaigns/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/marketing/email-campaigns/:id/edit\",\"regex\":\"^/admin/marketing/email-campaigns/([^/]+)/edit$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/marketing/flash-sales/:id\",\"regex\":\"^/admin/marketing/flash-sales/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/orders/:id\",\"regex\":\"^/admin/orders/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/orders/:id/invoice\",\"regex\":\"^/admin/orders/([^/]+)/invoice$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/popups/:id\",\"regex\":\"^/admin/popups/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/popups/:id/analytics\",\"regex\":\"^/admin/popups/([^/]+)/analytics$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/products/:id\",\"regex\":\"^/admin/products/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/admin/templates/:id\",\"regex\":\"^/admin/templates/([^/]+)$\",\"paramNames\":[\"id\"],\"hasOptionalPrefix\":false},{\"path\":\"/auth/reset-password/:token\",\"regex\":\"^/auth/reset-password/([^/]+)$\",\"paramNames\":[\"token\"],\"hasOptionalPrefix\":false},{\"path\":\"/cart/recover/:token\",\"regex\":\"^/cart/recover/([^/]+)$\",\"paramNames\":[\"token\"],\"hasOptionalPrefix\":false},{\"path\":\"/:locale\",\"regex\":\"^/([^/]+)$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account\",\"regex\":\"^/([^/]+)/account$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account/addresses\",\"regex\":\"^/([^/]+)/account/addresses$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account/delete\",\"regex\":\"^/([^/]+)/account/delete$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account/invoices\",\"regex\":\"^/([^/]+)/account/invoices$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account/invoices/:id\",\"regex\":\"^/([^/]+)/account/invoices/([^/]+)$\",\"paramNames\":[\"locale\",\"id\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account/orders\",\"regex\":\"^/([^/]+)/account/orders$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account/orders/:id\",\"regex\":\"^/([^/]+)/account/orders/([^/]+)$\",\"paramNames\":[\"locale\",\"id\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/account/preferences\",\"regex\":\"^/([^/]+)/account/preferences$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/blog\",\"regex\":\"^/([^/]+)/blog$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/blog/:slug\",\"regex\":\"^/([^/]+)/blog/([^/]+)$\",\"paramNames\":[\"locale\",\"slug\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/cart\",\"regex\":\"^/([^/]+)/cart$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/checkout\",\"regex\":\"^/([^/]+)/checkout$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/landing/:slug\",\"regex\":\"^/([^/]+)/landing/([^/]+)$\",\"paramNames\":[\"locale\",\"slug\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/newsletter/unsubscribe\",\"regex\":\"^/([^/]+)/newsletter/unsubscribe$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/order-confirmation/:orderNumber\",\"regex\":\"^/([^/]+)/order-confirmation/([^/]+)$\",\"paramNames\":[\"locale\",\"orderNumber\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/product/:slug\",\"regex\":\"^/([^/]+)/product/([^/]+)$\",\"paramNames\":[\"locale\",\"slug\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/shop\",\"regex\":\"^/([^/]+)/shop$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/wishlist\",\"regex\":\"^/([^/]+)/wishlist$\",\"paramNames\":[\"locale\"],\"hasOptionalPrefix\":true},{\"path\":\"/:locale/:slug\",\"regex\":\"^/([^/]+)/([^/]+)$\",\"paramNames\":[\"locale\",\"slug\"],\"hasOptionalPrefix\":true}],\"staticRoutes\":[{\"path\":\"/admin\"},{\"path\":\"/admin/abandoned-carts\"},{\"path\":\"/admin/activity-logs\"},{\"path\":\"/admin/analytics\"},{\"path\":\"/admin/backup\"},{\"path\":\"/admin/categories\"},{\"path\":\"/admin/categories/new\"},{\"path\":\"/admin/cms/categories\"},{\"path\":\"/admin/cms/landing-pages\"},{\"path\":\"/admin/cms/landing-pages/new\"},{\"path\":\"/admin/cms/pages\"},{\"path\":\"/admin/cms/posts\"},{\"path\":\"/admin/cms/templates\"},{\"path\":\"/admin/cms/templates/new\"},{\"path\":\"/admin/cms/test-editor\"},{\"path\":\"/admin/customers\"},{\"path\":\"/admin/customers/deletion-requests\"},{\"path\":\"/admin/dashboard\"},{\"path\":\"/admin/discounts\"},{\"path\":\"/admin/discounts/new\"},{\"path\":\"/admin/export\"},{\"path\":\"/admin/features\"},{\"path\":\"/admin/import\"},{\"path\":\"/admin/inventory\"},{\"path\":\"/admin/inventory/alerts\"},{\"path\":\"/admin/inventory/bulk-update\"},{\"path\":\"/admin/inventory/purchase-orders\"},{\"path\":\"/admin/inventory/purchase-orders/new\"},{\"path\":\"/admin/inventory/stock-history\"},{\"path\":\"/admin/inventory/suppliers\"},{\"path\":\"/admin/invoices\"},{\"path\":\"/admin/invoices/new\"},{\"path\":\"/admin/invoices/recurring\"},{\"path\":\"/admin/invoices/recurring/new\"},{\"path\":\"/admin/marketing/email-campaigns\"},{\"path\":\"/admin/marketing/email-campaigns/templates\"},{\"path\":\"/admin/marketing/flash-sales\"},{\"path\":\"/admin/marketing/flash-sales/new\"},{\"path\":\"/admin/media\"},{\"path\":\"/admin/newsletter\"},{\"path\":\"/admin/orders\"},{\"path\":\"/admin/orders/new\"},{\"path\":\"/admin/popups\"},{\"path\":\"/admin/popups/new\"},{\"path\":\"/admin/pos/cashiers\"},{\"path\":\"/admin/pos/locations\"},{\"path\":\"/admin/pos/orders\"},{\"path\":\"/admin/pos/reports\"},{\"path\":\"/admin/pos/settings\"},{\"path\":\"/admin/products\"},{\"path\":\"/admin/products/import\"},{\"path\":\"/admin/products/new\"},{\"path\":\"/admin/refunds\"},{\"path\":\"/admin/reviews\"},{\"path\":\"/admin/seo-tools\"},{\"path\":\"/admin/settings\"},{\"path\":\"/admin/settings/appearance\"},{\"path\":\"/admin/settings/checkout\"},{\"path\":\"/admin/settings/email\"},{\"path\":\"/admin/settings/general\"},{\"path\":\"/admin/settings/invoices\"},{\"path\":\"/admin/settings/media\"},{\"path\":\"/admin/settings/seo\"},{\"path\":\"/admin/settings/shipping\"},{\"path\":\"/admin/settings/social\"},{\"path\":\"/admin/settings/stock-alerts\"},{\"path\":\"/admin/settings/translations\"},{\"path\":\"/admin/templates\"},{\"path\":\"/admin/themes\"},{\"path\":\"/admin/users\"},{\"path\":\"/admin/login\"},{\"path\":\"/admin/pos\"},{\"path\":\"/auth/forgot-password\"},{\"path\":\"/auth/signin\"},{\"path\":\"/auth/signup\"},{\"path\":\"/sentry-example-page\"}],\"isrRoutes\":[]}",
+                  "_sentryNextJsVersion": "16.0.3",
+                  "_sentryRewritesTunnelPath": "/monitoring"
+                }
+              }
+            }
+          ]
+        },
+        "**/instrumentation.*": {
+          "loaders": [
+            {
+              "loader": "C:\\laragon\\www\\claude\\ecommerce-platform\\node_modules\\@sentry\\nextjs\\build\\cjs\\config\\loaders\\valueInjectionLoader.js",
+              "options": {
+                "values": {
+                  "_sentryNextJsVersion": "16.0.3",
+                  "_sentryRewritesTunnelPath": "/monitoring"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "root": "C:\\laragon\\www\\claude\\ecommerce-platform"
+    },
+    "serverExternalPackages": [
+      "amqplib",
+      "connect",
+      "dataloader",
+      "express",
+      "generic-pool",
+      "graphql",
+      "@hapi/hapi",
+      "ioredis",
+      "kafkajs",
+      "koa",
+      "lru-memoizer",
+      "mongodb",
+      "mongoose",
+      "mysql",
+      "mysql2",
+      "knex",
+      "pg",
+      "pg-pool",
+      "@node-redis/client",
+      "@redis/client",
+      "redis",
+      "tedious"
+    ],
+    "distDirRoot": ".next",
+    "_originalRewrites": {
+      "beforeFiles": [],
+      "afterFiles": [
+        {
+          "source": "/monitoring(/?)",
+          "has": [
+            {
+              "type": "query",
+              "key": "o",
+              "value": "(?<orgid>\\d*)"
+            },
+            {
+              "type": "query",
+              "key": "p",
+              "value": "(?<projectid>\\d*)"
+            },
+            {
+              "type": "query",
+              "key": "r",
+              "value": "(?<region>[a-z]{2})"
+            }
+          ],
+          "destination": "https://o:orgid.ingest.:region.sentry.io/api/:projectid/envelope/?hsts=0"
+        },
+        {
+          "source": "/monitoring(/?)",
+          "has": [
+            {
+              "type": "query",
+              "key": "o",
+              "value": "(?<orgid>\\d*)"
+            },
+            {
+              "type": "query",
+              "key": "p",
+              "value": "(?<projectid>\\d*)"
+            }
+          ],
+          "destination": "https://o:orgid.ingest.sentry.io/api/:projectid/envelope/?hsts=0"
+        }
+      ],
+      "fallback": []
+    }
+  },
+  "appDir": "C:\\laragon\\www\\claude\\ecommerce-platform",
+  "relativeAppDir": "",
+  "files": [
+    ".next\\routes-manifest.json",
+    ".next\\server\\pages-manifest.json",
+    ".next\\build-manifest.json",
+    ".next\\prerender-manifest.json",
+    ".next\\server\\functions-config-manifest.json",
+    ".next\\server\\middleware-manifest.json",
+    ".next\\server\\middleware-build-manifest.js",
+    ".next\\server\\app-paths-manifest.json",
+    ".next\\app-path-routes-manifest.json",
+    ".next\\server\\server-reference-manifest.js",
+    ".next\\server\\server-reference-manifest.json",
+    ".next\\BUILD_ID",
+    ".next\\server\\next-font-manifest.js",
+    ".next\\server\\next-font-manifest.json",
+    ".next\\required-server-files.json",
+    ".next\\server\\instrumentation.js"
+  ],
+  "ignore": []
+}

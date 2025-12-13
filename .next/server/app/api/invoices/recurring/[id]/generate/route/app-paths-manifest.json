@@ -1,0 +1,3 @@
+{
+  "/api/invoices/recurring/[id]/generate/route": "app/api/invoices/recurring/[id]/generate/route.js"
+}

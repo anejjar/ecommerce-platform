@@ -1,0 +1,3 @@
+{
+  "/api/pos/sync/order/[id]/route": "app/api/pos/sync/order/[id]/route.js"
+}

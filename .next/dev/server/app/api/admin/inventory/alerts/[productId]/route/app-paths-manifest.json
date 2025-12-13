@@ -1,0 +1,3 @@
+{
+  "/api/admin/inventory/alerts/[productId]/route": "app/api/admin/inventory/alerts/[productId]/route.js"
+}

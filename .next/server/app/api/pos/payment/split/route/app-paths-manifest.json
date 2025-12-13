@@ -1,0 +1,3 @@
+{
+  "/api/pos/payment/split/route": "app/api/pos/payment/split/route.js"
+}

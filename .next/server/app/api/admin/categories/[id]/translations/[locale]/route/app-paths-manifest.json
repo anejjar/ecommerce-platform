@@ -1,0 +1,3 @@
+{
+  "/api/admin/categories/[id]/translations/[locale]/route": "app/api/admin/categories/[id]/translations/[locale]/route.js"
+}

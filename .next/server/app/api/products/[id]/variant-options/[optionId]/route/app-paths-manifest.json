@@ -1,0 +1,3 @@
+{
+  "/api/products/[id]/variant-options/[optionId]/route": "app/api/products/[id]/variant-options/[optionId]/route.js"
+}
