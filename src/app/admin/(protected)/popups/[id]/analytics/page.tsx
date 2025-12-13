@@ -76,7 +76,7 @@ export default function PopupAnalyticsPage({ params }: { params: Promise<{ id: s
   // Calculate rates
   const calculateRates = () => {
     const totals = calculateTotals();
-    if (totals.views === 0) return { ctr: 0, conversionRate: 0, dismissalRate: 0 };
+    if (totals.views === 0) return { ctr: '0', conversionRate: '0', dismissalRate: '0' };
 
     return {
       ctr: ((totals.clicks / totals.views) * 100).toFixed(2),
