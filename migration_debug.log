@@ -1,0 +1,1766 @@
+Starting migration refactor...
+Parsing schema...
+Found 83 models and 42 enums.
+Building dependency graph...
+Sorting models...
+Migration order: User, Account, Category, Product, ProductImage, VariantOption, VariantOptionValue, ProductVariant, Cart, CartItem, AbandonedCart, AbandonedCartEmail, DiscountCode, Address, Location, Cashier, PosOrder, Order, OrderItem, PosSession, Review, OrderNote, StockAlert, Supplier, StockHistory, PurchaseOrder, PurchaseOrderItem, PasswordReset, Page, NewsletterSubscriber, WishlistItem, StoreSetting, FeatureFlag, Region, City, CheckoutSettings, Refund, RefundItem, Permission, AdminInvitation, AdminActivityLog, ProductTranslation, CategoryTranslation, Template, BlogCategory, BlogPost, BlogTag, MediaFolder, MediaLibrary, MediaTag, MediaUsage, MediaVariant, Popup, PopupAnalytics, PaymentMethod, AccountDeletionRequest, ProductCustomizationField, ProductCustomizationOption, CartItemCustomization, OrderItemCustomization, Backup, DataExport, DataImport, UrlRedirect, SchemaMarkup, EmailCampaign, CampaignRecipient, CampaignAnalytics, EmailTemplate, BlockTemplate, ContentBlock, PageRevision, FlashSale, FlashSaleProduct, FlashSaleCategory, InvoiceTemplate, RecurringInvoice, Invoice, InvoiceItem, InvoiceSettings, InvoicePayment, InvoiceHistory, Theme
+Checking existing migrations...
+No existing migrations directory found, skipping backup.
+Resetting database...
+Running prisma db push --force-reset...
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+The MySQL database "ecommerce_platform" at "localhost:3306" was successfully reset.
+
+Your database is now in sync with your Prisma schema. Done in 103ms
+
+
+Database reset complete.
+[1/83] Migrating table: User
+Running: npx prisma migrate dev --name create_user
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213153954_create_user`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213153954_create_user/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 107ms
+
+
+
+[2/83] Migrating table: Account
+Running: npx prisma migrate dev --name create_account
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154003_create_account`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154003_create_account/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 238ms
+
+
+
+[3/83] Migrating table: Category
+Running: npx prisma migrate dev --name create_category
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154014_create_category`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154014_create_category/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 214ms
+
+
+
+[4/83] Migrating table: Product
+Running: npx prisma migrate dev --name create_product
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154024_create_product`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154024_create_product/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 332ms
+
+
+
+[5/83] Migrating table: ProductImage
+Running: npx prisma migrate dev --name create_productimage
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154036_create_productimage`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154036_create_productimage/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 349ms
+
+
+
+[6/83] Migrating table: VariantOption
+Running: npx prisma migrate dev --name create_variantoption
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154054_create_variantoption`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154054_create_variantoption/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 274ms
+
+
+
+[7/83] Migrating table: VariantOptionValue
+Running: npx prisma migrate dev --name create_variantoptionvalue
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154106_create_variantoptionvalue`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154106_create_variantoptionvalue/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 609ms
+
+
+
+[8/83] Migrating table: ProductVariant
+Running: npx prisma migrate dev --name create_productvariant
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154118_create_productvariant`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154118_create_productvariant/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.04s
+
+
+
+[9/83] Migrating table: Cart
+Running: npx prisma migrate dev --name create_cart
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154133_create_cart`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154133_create_cart/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 304ms
+
+
+
+[10/83] Migrating table: CartItem
+Running: npx prisma migrate dev --name create_cartitem
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154144_create_cartitem`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154144_create_cartitem/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 323ms
+
+
+
+[11/83] Migrating table: AbandonedCart
+Running: npx prisma migrate dev --name create_abandonedcart
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154157_create_abandonedcart`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154157_create_abandonedcart/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 315ms
+
+
+
+[12/83] Migrating table: AbandonedCartEmail
+Running: npx prisma migrate dev --name create_abandonedcartemail
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154212_create_abandonedcartemail`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154212_create_abandonedcartemail/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 410ms
+
+
+
+[13/83] Migrating table: DiscountCode
+Running: npx prisma migrate dev --name create_discountcode
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154229_create_discountcode`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154229_create_discountcode/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 633ms
+
+
+
+[14/83] Migrating table: Address
+Running: npx prisma migrate dev --name create_address
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154242_create_address`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154242_create_address/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 414ms
+
+
+
+[15/83] Migrating table: Location
+Running: npx prisma migrate dev --name create_location
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154256_create_location`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154256_create_location/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 376ms
+
+
+
+[16/83] Migrating table: Cashier
+Running: npx prisma migrate dev --name create_cashier
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154309_create_cashier`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154309_create_cashier/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 484ms
+
+
+
+[17/83] Migrating table: PosOrder
+Running: npx prisma migrate dev --name create_posorder
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154324_create_posorder`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154324_create_posorder/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 886ms
+
+
+
+[18/83] Migrating table: Order
+Running: npx prisma migrate dev --name create_order
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154345_create_order`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154345_create_order/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 765ms
+
+
+
+[19/83] Migrating table: OrderItem
+Running: npx prisma migrate dev --name create_orderitem
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154402_create_orderitem`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154402_create_orderitem/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 565ms
+
+
+
+[20/83] Migrating table: PosSession
+Running: npx prisma migrate dev --name create_possession
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154419_create_possession`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154419_create_possession/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 651ms
+
+
+
+[21/83] Migrating table: Review
+Running: npx prisma migrate dev --name create_review
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154438_create_review`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154438_create_review/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.11s
+
+
+
+[22/83] Migrating table: OrderNote
+Running: npx prisma migrate dev --name create_ordernote
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154504_create_ordernote`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154504_create_ordernote/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 686ms
+
+
+
+[23/83] Migrating table: StockAlert
+Running: npx prisma migrate dev --name create_stockalert
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154525_create_stockalert`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154525_create_stockalert/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 909ms
+
+
+
+[24/83] Migrating table: Supplier
+Running: npx prisma migrate dev --name create_supplier
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154543_create_supplier`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154543_create_supplier/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.04s
+
+
+
+[25/83] Migrating table: StockHistory
+Running: npx prisma migrate dev --name create_stockhistory
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154604_create_stockhistory`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154604_create_stockhistory/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 729ms
+
+
+
+[26/83] Migrating table: PurchaseOrder
+Running: npx prisma migrate dev --name create_purchaseorder
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154626_create_purchaseorder`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154626_create_purchaseorder/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 822ms
+
+
+
+[27/83] Migrating table: PurchaseOrderItem
+Running: npx prisma migrate dev --name create_purchaseorderitem
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154647_create_purchaseorderitem`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154647_create_purchaseorderitem/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 854ms
+
+
+
+[28/83] Migrating table: PasswordReset
+Running: npx prisma migrate dev --name create_passwordreset
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154709_create_passwordreset`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154709_create_passwordreset/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 945ms
+
+
+
+[29/83] Migrating table: Page
+Running: npx prisma migrate dev --name create_page
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154738_create_page`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154738_create_page/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.05s
+
+
+
+[30/83] Migrating table: NewsletterSubscriber
+Running: npx prisma migrate dev --name create_newslettersubscriber
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154800_create_newslettersubscriber`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154800_create_newslettersubscriber/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 833ms
+
+
+
+[31/83] Migrating table: WishlistItem
+Running: npx prisma migrate dev --name create_wishlistitem
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154821_create_wishlistitem`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154821_create_wishlistitem/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 996ms
+
+
+
+[32/83] Migrating table: StoreSetting
+Running: npx prisma migrate dev --name create_storesetting
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154845_create_storesetting`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154845_create_storesetting/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.29s
+
+
+
+[33/83] Migrating table: FeatureFlag
+Running: npx prisma migrate dev --name create_featureflag
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154911_create_featureflag`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154911_create_featureflag/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 920ms
+
+
+
+[34/83] Migrating table: Region
+Running: npx prisma migrate dev --name create_region
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154933_create_region`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154933_create_region/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 837ms
+
+
+
+[35/83] Migrating table: City
+Running: npx prisma migrate dev --name create_city
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213154958_create_city`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213154958_create_city/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.68s
+
+
+
+[36/83] Migrating table: CheckoutSettings
+Running: npx prisma migrate dev --name create_checkoutsettings
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155028_create_checkoutsettings`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155028_create_checkoutsettings/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.07s
+
+
+
+[37/83] Migrating table: Refund
+Running: npx prisma migrate dev --name create_refund
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155109_create_refund`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155109_create_refund/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.05s
+
+
+
+[38/83] Migrating table: RefundItem
+Running: npx prisma migrate dev --name create_refunditem
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155135_create_refunditem`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155135_create_refunditem/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 986ms
+
+
+
+[39/83] Migrating table: Permission
+Running: npx prisma migrate dev --name create_permission
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155200_create_permission`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155200_create_permission/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 986ms
+
+
+
+[40/83] Migrating table: AdminInvitation
+Running: npx prisma migrate dev --name create_admininvitation
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155225_create_admininvitation`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155225_create_admininvitation/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.28s
+
+
+
+[41/83] Migrating table: AdminActivityLog
+Running: npx prisma migrate dev --name create_adminactivitylog
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155257_create_adminactivitylog`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155257_create_adminactivitylog/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 936ms
+
+
+
+[42/83] Migrating table: ProductTranslation
+Running: npx prisma migrate dev --name create_producttranslation
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155321_create_producttranslation`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155321_create_producttranslation/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 990ms
+
+
+
+[43/83] Migrating table: CategoryTranslation
+Running: npx prisma migrate dev --name create_categorytranslation
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155346_create_categorytranslation`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155346_create_categorytranslation/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.15s
+
+
+
+[44/83] Migrating table: Template
+Running: npx prisma migrate dev --name create_template
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155413_create_template`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155413_create_template/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 996ms
+
+
+
+[45/83] Migrating table: BlogCategory
+Running: npx prisma migrate dev --name create_blogcategory
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155440_create_blogcategory`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155440_create_blogcategory/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 956ms
+
+
+
+[46/83] Migrating table: BlogPost
+Running: npx prisma migrate dev --name create_blogpost
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155507_create_blogpost`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155507_create_blogpost/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 950ms
+
+
+
+[47/83] Migrating table: BlogTag
+Running: npx prisma migrate dev --name create_blogtag
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155540_create_blogtag`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155540_create_blogtag/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.10s
+
+
+
+[48/83] Migrating table: MediaFolder
+Running: npx prisma migrate dev --name create_mediafolder
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155607_create_mediafolder`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155607_create_mediafolder/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.05s
+
+
+
+[49/83] Migrating table: MediaLibrary
+Running: npx prisma migrate dev --name create_medialibrary
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155635_create_medialibrary`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155635_create_medialibrary/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 783ms
+
+
+
+[50/83] Migrating table: MediaTag
+Running: npx prisma migrate dev --name create_mediatag
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155707_create_mediatag`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155707_create_mediatag/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.11s
+
+
+
+[51/83] Migrating table: MediaUsage
+Running: npx prisma migrate dev --name create_mediausage
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155737_create_mediausage`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155737_create_mediausage/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.23s
+
+
+
+[52/83] Migrating table: MediaVariant
+Running: npx prisma migrate dev --name create_mediavariant
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155814_create_mediavariant`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155814_create_mediavariant/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.24s
+
+
+
+[53/83] Migrating table: Popup
+Running: npx prisma migrate dev --name create_popup
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155844_create_popup`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155844_create_popup/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.19s
+
+
+
+[54/83] Migrating table: PopupAnalytics
+Running: npx prisma migrate dev --name create_popupanalytics
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155917_create_popupanalytics`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155917_create_popupanalytics/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.05s
+
+
+
+[55/83] Migrating table: PaymentMethod
+Running: npx prisma migrate dev --name create_paymentmethod
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213155947_create_paymentmethod`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213155947_create_paymentmethod/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.24s
+
+
+
+[56/83] Migrating table: AccountDeletionRequest
+Running: npx prisma migrate dev --name create_accountdeletionrequest
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160021_create_accountdeletionrequest`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160021_create_accountdeletionrequest/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.37s
+
+
+
+[57/83] Migrating table: ProductCustomizationField
+Running: npx prisma migrate dev --name create_productcustomizationfield
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160058_create_productcustomizationfield`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160058_create_productcustomizationfield/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.25s
+
+
+
+[58/83] Migrating table: ProductCustomizationOption
+Running: npx prisma migrate dev --name create_productcustomizationoption
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160131_create_productcustomizationoption`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160131_create_productcustomizationoption/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.15s
+
+
+
+[59/83] Migrating table: CartItemCustomization
+Running: npx prisma migrate dev --name create_cartitemcustomization
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160207_create_cartitemcustomization`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160207_create_cartitemcustomization/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.46s
+
+
+
+[60/83] Migrating table: OrderItemCustomization
+Running: npx prisma migrate dev --name create_orderitemcustomization
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160301_create_orderitemcustomization`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160301_create_orderitemcustomization/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.64s
+
+
+
+[61/83] Migrating table: Backup
+Running: npx prisma migrate dev --name create_backup
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160346_create_backup`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160346_create_backup/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.23s
+
+
+
+[62/83] Migrating table: DataExport
+Running: npx prisma migrate dev --name create_dataexport
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160422_create_dataexport`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160422_create_dataexport/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.30s
+
+
+
+[63/83] Migrating table: DataImport
+Running: npx prisma migrate dev --name create_dataimport
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160501_create_dataimport`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160501_create_dataimport/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.23s
+
+
+
+[64/83] Migrating table: UrlRedirect
+Running: npx prisma migrate dev --name create_urlredirect
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160538_create_urlredirect`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160538_create_urlredirect/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.28s
+
+
+
+[65/83] Migrating table: SchemaMarkup
+Running: npx prisma migrate dev --name create_schemamarkup
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160622_create_schemamarkup`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160622_create_schemamarkup/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.42s
+
+
+
+[66/83] Migrating table: EmailCampaign
+Running: npx prisma migrate dev --name create_emailcampaign
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160659_create_emailcampaign`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160659_create_emailcampaign/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.27s
+
+
+
+[67/83] Migrating table: CampaignRecipient
+Running: npx prisma migrate dev --name create_campaignrecipient
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160739_create_campaignrecipient`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160739_create_campaignrecipient/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.44s
+
+
+
+[68/83] Migrating table: CampaignAnalytics
+Running: npx prisma migrate dev --name create_campaignanalytics
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160819_create_campaignanalytics`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160819_create_campaignanalytics/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.86s
+
+
+
+[69/83] Migrating table: EmailTemplate
+Running: npx prisma migrate dev --name create_emailtemplate
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160901_create_emailtemplate`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160901_create_emailtemplate/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.59s
+
+
+
+[70/83] Migrating table: BlockTemplate
+Running: npx prisma migrate dev --name create_blocktemplate
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213160938_create_blocktemplate`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213160938_create_blocktemplate/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.67s
+
+
+
+[71/83] Migrating table: ContentBlock
+Running: npx prisma migrate dev --name create_contentblock
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161020_create_contentblock`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161020_create_contentblock/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.17s
+
+
+
+[72/83] Migrating table: PageRevision
+Running: npx prisma migrate dev --name create_pagerevision
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161104_create_pagerevision`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161104_create_pagerevision/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.98s
+
+
+
+[73/83] Migrating table: FlashSale
+Running: npx prisma migrate dev --name create_flashsale
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161151_create_flashsale`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161151_create_flashsale/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.52s
+
+
+
+[74/83] Migrating table: FlashSaleProduct
+Running: npx prisma migrate dev --name create_flashsaleproduct
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161232_create_flashsaleproduct`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161232_create_flashsaleproduct/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.63s
+
+
+
+[75/83] Migrating table: FlashSaleCategory
+Running: npx prisma migrate dev --name create_flashsalecategory
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161313_create_flashsalecategory`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161313_create_flashsalecategory/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.14s
+
+
+
+[76/83] Migrating table: InvoiceTemplate
+Running: npx prisma migrate dev --name create_invoicetemplate
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161359_create_invoicetemplate`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161359_create_invoicetemplate/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.39s
+
+
+
+[77/83] Migrating table: RecurringInvoice
+Running: npx prisma migrate dev --name create_recurringinvoice
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161443_create_recurringinvoice`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161443_create_recurringinvoice/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.08s
+
+
+
+[78/83] Migrating table: Invoice
+Running: npx prisma migrate dev --name create_invoice
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161523_create_invoice`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161523_create_invoice/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.86s
+
+
+
+[79/83] Migrating table: InvoiceItem
+Running: npx prisma migrate dev --name create_invoiceitem
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161624_create_invoiceitem`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161624_create_invoiceitem/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.24s
+
+
+
+[80/83] Migrating table: InvoiceSettings
+Running: npx prisma migrate dev --name create_invoicesettings
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161711_create_invoicesettings`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161711_create_invoicesettings/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.41s
+
+
+
+[81/83] Migrating table: InvoicePayment
+Running: npx prisma migrate dev --name create_invoicepayment
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161805_create_invoicepayment`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161805_create_invoicepayment/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.20s
+
+
+
+[82/83] Migrating table: InvoiceHistory
+Running: npx prisma migrate dev --name create_invoicehistory
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161857_create_invoicehistory`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161857_create_invoicehistory/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.51s
+
+
+
+[83/83] Migrating table: Theme
+Running: npx prisma migrate dev --name create_theme
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "ecommerce_platform" at "localhost:3306"
+
+Applying migration `20251213161946_create_theme`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20251213161946_create_theme/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.0) to .\node_modules\@prisma\client in 1.37s
+
+
+
+All migrations generated successfully.
+Restoring schema to original state...
+Running prisma generate to verify restore...
+Prisma generate done.

@@ -1,0 +1,33 @@
+-- CreateTable
+CREATE TABLE `EmailCampaign` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `subject` VARCHAR(191) NOT NULL,
+    `preheader` VARCHAR(191) NULL,
+    `type` ENUM('NEWSLETTER', 'PROMOTIONAL', 'TRANSACTIONAL', 'ANNOUNCEMENT', 'CUSTOM') NOT NULL DEFAULT 'NEWSLETTER',
+    `status` ENUM('DRAFT', 'SCHEDULED', 'SENDING', 'SENT', 'PAUSED', 'CANCELLED') NOT NULL DEFAULT 'DRAFT',
+    `htmlContent` TEXT NOT NULL,
+    `textContent` TEXT NULL,
+    `templateId` VARCHAR(191) NULL,
+    `scheduledAt` DATETIME(3) NULL,
+    `sentAt` DATETIME(3) NULL,
+    `sendToAll` BOOLEAN NOT NULL DEFAULT false,
+    `recipientCount` INTEGER NOT NULL DEFAULT 0,
+    `fromName` VARCHAR(191) NULL,
+    `fromEmail` VARCHAR(191) NULL,
+    `replyTo` VARCHAR(191) NULL,
+    `totalSent` INTEGER NOT NULL DEFAULT 0,
+    `totalOpened` INTEGER NOT NULL DEFAULT 0,
+    `totalClicked` INTEGER NOT NULL DEFAULT 0,
+    `totalBounced` INTEGER NOT NULL DEFAULT 0,
+    `totalUnsubscribed` INTEGER NOT NULL DEFAULT 0,
+    `createdById` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `EmailCampaign_status_idx`(`status`),
+    INDEX `EmailCampaign_type_idx`(`type`),
+    INDEX `EmailCampaign_scheduledAt_idx`(`scheduledAt`),
+    INDEX `EmailCampaign_createdAt_idx`(`createdAt`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
