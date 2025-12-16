@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `order` ADD COLUMN `attributionCampaign` VARCHAR(191) NULL,
+ALTER TABLE `Order` ADD COLUMN `attributionCampaign` VARCHAR(191) NULL,
     ADD COLUMN `attributionMedium` VARCHAR(191) NULL,
     ADD COLUMN `attributionSource` VARCHAR(191) NULL;
 

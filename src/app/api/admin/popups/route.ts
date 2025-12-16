@@ -55,6 +55,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Parse dates to proper ISO-8601 format
+    let startDate = null;
+    let endDate = null;
+
+    if (body.startDate) {
+      startDate = new Date(body.startDate);
+      if (isNaN(startDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid start date format' },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (body.endDate) {
+      endDate = new Date(body.endDate);
+      if (isNaN(endDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid end date format' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Create popup
     const popup = await prisma.popup.create({
       data: {
@@ -82,8 +106,8 @@ export async function POST(request: NextRequest) {
         ctaUrl: body.ctaUrl || null,
         discountCode: body.discountCode || null,
         isActive: body.isActive || false,
-        startDate: body.startDate || null,
-        endDate: body.endDate || null,
+        startDate,
+        endDate,
         priority: body.priority || 0,
       },
     });

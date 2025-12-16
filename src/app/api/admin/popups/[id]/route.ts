@@ -95,8 +95,38 @@ export async function PATCH(
     if (body.ctaUrl !== undefined) updateData.ctaUrl = body.ctaUrl;
     if (body.discountCode !== undefined) updateData.discountCode = body.discountCode;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
-    if (body.startDate !== undefined) updateData.startDate = body.startDate;
-    if (body.endDate !== undefined) updateData.endDate = body.endDate;
+
+    // Parse dates to proper ISO-8601 format
+    if (body.startDate !== undefined) {
+      if (body.startDate === null) {
+        updateData.startDate = null;
+      } else {
+        const startDate = new Date(body.startDate);
+        if (isNaN(startDate.getTime())) {
+          return NextResponse.json(
+            { error: 'Invalid start date format' },
+            { status: 400 }
+          );
+        }
+        updateData.startDate = startDate;
+      }
+    }
+
+    if (body.endDate !== undefined) {
+      if (body.endDate === null) {
+        updateData.endDate = null;
+      } else {
+        const endDate = new Date(body.endDate);
+        if (isNaN(endDate.getTime())) {
+          return NextResponse.json(
+            { error: 'Invalid end date format' },
+            { status: 400 }
+          );
+        }
+        updateData.endDate = endDate;
+      }
+    }
+
     if (body.priority !== undefined) updateData.priority = body.priority;
 
     // Update popup
