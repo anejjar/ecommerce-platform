@@ -1,41 +1,14 @@
 
 import { PrismaClient, FeatureTier } from '@prisma/client'
+import { seedFeatures } from './seed-features'
 
 const prisma = new PrismaClient()
 
 async function main() {
     console.log('🌱 Starting essential data seeding...')
 
-    // 1. Feature Flags
-    console.log('🚩 Seeding Feature Flags...')
-    const features = [
-        // Analytics
-        { name: 'analytics_dashboard', displayName: 'Analytics & Reporting Dashboard', description: 'Comprehensive analytics platform', category: 'analytics', tier: 'PRO' as const, enabled: true },
-        { name: 'sales_reports', displayName: 'Sales Reports', description: 'Detailed sales reporting', category: 'analytics', tier: 'PRO' as const, enabled: true },
-        { name: 'customer_analytics', displayName: 'Customer Analytics', description: 'Customer behavior analysis', category: 'analytics', tier: 'PRO' as const, enabled: true },
-        // Operations
-        { name: 'flash_sales', displayName: 'Flash Sales & Scheduled Promotions', description: 'Time-limited promotional system', category: 'operations', tier: 'PRO' as const, enabled: true },
-        { name: 'refund_management', displayName: 'Refund Management', description: 'Refund processing', category: 'operations', tier: 'PRO' as const, enabled: true },
-        { name: 'inventory_management', displayName: 'Inventory Management', description: 'Stock management', category: 'operations', tier: 'PRO' as const, enabled: true },
-        { name: 'template_manager', displayName: 'Template Manager', description: 'Email and document templates', category: 'operations', tier: 'PRO' as const, enabled: true },
-        { name: 'product_import_export', displayName: 'Product Import/Export', description: 'Bulk product management', category: 'operations', tier: 'PRO' as const, enabled: true },
-        // Marketing
-        { name: 'abandoned_cart', displayName: 'Abandoned Cart Recovery', description: 'Cart recovery', category: 'marketing', tier: 'PRO' as const, enabled: true },
-        { name: 'cms', displayName: 'Content Management', description: 'CMS system', category: 'marketing', tier: 'PRO' as const, enabled: true },
-        { name: 'email_campaigns', displayName: 'Email Campaigns', description: 'Email marketing campaigns', category: 'marketing', tier: 'PRO' as const, enabled: true },
-        { name: 'exit_intent_popups', displayName: 'Exit Intent Popups', description: 'Capture leaving visitors', category: 'marketing', tier: 'PRO' as const, enabled: true },
-        { name: 'seo_toolkit', displayName: 'SEO Toolkit', description: 'Search engine optimization tools', category: 'marketing', tier: 'PRO' as const, enabled: true },
-        { name: 'checkout_customization', displayName: 'Checkout Customization', description: 'Customize checkout experience', category: 'sales', tier: 'PRO' as const, enabled: true },
-    ]
-
-    for (const feature of features) {
-        await prisma.featureFlag.upsert({
-            where: { name: feature.name },
-            update: feature,
-            create: feature,
-        })
-    }
-    console.log('✅ Feature Flags seeded.')
+    // 1. Feature Flags - Import from centralized source
+    await seedFeatures(true) // true = enable all features for development/testing
 
     // 2. Store Settings
     console.log('⚙️ Seeding Store Settings...')

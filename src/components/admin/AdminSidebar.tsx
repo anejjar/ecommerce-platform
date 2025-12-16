@@ -69,6 +69,7 @@ interface NavItem {
   children?: {
     name: string
     href: string
+    featureFlag?: string
   }[]
 }
 
@@ -81,9 +82,10 @@ const navigation: NavItem[] = [
   {
     name: "Analytics",
     icon: BarChart3,
+    featureFlag: "analytics_dashboard",
     children: [
-      { name: "Dashboard", href: "/admin/analytics" },
-      { name: "Traffic & Attribution", href: "/admin/analytics/traffic" },
+      { name: "Dashboard", href: "/admin/analytics", featureFlag: "analytics_dashboard" },
+      { name: "Traffic & Attribution", href: "/admin/analytics/traffic", featureFlag: "traffic_analytics" },
     ],
   },
   {
@@ -308,6 +310,7 @@ export function AdminSidebar() {
             let filteredItem = { ...item };
             if (item.children) {
               filteredItem.children = item.children.filter(child => {
+                if (child.featureFlag && !enabledFeatures.includes(child.featureFlag)) return false;
                 if (child.name === 'Refunds' && !enabledFeatures.includes('refund_management')) return false;
                 if (child.name === 'Abandoned Carts' && !enabledFeatures.includes('abandoned_cart')) return false;
                 if (child.name === 'Flash Sales' && !enabledFeatures.includes('flash_sales')) return false;

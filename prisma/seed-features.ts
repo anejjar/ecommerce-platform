@@ -3,10 +3,14 @@ import { PrismaClient, FeatureTier } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-async function main() {
-    console.log('🚩 Seeding Feature Flags...')
+// ============================================================================
+// CENTRALIZED FEATURE FLAGS - SINGLE SOURCE OF TRUTH
+// ============================================================================
+// This is the master list of all feature flags in the system.
+// All other seed scripts should import this list to avoid duplication.
+// ============================================================================
 
-    const features = [
+export const allFeatures = [
         // Analytics Features
         {
             name: 'analytics_dashboard',
@@ -36,6 +40,14 @@ async function main() {
             name: 'product_performance',
             displayName: 'Product Performance Analytics',
             description: 'Comprehensive product analytics tracking best sellers, underperforming items, stock turnover rates, and product trends to optimize your inventory and pricing.',
+            category: 'analytics',
+            tier: 'PRO' as const,
+            enabled: false
+        },
+        {
+            name: 'traffic_analytics',
+            displayName: 'Traffic Analytics & Attribution',
+            description: 'Advanced traffic source tracking with UTM parameters, referrer detection, and full customer journey attribution. Track which platforms (Facebook, Google, TikTok, etc.) drive conversions and calculate ROI per source without using Google Analytics or third-party services.',
             category: 'analytics',
             tier: 'PRO' as const,
             enabled: false
@@ -292,24 +304,43 @@ async function main() {
         },
     ]
 
-    for (const feature of features) {
+// Helper function to seed features with optional enabled override
+export async function seedFeatures(enableAll = false) {
+    console.log('🚩 Seeding Feature Flags...')
+
+    for (const feature of allFeatures) {
+        const featureData = enableAll
+            ? { ...feature, enabled: true }
+            : feature
+
         await prisma.featureFlag.upsert({
             where: { name: feature.name },
-            update: feature,
-            create: feature,
+            update: featureData,
+            create: featureData,
         })
-        console.log(`✓ Updated/Created feature: ${feature.name} (enabled: ${feature.enabled})`)
+        console.log(`✓ Updated/Created feature: ${feature.name} (enabled: ${featureData.enabled})`)
     }
 
-    console.log(`\n✅ Successfully seeded ${features.length} feature flags`)
-    console.log('📝 All features are disabled by default')
+    console.log(`\n✅ Successfully seeded ${allFeatures.length} feature flags`)
+    if (enableAll) {
+        console.log('📝 All features are ENABLED')
+    } else {
+        console.log('📝 All features are disabled by default')
+    }
 }
 
-main()
-    .catch((e) => {
-        console.error(e)
-        process.exit(1)
-    })
-    .finally(async () => {
-        await prisma.$disconnect()
-    })
+// Run if executed directly
+if (require.main === module) {
+    async function main() {
+        await seedFeatures(false) // false = disabled by default
+    }
+
+    main()
+        .catch((e) => {
+            console.error(e)
+            process.exit(1)
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+        })
+}
