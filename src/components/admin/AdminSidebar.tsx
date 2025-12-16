@@ -56,7 +56,8 @@ import {
   Sun,
   Moon,
   Laptop,
-  Palette
+  Palette,
+  TrendingUp
 } from "lucide-react"
 import { useAdminSidebar } from "./AdminSidebarContext"
 
@@ -79,9 +80,11 @@ const navigation: NavItem[] = [
   },
   {
     name: "Analytics",
-    href: "/admin/analytics",
     icon: BarChart3,
-    featureFlag: "analytics_dashboard",
+    children: [
+      { name: "Dashboard", href: "/admin/analytics" },
+      { name: "Traffic & Attribution", href: "/admin/analytics/traffic" },
+    ],
   },
   {
     name: "Catalog",
@@ -152,6 +155,7 @@ const navigation: NavItem[] = [
     children: [
       { name: "Abandoned Carts", href: "/admin/abandoned-carts" },
       { name: "Flash Sales", href: "/admin/marketing/flash-sales" },
+      { name: "Loyalty Program", href: "/admin/loyalty/settings" },
       { name: "Popups", href: "/admin/popups" },
       { name: "Email Campaigns", href: "/admin/marketing/email-campaigns" },
       { name: "Newsletter", href: "/admin/newsletter" },
@@ -307,6 +311,7 @@ export function AdminSidebar() {
                 if (child.name === 'Refunds' && !enabledFeatures.includes('refund_management')) return false;
                 if (child.name === 'Abandoned Carts' && !enabledFeatures.includes('abandoned_cart')) return false;
                 if (child.name === 'Flash Sales' && !enabledFeatures.includes('flash_sales')) return false;
+                if (child.name === 'Loyalty Program' && !enabledFeatures.includes('loyalty_program')) return false;
                 if (child.name === 'Popups' && !enabledFeatures.includes('exit_intent_popups')) return false;
                 if (child.name === 'Email Campaigns' && !enabledFeatures.includes('email_campaigns')) return false;
                 return true;

@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { CustomScripts } from '@/components/CustomScripts';
 import { CustomStyles } from '@/components/CustomStyles';
 import { PopupManager } from '@/components/PopupManager';
+import { TrafficTrackingProvider } from '@/components/TrafficTrackingProvider';
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -35,10 +36,12 @@ export default async function LocaleLayout({
         <SettingsProvider>
           <ThemeProvider>
             <StoreProvider>
-              <CustomStyles />
-              <CustomScripts />
-              {children}
-              <PopupManager />
+              <TrafficTrackingProvider>
+                <CustomStyles />
+                <CustomScripts />
+                {children}
+                <PopupManager />
+              </TrafficTrackingProvider>
             </StoreProvider>
           </ThemeProvider>
         </SettingsProvider>

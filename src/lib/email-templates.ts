@@ -581,3 +581,265 @@ export function adminNewRefundRequestEmail(
     <p>Please review and process this request as soon as possible.</p>
   `;
 }
+
+// ============================================
+// LOYALTY PROGRAM EMAIL TEMPLATES
+// ============================================
+
+export function loyaltyWelcomeEmail(customerName: string, referralCode: string, currencySymbol: string = '$') {
+  return `
+    <h2>Welcome to Our Loyalty Rewards Program! 🎉</h2>
+    <p>Hi ${customerName},</p>
+    <p>You've been automatically enrolled in our loyalty rewards program! Start earning points on every purchase and unlock exclusive benefits.</p>
+
+    <div style="background-color: #f0fdf4; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin-top: 0; color: #059669;">🎁 Your Benefits:</h3>
+      <ul style="line-height: 1.8;">
+        <li><strong>Earn 1 point per ${currencySymbol}1 spent</strong> (before tier multipliers)</li>
+        <li><strong>100 points = ${currencySymbol}1 discount</strong></li>
+        <li><strong>Progress through tiers</strong> to unlock better rewards</li>
+        <li><strong>VIP early access</strong> to flash sales (Silver tier and above)</li>
+        <li><strong>Refer friends</strong> and earn 500 bonus points</li>
+      </ul>
+    </div>
+
+    <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <strong>Your Referral Code:</strong>
+      <div style="font-size: 24px; font-weight: bold; color: #d97706; margin: 10px 0; font-family: monospace;">
+        ${referralCode}
+      </div>
+      <p style="margin: 0; font-size: 14px; color: #92400e;">Share this code with friends and earn 500 points when they make their first purchase!</p>
+    </div>
+
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
+      View Your Loyalty Dashboard
+    </a>
+
+    <p>Happy shopping and earning rewards!</p>
+  `;
+}
+
+export function pointsEarnedEmail(
+  customerName: string,
+  pointsEarned: number,
+  orderNumber: string,
+  newBalance: number,
+  tierMultiplier: number,
+  currencySymbol: string = '$'
+) {
+  return `
+    <h2>You Earned ${pointsEarned.toLocaleString()} Points! 🎯</h2>
+    <p>Hi ${customerName},</p>
+    <p>Great news! You've earned loyalty points from your recent purchase.</p>
+
+    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 4px;">
+      <div style="font-size: 18px; margin-bottom: 10px;">
+        <strong>Order #${orderNumber}</strong>
+      </div>
+      <div style="font-size: 32px; font-weight: bold; color: #1e40af; margin: 15px 0;">
+        +${pointsEarned.toLocaleString()} Points
+      </div>
+      ${tierMultiplier > 1 ? `
+        <div style="background-color: #fef3c7; border-radius: 4px; padding: 10px; margin-top: 10px;">
+          <span style="color: #d97706;">⭐ ${tierMultiplier}x tier multiplier applied!</span>
+        </div>
+      ` : ''}
+    </div>
+
+    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
+      <strong>Your New Balance:</strong>
+      <div style="font-size: 24px; font-weight: bold; color: #059669; margin-top: 5px;">
+        ${newBalance.toLocaleString()} Points
+      </div>
+      <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">
+        = ${currencySymbol}${Math.floor(newBalance / 100)} in rewards available
+      </p>
+    </div>
+
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
+      Redeem Your Points
+    </a>
+
+    <p>Keep shopping to earn even more rewards!</p>
+  `;
+}
+
+export function tierUpgradeEmail(
+  customerName: string,
+  newTierName: string,
+  newTierIcon: string,
+  benefits: string[],
+  earlyAccessEnabled: boolean,
+  earlyAccessHours: number
+) {
+  return `
+    <h2>Congratulations! You've Been Upgraded! 🎉</h2>
+    <p>Hi ${customerName},</p>
+    <p>Amazing news! Your loyalty has paid off and you've reached a new tier level.</p>
+
+    <div style="background-color: #fef3c7; border: 3px solid #f59e0b; border-radius: 12px; padding: 30px; margin: 20px 0; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 10px;">${newTierIcon}</div>
+      <h3 style="margin: 10px 0; color: #d97706; font-size: 28px;">
+        ${newTierName} Member
+      </h3>
+      <p style="color: #92400e; margin-top: 5px;">You've unlocked premium benefits!</p>
+    </div>
+
+    <div style="background-color: #f0fdf4; border: 1px solid #10b981; border-radius: 6px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin-top: 0; color: #059669;">🎁 Your New Benefits:</h3>
+      <ul style="line-height: 2;">
+        ${benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+        ${earlyAccessEnabled ? `
+          <li style="background-color: #dbeafe; padding: 8px; border-radius: 4px; margin: 5px 0;">
+            <strong style="color: #1e40af;">✨ VIP Early Access:</strong> ${earlyAccessHours}-hour exclusive access to flash sales and new products
+          </li>
+        ` : ''}
+      </ul>
+    </div>
+
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
+      View Your Tier Benefits
+    </a>
+
+    <p>Thank you for being a valued customer! Enjoy your upgraded benefits.</p>
+  `;
+}
+
+export function pointsExpiringEmail(
+  customerName: string,
+  expiringPoints: number,
+  expirationDate: string,
+  currentBalance: number,
+  currencySymbol: string = '$'
+) {
+  return `
+    <h2>Your Points Are Expiring Soon! ⏰</h2>
+    <p>Hi ${customerName},</p>
+    <p>This is a friendly reminder that some of your loyalty points are about to expire.</p>
+
+    <div style="background-color: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <div style="text-align: center;">
+        <div style="font-size: 36px; font-weight: bold; color: #dc2626; margin-bottom: 10px;">
+          ${expiringPoints.toLocaleString()} Points
+        </div>
+        <div style="color: #991b1b; font-size: 16px;">
+          Expiring on ${expirationDate}
+        </div>
+      </div>
+    </div>
+
+    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
+      <strong>Current Balance:</strong>
+      <div style="font-size: 20px; color: #059669; margin-top: 5px;">
+        ${currentBalance.toLocaleString()} Points
+      </div>
+    </div>
+
+    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <strong>💡 Don't Lose Your Points!</strong>
+      <p style="margin: 10px 0 0 0;">Redeem them now for:</p>
+      <ul style="margin: 10px 0;">
+        <li>Discount codes (100 points = ${currencySymbol}1)</li>
+        <li>Free shipping (500 points)</li>
+      </ul>
+    </div>
+
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
+      Redeem Points Now
+    </a>
+
+    <p>Act fast before your points expire!</p>
+  `;
+}
+
+export function redemptionConfirmationEmail(
+  customerName: string,
+  pointsSpent: number,
+  redemptionType: string,
+  discountCode?: string,
+  discountValue?: number,
+  currencySymbol: string = '$'
+) {
+  return `
+    <h2>Points Redeemed Successfully! 🎁</h2>
+    <p>Hi ${customerName},</p>
+    <p>You've successfully redeemed your loyalty points for a reward!</p>
+
+    <div style="background-color: #d1fae5; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+      <div style="font-size: 18px; color: #065f46; margin-bottom: 10px;">
+        You spent <strong>${pointsSpent.toLocaleString()} points</strong>
+      </div>
+      ${discountCode ? `
+        <div style="background-color: white; border: 2px dashed #10b981; border-radius: 6px; padding: 20px; margin: 15px 0;">
+          <div style="color: #065f46; margin-bottom: 10px;">Your Discount Code:</div>
+          <div style="font-size: 28px; font-weight: bold; color: #059669; font-family: monospace; letter-spacing: 2px;">
+            ${discountCode}
+          </div>
+          ${discountValue ? `
+            <div style="color: #10b981; margin-top: 10px; font-size: 18px;">
+              Value: ${currencySymbol}${discountValue}
+            </div>
+          ` : ''}
+        </div>
+        <p style="color: #065f46; margin: 10px 0; font-size: 14px;">
+          Use this code at checkout. Valid for 90 days.
+        </p>
+      ` : `
+        <div style="font-size: 24px; font-weight: bold; color: #059669; margin: 10px 0;">
+          ${redemptionType === 'FREE_SHIPPING' ? '📦 Free Shipping Unlocked!' : '✅ Reward Unlocked!'}
+        </div>
+      `}
+    </div>
+
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="button">
+      Start Shopping
+    </a>
+
+    <p>Thank you for being a loyal customer!</p>
+  `;
+}
+
+export function earlyAccessNotificationEmail(
+  customerName: string,
+  tierName: string,
+  saleName: string,
+  earlyAccessStartDate: string,
+  publicStartDate: string,
+  earlyAccessHours: number
+) {
+  return `
+    <h2>🌟 VIP Early Access Alert!</h2>
+    <p>Hi ${customerName},</p>
+    <p>As a <strong>${tierName}</strong> member, you have exclusive early access to our upcoming flash sale!</p>
+
+    <div style="background-color: #fef3c7; border: 3px solid #f59e0b; border-radius: 12px; padding: 25px; margin: 20px 0;">
+      <div style="text-align: center;">
+        <div style="font-size: 24px; font-weight: bold; color: #d97706; margin-bottom: 10px;">
+          ⚡ ${saleName}
+        </div>
+        <div style="background-color: white; border-radius: 6px; padding: 15px; margin: 15px 0;">
+          <div style="color: #92400e; margin-bottom: 5px;">Your VIP Access Starts:</div>
+          <div style="font-size: 20px; font-weight: bold; color: #d97706;">
+            ${earlyAccessStartDate}
+          </div>
+        </div>
+        <div style="color: #92400e; font-size: 14px;">
+          Public sale starts: ${publicStartDate}
+        </div>
+      </div>
+    </div>
+
+    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <strong>✨ Why You Got Early Access:</strong>
+      <p style="margin: 10px 0 0 0;">
+        ${tierName} members get ${earlyAccessHours} hours of exclusive access before everyone else. Shop first and grab the best deals!
+      </p>
+    </div>
+
+    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="button">
+      Shop VIP Early Access
+    </a>
+
+    <p>Don't miss this exclusive opportunity reserved just for you!</p>
+  `;
+}

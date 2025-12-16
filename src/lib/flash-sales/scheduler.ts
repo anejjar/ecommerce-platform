@@ -18,12 +18,24 @@ export async function checkAndActivateSales() {
       },
     })
 
-    // Activate each sale
+    // Activate each sale and grant early access
     for (const sale of salesToActivate) {
       await prisma.flashSale.update({
         where: { id: sale.id },
         data: { status: 'ACTIVE' },
       })
+
+      // Grant early access to VIP members if enabled
+      if (sale.earlyAccessEnabled) {
+        try {
+          const { grantFlashSaleEarlyAccess } = await import('@/lib/loyalty/early-access');
+          await grantFlashSaleEarlyAccess(sale.id, sale.startDate);
+          console.log(`Granted early access to VIP members for flash sale ${sale.id}`);
+        } catch (earlyAccessError) {
+          console.error(`Failed to grant early access for sale ${sale.id}:`, earlyAccessError);
+          // Don't fail the activation if early access fails
+        }
+      }
     }
 
     return {

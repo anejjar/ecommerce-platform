@@ -14,6 +14,7 @@ import {
   UserX,
   ShoppingBag,
   FileText,
+  Gift,
 } from 'lucide-react';
 
 interface OrderStats {
@@ -158,6 +159,22 @@ export default function AccountPage() {
                 <div>
                   <CardTitle className="text-lg">Payment Methods</CardTitle>
                   <p className="text-sm text-gray-600">Saved payments</p>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link href="/account/loyalty">
+          <Card className="hover:border-gray-400 transition-colors cursor-pointer border-2 border-yellow-300 bg-gradient-to-br from-yellow-50 to-amber-50">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                  <Gift className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Loyalty Rewards</CardTitle>
+                  <p className="text-sm text-gray-600">Earn and redeem points</p>
                 </div>
               </div>
             </CardHeader>

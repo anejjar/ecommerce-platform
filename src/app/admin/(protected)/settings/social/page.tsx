@@ -60,6 +60,7 @@ export default function SocialMediaSettingsPage() {
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ settings, category: 'social' }),
       });
 

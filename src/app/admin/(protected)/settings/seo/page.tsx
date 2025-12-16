@@ -58,6 +58,7 @@ export default function SEOSettingsPage() {
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ settings, category: 'seo' }),
       });
 

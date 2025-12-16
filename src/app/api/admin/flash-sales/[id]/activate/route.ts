@@ -52,6 +52,18 @@ export async function POST(
       },
     })
 
+    // Grant early access to VIP members if enabled
+    if (updated.earlyAccessEnabled) {
+      try {
+        const { grantFlashSaleEarlyAccess } = await import('@/lib/loyalty/early-access');
+        await grantFlashSaleEarlyAccess(updated.id, updated.startDate);
+        console.log(`Granted early access to VIP members for flash sale ${updated.id}`);
+      } catch (earlyAccessError) {
+        console.error('Failed to grant early access:', earlyAccessError);
+        // Don't fail the activation if early access fails
+      }
+    }
+
     return NextResponse.json(updated)
   } catch (error: any) {
     console.error('Error activating flash sale:', error)

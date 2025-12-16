@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { orderConfirmationEmail, welcomeEmail, adminNewOrderEmail, lowStockAlertEmail } from '@/lib/email-templates';
 import bcrypt from 'bcryptjs';
+import { trackConversion } from '@/lib/tracking/tracking-service';
 
 async function generateOrderNumber(): Promise<string> {
   const date = new Date();
@@ -102,6 +103,28 @@ export async function POST(request: NextRequest) {
             role: 'CUSTOMER',
           },
         });
+
+        // Create loyalty account for new user
+        try {
+          const { generateReferralCode } = await import('@/lib/loyalty/referral-service');
+          const bronzeTier = await prisma.loyaltyTier.findUnique({
+            where: { name: 'Bronze' },
+          });
+
+          if (bronzeTier) {
+            await prisma.customerLoyaltyAccount.create({
+              data: {
+                userId: user.id,
+                tierId: bronzeTier.id,
+                referralCode: generateReferralCode(),
+              },
+            });
+            console.log(`Created loyalty account for new user ${user.id}`);
+          }
+        } catch (loyaltyError) {
+          console.error('Failed to create loyalty account:', loyaltyError);
+          // Don't fail user creation if loyalty account fails
+        }
 
         // Send welcome email
         try {
@@ -530,6 +553,83 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error('Failed to send admin notification email:', emailError);
       // Don't fail the order if email fails
+    }
+
+    // Award loyalty points for the purchase
+    if (user) {
+      try {
+        const loyaltyAccount = await prisma.customerLoyaltyAccount.findUnique({
+          where: { userId: user.id },
+          include: { tier: true },
+        });
+
+        if (loyaltyAccount) {
+          const settings = await prisma.loyaltySettings.findFirst();
+          if (settings) {
+            // Calculate points (imported from loyalty service)
+            const { calculatePurchasePoints } = await import('@/lib/loyalty/points-calculator');
+            const { checkTierUpgrade } = await import('@/lib/loyalty/tier-manager');
+            const { calculateExpirationDate } = await import('@/lib/loyalty/points-expiration');
+
+            const points = calculatePurchasePoints(
+              order.total,
+              settings,
+              loyaltyAccount.tier.pointsMultiplier
+            );
+
+            if (points > 0) {
+              const expiresAt = calculateExpirationDate(settings.pointsExpirationDays);
+
+              // Create transaction and update balance
+              await prisma.$transaction([
+                prisma.loyaltyPointsTransaction.create({
+                  data: {
+                    accountId: loyaltyAccount.id,
+                    type: 'PURCHASE',
+                    points,
+                    description: `Purchase: Order #${order.orderNumber}`,
+                    referenceType: 'order',
+                    referenceId: order.id,
+                    expiresAt,
+                  },
+                }),
+                prisma.customerLoyaltyAccount.update({
+                  where: { id: loyaltyAccount.id },
+                  data: {
+                    pointsBalance: {
+                      increment: points,
+                    },
+                    lifetimePoints: {
+                      increment: points,
+                    },
+                    lastActivityAt: new Date(),
+                  },
+                }),
+              ]);
+
+              // Check for tier upgrade
+              await checkTierUpgrade(loyaltyAccount.id);
+
+              console.log(`Awarded ${points} loyalty points to user ${user.id} for order ${order.orderNumber}`);
+            }
+          }
+        }
+      } catch (loyaltyError) {
+        console.error('Failed to award loyalty points:', loyaltyError);
+        // Don't fail the order if loyalty points fail
+      }
+    }
+
+    // Track conversion for traffic attribution
+    try {
+      const sessionToken = request.cookies.get('traffic_session')?.value;
+      if (sessionToken) {
+        await trackConversion(sessionToken, order.id, Number(order.total));
+        console.log(`Tracked conversion for order ${order.orderNumber}`);
+      }
+    } catch (conversionError) {
+      console.error('Failed to track conversion:', conversionError);
+      // Don't fail the order if tracking fails
     }
 
     return NextResponse.json(order);

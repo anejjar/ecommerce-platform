@@ -104,6 +104,8 @@ model User {
   invoiceHistoryChanges   InvoiceHistory[]      @relation("InvoiceHistoryChangedBy")
   recurringInvoicesAsCustomer RecurringInvoice[] @relation("RecurringInvoiceCustomer")
   recurringInvoicesCreated    RecurringInvoice[] @relation("RecurringInvoiceCreatedBy")
+  loyaltyAccount         CustomerLoyaltyAccount?
+  trafficSessions        TrafficSession[]
 }
 
 model Account {
@@ -172,6 +174,8 @@ model Product {
   stockHistory        StockHistory[]
   flashSaleProducts   FlashSaleProduct[]
   invoiceItems        InvoiceItem[]
+  loyaltyRedemptions  LoyaltyRedemption[]
+  trafficProductViews TrafficProductView[]
 }
 
 model ProductImage {
@@ -337,6 +341,15 @@ model Order {
   posOrderId        String?     @unique
   posOrder          PosOrder?   @relation(fields: [posOrderId], references: [id])
   invoices         Invoice[]
+  loyaltyRedemptions LoyaltyRedemption[]
+  trafficSessions    TrafficSession[]
+
+  // Traffic Attribution
+  attributionSource   String?
+  attributionMedium   String?
+  attributionCampaign String?
+
+  @@index([attributionSource, attributionMedium])
 }
 
 model OrderItem {
@@ -682,6 +695,7 @@ model DiscountCode {
   updatedAt      DateTime     @updatedAt
 
   orders Order[]
+  loyaltyRedemption LoyaltyRedemption?
 }
 
 model NewsletterSubscriber {
@@ -2243,6 +2257,7 @@ model FlashSale {
   priority      Int             @default(0)
   bannerImage   String?
   bannerText    String?
+  earlyAccessEnabled Boolean   @default(false) // Enable VIP early access
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -2667,6 +2682,145 @@ model RecurringInvoice {
 }
 
 // ============================================
+// LOYALTY PROGRAM SYSTEM
+// ============================================
+
+enum LoyaltyTransactionType {
+  PURCHASE
+  REVIEW
+  REFERRAL_GIVEN
+  REFERRAL_RECEIVED
+  SOCIAL_SHARE
+  REDEMPTION
+  REFUND
+  EXPIRATION
+  MANUAL_ADJUSTMENT
+  EARLY_ACCESS_BONUS
+}
+
+enum RedemptionType {
+  DISCOUNT_CODE
+  FREE_PRODUCT
+  FREE_SHIPPING
+}
+
+model LoyaltyTier {
+  id                    String   @id @default(cuid())
+  name                  String   @unique // Bronze, Silver, Gold, Platinum
+  pointsRequired        Int      // Lifetime points needed
+  color                 String   // Hex color for UI
+  icon                  String?  // Icon name
+  benefitsDescription   String   @db.Text
+  earlyAccessEnabled    Boolean  @default(false)
+  earlyAccessHours      Int      @default(24) // Hours before public
+  discountPercentage    Decimal  @default(0) @db.Decimal(5, 2)
+  pointsMultiplier      Decimal  @default(1.0) @db.Decimal(3, 2)
+  freeShippingThreshold Decimal? @db.Decimal(10, 2)
+  displayOrder          Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  accounts              CustomerLoyaltyAccount[]
+
+  @@index([displayOrder])
+}
+
+model CustomerLoyaltyAccount {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  pointsBalance     Int      @default(0)
+  lifetimePoints    Int      @default(0) // Never decreases
+  tierId            String
+  referralCode      String   @unique // 8-char unique code
+  enrolledAt        DateTime @default(now())
+  lastActivityAt    DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier              LoyaltyTier @relation(fields: [tierId], references: [id])
+  transactions      LoyaltyPointsTransaction[]
+  redemptions       LoyaltyRedemption[]
+  earlyAccessGrants LoyaltyEarlyAccess[]
+  referralsGiven    CustomerLoyaltyAccount[] @relation("Referrals")
+  referredBy        CustomerLoyaltyAccount?  @relation("Referrals", fields: [referredById], references: [id])
+  referredById      String?
+
+  @@index([tierId])
+  @@index([userId])
+  @@index([referralCode])
+}
+
+model LoyaltyPointsTransaction {
+  id              String                  @id @default(cuid())
+  accountId       String
+  type            LoyaltyTransactionType
+  points          Int // Positive for earn, negative for spend/expire
+  description     String
+  referenceType   String? // 'order', 'review', 'redemption'
+  referenceId     String?
+  expiresAt       DateTime?
+  expired         Boolean                 @default(false)
+  createdAt       DateTime                @default(now())
+
+  account         CustomerLoyaltyAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([expiresAt, expired])
+  @@index([referenceType, referenceId])
+}
+
+model LoyaltyRedemption {
+  id                String                 @id @default(cuid())
+  accountId         String
+  type              RedemptionType
+  pointsSpent       Int
+  discountCodeId    String?                @unique
+  productId         String?
+  orderId           String?
+  description       String
+  redeemedAt        DateTime               @default(now())
+
+  account           CustomerLoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  discountCode      DiscountCode?          @relation(fields: [discountCodeId], references: [id])
+  product           Product?               @relation(fields: [productId], references: [id])
+  order             Order?                 @relation(fields: [orderId], references: [id])
+
+  @@index([accountId])
+  @@index([redeemedAt])
+}
+
+model LoyaltyEarlyAccess {
+  id              String                 @id @default(cuid())
+  accountId       String
+  accessType      String // 'flash_sale', 'product_launch'
+  referenceId     String // FlashSale or Product ID
+  grantedAt       DateTime               @default(now())
+  expiresAt       DateTime
+  notified        Boolean                @default(false)
+  accessed        Boolean                @default(false)
+
+  account         CustomerLoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, accessType, referenceId])
+  @@index([expiresAt])
+  @@index([accountId])
+}
+
+model LoyaltySettings {
+  id                        String   @id @default(cuid())
+  pointsPerDollar           Decimal  @default(1) @db.Decimal(10, 2)
+  pointsPerReview           Int      @default(50)
+  pointsPerReferral         Int      @default(500)
+  pointsPerSocialShare      Int      @default(25)
+  redemptionRate            Int      @default(100) // Points per $1 discount
+  pointsExpirationDays      Int      @default(365)
+  enableEmailNotifications  Boolean  @default(true)
+  minimumRedemptionPoints   Int      @default(100)
+  updatedAt                 DateTime @updatedAt
+}
+
+// ============================================
 // STOREFRONT THEMES
 // ============================================
 
@@ -2686,4 +2840,123 @@ model Theme {
 
   @@index([isActive])
   @@index([isBuiltIn])
+}
+
+// ============================================
+// TRAFFIC TRACKING & ATTRIBUTION
+// ============================================
+
+enum TrafficEventType {
+  ADD_TO_CART
+  REMOVE_FROM_CART
+  CHECKOUT_START
+  CHECKOUT_COMPLETE
+  WISHLIST_ADD
+  SEARCH
+  CUSTOM
+}
+
+model TrafficSession {
+  id                String    @id @default(cuid())
+  sessionToken      String    @unique
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // First-Touch Attribution (never changes after creation)
+  firstTouchSource      String?
+  firstTouchMedium      String?
+  firstTouchCampaign    String?
+  firstTouchContent     String?
+  firstTouchTerm        String?
+  firstTouchReferrer    String?  @db.Text
+  firstTouchLandingPage String?  @db.Text
+
+  // Last-Touch Attribution (updates with new visits)
+  lastTouchSource       String?
+  lastTouchMedium       String?
+  lastTouchCampaign     String?
+  lastTouchContent      String?
+  lastTouchTerm         String?
+  lastTouchReferrer     String?  @db.Text
+  lastTouchLandingPage  String?  @db.Text
+
+  // Session metadata
+  ipAddress         String?
+  userAgent         String?  @db.Text
+  deviceType        String?
+  browser           String?
+  os                String?
+
+  // Engagement
+  pageViewCount     Int       @default(0)
+  productViewCount  Int       @default(0)
+  addToCartCount    Int       @default(0)
+
+  // Conversion
+  converted         Boolean   @default(false)
+  orderId           String?
+  order             Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  conversionValue   Decimal?  @db.Decimal(10, 2)
+
+  startedAt         DateTime  @default(now())
+  lastActivityAt    DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  pageViews         TrafficPageView[]
+  productViews      TrafficProductView[]
+  events            TrafficEvent[]
+
+  @@index([sessionToken])
+  @@index([userId])
+  @@index([firstTouchSource, firstTouchMedium])
+  @@index([converted])
+  @@index([createdAt])
+}
+
+model TrafficPageView {
+  id              String         @id @default(cuid())
+  sessionId       String
+  session         TrafficSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  path            String         @db.Text
+  title           String?
+  referrer        String?        @db.Text
+  timeOnPageSeconds Int?
+
+  createdAt       DateTime       @default(now())
+
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model TrafficProductView {
+  id              String         @id @default(cuid())
+  sessionId       String
+  session         TrafficSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  viewDurationSeconds Int?
+  createdAt       DateTime       @default(now())
+
+  @@index([sessionId])
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model TrafficEvent {
+  id              String            @id @default(cuid())
+  sessionId       String
+  session         TrafficSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  eventType       TrafficEventType
+  eventData       Json?
+  eventValue      Decimal?          @db.Decimal(10, 2)
+
+  createdAt       DateTime          @default(now())
+
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([createdAt])
 }

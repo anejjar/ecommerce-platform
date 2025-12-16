@@ -55,6 +55,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create loyalty account for new user
+    try {
+      const { generateReferralCode } = await import('@/lib/loyalty/referral-service');
+      const bronzeTier = await prisma.loyaltyTier.findUnique({
+        where: { name: 'Bronze' },
+      });
+
+      if (bronzeTier) {
+        await prisma.customerLoyaltyAccount.create({
+          data: {
+            userId: user.id,
+            tierId: bronzeTier.id,
+            referralCode: generateReferralCode(),
+          },
+        });
+        console.log(`Created loyalty account for new user ${user.id}`);
+      }
+    } catch (loyaltyError) {
+      console.error('Failed to create loyalty account:', loyaltyError);
+      // Don't fail signup if loyalty account fails
+    }
+
     // Send welcome email
     try {
       await sendEmail({
