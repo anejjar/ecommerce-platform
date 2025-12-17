@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
 import { Button } from '@/components/ui/button';
+import { requirePermission, checkPermission } from '@/lib/permission-guard';
 
 import {
   Table,
@@ -14,6 +15,9 @@ import {
 import { CategoryActions } from '@/components/admin/CategoryActions';
 
 export default async function CategoriesPage() {
+  await requirePermission('CATEGORY', 'VIEW');
+  const { hasAccess: canCreate } = await checkPermission('CATEGORY', 'CREATE');
+
   const categories = await prisma.category.findMany({
     include: {
       parent: true,
@@ -35,17 +39,21 @@ export default async function CategoriesPage() {
           <h1 className="text-3xl font-bold">Categories</h1>
           <p className="text-gray-600 mt-2">Manage product categories</p>
         </div>
-        <Link href="/admin/categories/new">
-          <Button>Add Category</Button>
-        </Link>
+        {canCreate && (
+          <Link href="/admin/categories/new">
+            <Button>Add Category</Button>
+          </Link>
+        )}
       </div>
 
       {categories.length === 0 ? (
         <div className="text-center py-12 border rounded-lg bg-gray-50">
           <p className="text-gray-500 mb-4">No categories yet</p>
-          <Link href="/admin/categories/new">
-            <Button>Create your first category</Button>
-          </Link>
+          {canCreate && (
+            <Link href="/admin/categories/new">
+              <Button>Create your first category</Button>
+            </Link>
+          )}
         </div>
       ) : (
         <div className="rounded-md border">

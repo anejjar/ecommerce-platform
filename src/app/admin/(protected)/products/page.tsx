@@ -3,12 +3,19 @@ import { prisma } from '@/lib/prisma';
 import { Button } from '@/components/ui/button';
 import { ProductsList } from '@/components/admin/ProductsList';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { requirePermission, checkPermission } from '@/lib/permission-guard';
 
 export default async function ProductsPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
+  // Require VIEW permission for PRODUCT resource
+  await requirePermission('PRODUCT', 'VIEW');
+
+  // Check if user can create products (for conditional rendering)
+  const { hasAccess: canCreate } = await checkPermission('PRODUCT', 'CREATE');
+
   const params = await searchParams;
   const pageParam = parseInt(params.page || '1', 10);
   const page = pageParam > 0 ? pageParam : 1;
@@ -57,21 +64,27 @@ export default async function ProductsPage({
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/admin/products/import">
-            <Button variant="outline">Import CSV</Button>
-          </Link>
-          <Link href="/admin/products/new">
-            <Button>Add Product</Button>
-          </Link>
+          {canCreate && (
+            <>
+              <Link href="/admin/products/import">
+                <Button variant="outline">Import CSV</Button>
+              </Link>
+              <Link href="/admin/products/new">
+                <Button>Add Product</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
       {products.length === 0 ? (
         <div className="text-center py-12 border rounded-lg bg-gray-50">
           <p className="text-gray-500 mb-4">No products yet</p>
-          <Link href="/admin/products/new">
-            <Button>Create your first product</Button>
-          </Link>
+          {canCreate && (
+            <Link href="/admin/products/new">
+              <Button>Create your first product</Button>
+            </Link>
+          )}
         </div>
       ) : (
         <>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { formatCurrencyServer, getCurrencySymbol } from '@/lib/server-currency';
 import { formatCurrencyWithSymbol } from '@/lib/formatting';
+import { requirePermission } from '@/lib/permission-guard';
 
 import {
   Table,
@@ -19,6 +20,9 @@ export default async function CustomersPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
+  // Require VIEW permission for CUSTOMER resource
+  await requirePermission('CUSTOMER', 'VIEW');
+
   const params = await searchParams;
   const pageParam = parseInt(params.page || '1', 10);
   const page = pageParam > 0 ? pageParam : 1;

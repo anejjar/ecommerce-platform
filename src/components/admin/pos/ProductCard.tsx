@@ -8,7 +8,7 @@ import { addToPosCart, updatePosCartQuantity, removeFromPosCart } from '@/lib/re
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useCurrency } from '@/hooks/useCurrency';
-import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE, getProductImageUrl } from '@/lib/image-utils';
 
 interface ProductCardProps {
   product: {
@@ -26,7 +26,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const cart = useAppSelector((state) => state.pos.cart);
   const { format } = useCurrency();
   const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-  const imageUrl = product.images?.[0]?.url || PLACEHOLDER_PRODUCT_IMAGE;
+  const initialImageUrl = product.images?.[0]?.url;
+
+  // State for handling image errors
+  const [imageSrc, setImageSrc] = useState(getProductImageUrl(initialImageUrl));
+  const [hasImageError, setHasImageError] = useState(false);
 
   // Check if product is in cart (no variants for now)
   const cartItem = cart.find((item) => item.productId === product.id && !item.variantId);
@@ -43,7 +47,7 @@ export function ProductCard({ product }: ProductCardProps) {
           name: product.name,
           price,
           quantity: 1,
-          image: imageUrl,
+          image: imageSrc,
         })
       );
     } else {
@@ -53,6 +57,13 @@ export function ProductCard({ product }: ProductCardProps) {
           quantity: quantity + 1,
         })
       );
+    }
+  };
+
+  const handleImageError = () => {
+    if (!hasImageError) {
+      setHasImageError(true);
+      setImageSrc(PLACEHOLDER_PRODUCT_IMAGE);
     }
   };
 
@@ -89,17 +100,13 @@ export function ProductCard({ product }: ProductCardProps) {
         }}
       >
         <Image
-          src={imageUrl}
+          src={imageSrc}
           alt={product.name}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onError={(e) => {
-            const target = e.currentTarget;
-            target.onerror = null;
-            target.src = PLACEHOLDER_PRODUCT_IMAGE;
-          }}
-          unoptimized={imageUrl?.startsWith('data:') || false}
+          onError={handleImageError}
+          unoptimized={imageSrc?.startsWith('data:') || false}
         />
         {isOutOfStock && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

@@ -1,4 +1,5 @@
 import { UserRole } from '@prisma/client'
+import { prisma } from './prisma'
 
 export type PermissionResource =
   | 'PRODUCT'
@@ -17,6 +18,22 @@ export type PermissionResource =
   | 'INVENTORY'
   | 'SUPPLIER'
   | 'PURCHASE_ORDER'
+  | 'TEMPLATE'
+  | 'MEDIA'
+  | 'POPUP'
+  | 'BACKUP'
+  | 'EXPORT'
+  | 'IMPORT'
+  | 'CMS'
+  | 'PAGE'
+  | 'BLOG'
+  | 'EMAIL_CAMPAIGN'
+  | 'FLASH_SALE'
+  | 'INVOICE'
+  | 'POS'
+  | 'LOYALTY'
+  | 'THEME'
+  | 'SEO'
 
 export type PermissionAction =
   | 'VIEW'
@@ -70,7 +87,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 
   MANAGER: [
-    // Can manage orders, view/update customers and products
+    // Can manage orders, view/update customers and products, and manage inventory
     'ORDER:MANAGE',
     'CUSTOMER:VIEW',
     'CUSTOMER:UPDATE',
@@ -78,14 +95,31 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'PRODUCT:UPDATE',
     'PRODUCT:CREATE',
     'CATEGORY:VIEW',
+    'CATEGORY:UPDATE',
+    'CATEGORY:CREATE',
     'REVIEW:VIEW',
     'REVIEW:UPDATE',
+    'DISCOUNT:VIEW',
+    'DISCOUNT:CREATE',
+    'DISCOUNT:UPDATE',
     'STOCK_ALERT:VIEW',
+    'NEWSLETTER:VIEW',
     'REFUND:VIEW',
     'REFUND:UPDATE',
     'INVENTORY:MANAGE',
     'SUPPLIER:VIEW',
+    'SUPPLIER:UPDATE',
     'PURCHASE_ORDER:MANAGE',
+    'ANALYTICS:VIEW',
+    'MEDIA:VIEW',
+    'MEDIA:CREATE',
+    'EXPORT:VIEW',
+    'EXPORT:CREATE',
+    'INVOICE:VIEW',
+    'INVOICE:CREATE',
+    'INVOICE:UPDATE',
+    'POS:VIEW',
+    'POS:UPDATE',
   ],
 
   EDITOR: [
@@ -217,7 +251,7 @@ export function getUserPermissions(role: UserRole | string): {
     if (!grouped[resource]) {
       grouped[resource] = new Set()
     }
-    
+
     if (action === 'MANAGE') {
       // MANAGE implies all actions
       grouped[resource].add('VIEW')
@@ -234,4 +268,75 @@ export function getUserPermissions(role: UserRole | string): {
     resource,
     actions: Array.from(actions).sort(),
   }))
+}
+
+/**
+ * Check database-based custom permissions for a specific role
+ * This allows managers to grant additional permissions to users beyond their default role permissions
+ */
+export async function getCustomPermissions(role: UserRole | string): Promise<string[]> {
+  try {
+    const permissions = await prisma.permission.findMany({
+      where: {
+        role: role as UserRole,
+      },
+      select: {
+        resource: true,
+        action: true,
+      },
+    })
+
+    return permissions.map(p => `${p.resource}:${p.action}`)
+  } catch (error) {
+    console.error('Error fetching custom permissions:', error)
+    return []
+  }
+}
+
+/**
+ * Enhanced permission check that includes both default and custom database permissions
+ * Use this for server-side permission checks
+ */
+export async function hasPermissionWithCustom(
+  role: UserRole | string | undefined,
+  resource: PermissionResource | string,
+  action: PermissionAction | string
+): Promise<boolean> {
+  if (!role) return false
+
+  // SUPERADMIN always has all permissions
+  if (role === 'SUPERADMIN') return true
+
+  // Check default role permissions first
+  if (hasPermission(role, resource, action)) {
+    return true
+  }
+
+  // Check custom database permissions
+  const customPermissions = await getCustomPermissions(role)
+  const exactPermission = `${resource}:${action}`
+
+  if (customPermissions.includes(exactPermission)) return true
+
+  // Check if custom MANAGE permission exists for this resource
+  const managePermission = `${resource}:MANAGE`
+  if (customPermissions.includes(managePermission)) {
+    if (['VIEW', 'CREATE', 'UPDATE', 'DELETE'].includes(action)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * Get combined default and custom permissions for a role
+ * Useful for displaying all effective permissions
+ */
+export async function getAllPermissions(role: UserRole | string): Promise<string[]> {
+  const defaultPerms = getDefaultPermissionsForRole(role)
+  const customPerms = await getCustomPermissions(role)
+
+  // Combine and deduplicate
+  return Array.from(new Set([...defaultPerms, ...customPerms]))
 }

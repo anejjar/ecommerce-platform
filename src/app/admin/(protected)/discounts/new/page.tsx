@@ -1,6 +1,9 @@
 import { DiscountForm } from '@/components/admin/DiscountForm';
+import { requirePermission } from '@/lib/permission-guard';
 
-export default function NewDiscountPage() {
+export default async function NewDiscountPage() {
+    await requirePermission('DISCOUNT', 'CREATE');
+
     return (
         <div className="space-y-6">
             <div>

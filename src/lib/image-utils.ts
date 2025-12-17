@@ -31,20 +31,26 @@ export const PLACEHOLDER_PRODUCT_IMAGE = `data:image/svg+xml;charset=utf-8,${enc
  */
 export function handleImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
   const target = e.currentTarget;
+
   // Prevent infinite loop if placeholder also fails
   const currentSrc = target.src || target.getAttribute('src') || '';
 
+  // Check if already showing placeholder to prevent infinite loop
   if (currentSrc && !currentSrc.includes('data:image/svg+xml') && !currentSrc.includes('placeholder')) {
     try {
-      // For Next.js Image, we need to update the src directly
-      // The onError handler receives the native img element
+      // Remove the error handler FIRST to prevent infinite loop
+      target.onerror = null;
+
+      // Then update the src
       target.src = PLACEHOLDER_PRODUCT_IMAGE;
       target.setAttribute('src', PLACEHOLDER_PRODUCT_IMAGE);
-      target.onerror = null; // Prevent infinite loop
     } catch (error) {
-      // If setting src fails, try to hide the image and show placeholder
+      // If setting src fails, log but don't retry
       console.warn('Failed to set placeholder image:', error);
     }
+  } else {
+    // Already showing placeholder or data URL, just remove error handler
+    target.onerror = null;
   }
 }
 
@@ -81,13 +87,16 @@ export function useImageErrorHandler(initialSrc: string | null | undefined) {
     getProductImageUrl(initialSrc)
   );
   const [hasError, setHasError] = useState(false);
+  const [lastValidSrc, setLastValidSrc] = useState<string | null | undefined>(initialSrc);
 
+  // Only update when initialSrc changes AND we haven't errored on this src
   useEffect(() => {
-    if (initialSrc && initialSrc !== imageSrc && !hasError) {
-      setImageSrc(initialSrc);
+    if (initialSrc !== lastValidSrc) {
+      setImageSrc(getProductImageUrl(initialSrc));
       setHasError(false);
+      setLastValidSrc(initialSrc);
     }
-  }, [initialSrc, imageSrc, hasError]);
+  }, [initialSrc, lastValidSrc]);
 
   const handleError = useCallback(() => {
     if (!hasError) {

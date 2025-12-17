@@ -1,6 +1,8 @@
 import { CategoryForm } from '@/components/admin/CategoryForm';
+import { requirePermission } from '@/lib/permission-guard';
 
-export default function NewCategoryPage() {
+export default async function NewCategoryPage() {
+  await requirePermission('CATEGORY', 'CREATE');
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>

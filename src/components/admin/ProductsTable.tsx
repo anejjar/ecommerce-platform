@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ProductActions } from '@/components/admin/ProductActions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Star, Trash2, Eye, EyeOff } from 'lucide-react';
-import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
+import { PLACEHOLDER_PRODUCT_IMAGE, getProductImageUrl } from '@/lib/image-utils';
 
 interface Product {
   id: string;
@@ -33,6 +33,41 @@ interface Product {
 
 interface ProductsTableProps {
   products: Product[];
+}
+
+// Component to handle product image with error state
+function ProductImageCell({ imageUrl, alt }: { imageUrl: string | undefined; alt: string }) {
+  const [imgSrc, setImgSrc] = useState(getProductImageUrl(imageUrl));
+  const [hasError, setHasError] = useState(false);
+  const [lastUrl, setLastUrl] = useState(imageUrl);
+
+  // Reset error state when imageUrl changes
+  if (imageUrl !== lastUrl) {
+    setImgSrc(getProductImageUrl(imageUrl));
+    setHasError(false);
+    setLastUrl(imageUrl);
+  }
+
+  const handleError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(PLACEHOLDER_PRODUCT_IMAGE);
+    }
+  };
+
+  return (
+    <div className="relative w-12 h-12 rounded overflow-hidden bg-muted">
+      <Image
+        src={imgSrc}
+        alt={alt}
+        fill
+        className="object-cover"
+        sizes="48px"
+        onError={handleError}
+        unoptimized={imgSrc?.startsWith('data:') || false}
+      />
+    </div>
+  );
 }
 
 export function ProductsTable({ products }: ProductsTableProps) {
@@ -235,21 +270,10 @@ export function ProductsTable({ products }: ProductsTableProps) {
                   />
                 </TableCell>
                 <TableCell>
-                  <div className="relative w-12 h-12 rounded overflow-hidden bg-muted">
-                    <Image
-                      src={product.images[0]?.url || PLACEHOLDER_PRODUCT_IMAGE}
-                      alt={product.images[0]?.alt || product.name}
-                      fill
-                      className="object-cover"
-                      sizes="48px"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.onerror = null;
-                        target.src = PLACEHOLDER_PRODUCT_IMAGE;
-                      }}
-                      unoptimized={product.images[0]?.url?.startsWith('data:') || false}
-                    />
-                  </div>
+                  <ProductImageCell
+                    imageUrl={product.images[0]?.url}
+                    alt={product.images[0]?.alt || product.name}
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">

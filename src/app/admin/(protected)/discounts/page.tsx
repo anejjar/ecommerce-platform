@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { requirePermission, checkPermission } from '@/lib/permission-guard';
 
 import {
     Table,
@@ -14,6 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
 export default async function DiscountsPage() {
+    await requirePermission('DISCOUNT', 'VIEW');
+    const { hasAccess: canCreate } = await checkPermission('DISCOUNT', 'CREATE');
+
     const discountsData = await prisma.discountCode.findMany({
         orderBy: { createdAt: 'desc' },
         include: {
@@ -37,20 +41,24 @@ export default async function DiscountsPage() {
                     <h1 className="text-3xl font-bold">Discount Codes</h1>
                     <p className="text-gray-600 mt-2">Manage coupons and promotions</p>
                 </div>
-                <Link href="/admin/discounts/new">
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Discount
-                    </Button>
-                </Link>
+                {canCreate && (
+                    <Link href="/admin/discounts/new">
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create Discount
+                        </Button>
+                    </Link>
+                )}
             </div>
 
             {discounts.length === 0 ? (
                 <div className="text-center py-12 border rounded-lg bg-gray-50">
                     <p className="text-gray-500">No discount codes found</p>
-                    <Link href="/admin/discounts/new" className="text-blue-600 hover:underline mt-2 inline-block">
-                        Create your first discount
-                    </Link>
+                    {canCreate && (
+                        <Link href="/admin/discounts/new" className="text-blue-600 hover:underline mt-2 inline-block">
+                            Create your first discount
+                        </Link>
+                    )}
                 </div>
             ) : (
                 <div className="rounded-md border">

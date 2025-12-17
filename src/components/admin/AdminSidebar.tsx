@@ -60,16 +60,25 @@ import {
   TrendingUp
 } from "lucide-react"
 import { useAdminSidebar } from "./AdminSidebarContext"
+import { hasPermission, PermissionResource, PermissionAction } from "@/lib/permissions"
 
 interface NavItem {
   name: string
   href?: string
   icon: any
   featureFlag?: string
+  permission?: {
+    resource: PermissionResource
+    action: PermissionAction
+  }
   children?: {
     name: string
     href: string
     featureFlag?: string
+    permission?: {
+      resource: PermissionResource
+      action: PermissionAction
+    }
   }[]
 }
 
@@ -83,26 +92,29 @@ const navigation: NavItem[] = [
     name: "Analytics",
     icon: BarChart3,
     featureFlag: "analytics_dashboard",
+    permission: { resource: "ANALYTICS", action: "VIEW" },
     children: [
-      { name: "Dashboard", href: "/admin/analytics", featureFlag: "analytics_dashboard" },
-      { name: "Traffic & Attribution", href: "/admin/analytics/traffic", featureFlag: "traffic_analytics" },
+      { name: "Dashboard", href: "/admin/analytics", featureFlag: "analytics_dashboard", permission: { resource: "ANALYTICS", action: "VIEW" } },
+      { name: "Traffic & Attribution", href: "/admin/analytics/traffic", featureFlag: "traffic_analytics", permission: { resource: "ANALYTICS", action: "VIEW" } },
     ],
   },
   {
     name: "Catalog",
     icon: Package,
+    permission: { resource: "PRODUCT", action: "VIEW" },
     children: [
-      { name: "Products", href: "/admin/products" },
-      { name: "Categories", href: "/admin/categories" },
+      { name: "Products", href: "/admin/products", permission: { resource: "PRODUCT", action: "VIEW" } },
+      { name: "Categories", href: "/admin/categories", permission: { resource: "CATEGORY", action: "VIEW" } },
     ],
   },
   {
     name: "Sales",
     icon: ShoppingCart,
+    permission: { resource: "ORDER", action: "VIEW" },
     children: [
-      { name: "Refunds", href: "/admin/refunds" },
-      { name: "Orders", href: "/admin/orders" },
-      { name: "Discounts", href: "/admin/discounts" },
+      { name: "Refunds", href: "/admin/refunds", permission: { resource: "REFUND", action: "VIEW" } },
+      { name: "Orders", href: "/admin/orders", permission: { resource: "ORDER", action: "VIEW" } },
+      { name: "Discounts", href: "/admin/discounts", permission: { resource: "DISCOUNT", action: "VIEW" } },
     ],
   },
   {
@@ -110,44 +122,49 @@ const navigation: NavItem[] = [
     href: "/admin/invoices",
     icon: FileText,
     featureFlag: "invoice_generator",
+    permission: { resource: "INVOICE", action: "VIEW" },
   },
   {
     name: "POS",
     icon: ShoppingCart,
     featureFlag: "pos_system",
+    permission: { resource: "POS", action: "VIEW" },
     children: [
-      { name: "POS Terminal", href: "/admin/pos" },
-      { name: "Orders", href: "/admin/pos/orders" },
-      { name: "Reports", href: "/admin/pos/reports" },
-      { name: "Settings", href: "/admin/pos/settings" },
-      { name: "Locations", href: "/admin/pos/locations" },
-      { name: "Cashiers", href: "/admin/pos/cashiers" },
+      { name: "POS Terminal", href: "/admin/pos", permission: { resource: "POS", action: "VIEW" } },
+      { name: "Orders", href: "/admin/pos/orders", permission: { resource: "POS", action: "VIEW" } },
+      { name: "Reports", href: "/admin/pos/reports", permission: { resource: "POS", action: "VIEW" } },
+      { name: "Settings", href: "/admin/pos/settings", permission: { resource: "POS", action: "UPDATE" } },
+      { name: "Locations", href: "/admin/pos/locations", permission: { resource: "POS", action: "VIEW" } },
+      { name: "Cashiers", href: "/admin/pos/cashiers", permission: { resource: "POS", action: "VIEW" } },
     ],
   },
   {
     name: "Customers",
     icon: Users,
+    permission: { resource: "CUSTOMER", action: "VIEW" },
     children: [
-      { name: "All Customers", href: "/admin/customers" },
-      { name: "Deletion Requests", href: "/admin/customers/deletion-requests" },
+      { name: "All Customers", href: "/admin/customers", permission: { resource: "CUSTOMER", action: "VIEW" } },
+      { name: "Deletion Requests", href: "/admin/customers/deletion-requests", permission: { resource: "CUSTOMER", action: "VIEW" } },
     ],
   },
   {
     name: "Reviews",
     href: "/admin/reviews",
     icon: Star,
+    permission: { resource: "REVIEW", action: "VIEW" },
   },
   {
     name: "Inventory",
     icon: Package2,
     featureFlag: "inventory_management",
+    permission: { resource: "INVENTORY", action: "VIEW" },
     children: [
-      { name: "Dashboard", href: "/admin/inventory" },
-      { name: "Stock History", href: "/admin/inventory/stock-history" },
-      { name: "Suppliers", href: "/admin/inventory/suppliers" },
-      { name: "Purchase Orders", href: "/admin/inventory/purchase-orders" },
-      { name: "Bulk Update", href: "/admin/inventory/bulk-update" },
-      { name: "Low Stock Alerts", href: "/admin/inventory/alerts" },
+      { name: "Dashboard", href: "/admin/inventory", permission: { resource: "INVENTORY", action: "VIEW" } },
+      { name: "Stock History", href: "/admin/inventory/stock-history", permission: { resource: "INVENTORY", action: "VIEW" } },
+      { name: "Suppliers", href: "/admin/inventory/suppliers", permission: { resource: "SUPPLIER", action: "VIEW" } },
+      { name: "Purchase Orders", href: "/admin/inventory/purchase-orders", permission: { resource: "PURCHASE_ORDER", action: "VIEW" } },
+      { name: "Bulk Update", href: "/admin/inventory/bulk-update", permission: { resource: "INVENTORY", action: "UPDATE" } },
+      { name: "Low Stock Alerts", href: "/admin/inventory/alerts", permission: { resource: "STOCK_ALERT", action: "VIEW" } },
     ],
   },
 
@@ -156,28 +173,33 @@ const navigation: NavItem[] = [
     icon: Megaphone,
     children: [
       { name: "Abandoned Carts", href: "/admin/abandoned-carts" },
-      { name: "Flash Sales", href: "/admin/marketing/flash-sales" },
-      { name: "Loyalty Program", href: "/admin/loyalty/settings" },
-      { name: "Popups", href: "/admin/popups" },
-      { name: "Email Campaigns", href: "/admin/marketing/email-campaigns" },
-      { name: "Newsletter", href: "/admin/newsletter" },
+      { name: "Flash Sales", href: "/admin/marketing/flash-sales", permission: { resource: "FLASH_SALE", action: "VIEW" } },
+      { name: "Loyalty Program", href: "/admin/loyalty/settings", permission: { resource: "LOYALTY", action: "VIEW" } },
+      { name: "Popups", href: "/admin/popups", permission: { resource: "POPUP", action: "VIEW" } },
+      { name: "Email Campaigns", href: "/admin/marketing/email-campaigns", permission: { resource: "EMAIL_CAMPAIGN", action: "VIEW" } },
+      { name: "Newsletter", href: "/admin/newsletter", permission: { resource: "NEWSLETTER", action: "VIEW" } },
     ],
   },
   {
-    name: "Features",
-    href: "/admin/features",
+    name: "System",
     icon: Shield,
+    children: [
+      { name: "Features", href: "/admin/features", permission: { resource: "FEATURES", action: "MANAGE" } },
+      { name: "Permissions", href: "/admin/permissions", permission: { resource: "ADMIN_USER", action: "MANAGE" }, featureFlag: "multi_admin" },
+      { name: "Admin Users", href: "/admin/users", permission: { resource: "ADMIN_USER", action: "VIEW" }, featureFlag: "multi_admin" },
+    ],
   },
   {
     name: "Content",
     icon: FileText,
     featureFlag: "cms",
+    permission: { resource: "CMS", action: "VIEW" },
     children: [
-      { name: "Media Library", href: "/admin/media" },
-      { name: "Blog Posts", href: "/admin/cms/posts" },
-      { name: "Pages", href: "/admin/cms/pages" },
-      { name: "Block Templates", href: "/admin/cms/templates" },
-      { name: "Categories & Tags", href: "/admin/cms/categories" },
+      { name: "Media Library", href: "/admin/media", permission: { resource: "MEDIA", action: "VIEW" } },
+      { name: "Blog Posts", href: "/admin/cms/posts", permission: { resource: "BLOG", action: "VIEW" } },
+      { name: "Pages", href: "/admin/cms/pages", permission: { resource: "PAGE", action: "VIEW" } },
+      { name: "Block Templates", href: "/admin/cms/templates", permission: { resource: "TEMPLATE", action: "VIEW" } },
+      { name: "Categories & Tags", href: "/admin/cms/categories", permission: { resource: "CMS", action: "VIEW" } },
     ],
   },
   {
@@ -185,26 +207,30 @@ const navigation: NavItem[] = [
     href: "/admin/templates",
     icon: FileText,
     featureFlag: "template_manager",
+    permission: { resource: "TEMPLATE", action: "VIEW" },
   },
   {
     name: "Themes",
     href: "/admin/themes",
     icon: Palette,
     featureFlag: "storefront_themes",
+    permission: { resource: "THEME", action: "VIEW" },
   },
   {
     name: "Backup & Export",
     icon: Database,
     featureFlag: "backup_export",
+    permission: { resource: "BACKUP", action: "VIEW" },
     children: [
-      { name: "Backups", href: "/admin/backup" },
-      { name: "Data Export", href: "/admin/export" },
+      { name: "Backups", href: "/admin/backup", permission: { resource: "BACKUP", action: "VIEW" } },
+      { name: "Data Export", href: "/admin/export", permission: { resource: "EXPORT", action: "VIEW" } },
     ],
   },
   {
     name: "Settings",
     href: "/admin/settings",
     icon: Settings,
+    permission: { resource: "SETTINGS", action: "VIEW" },
   },
 ]
 
@@ -298,18 +324,32 @@ export function AdminSidebar() {
             // Dashboard is always visible to all admin roles
             if (item.name === 'Dashboard') return true;
 
-            // SUPERADMIN-only features
-            if (item.name === 'Features' && (session?.user?.role as string) !== 'SUPERADMIN') return false;
+            // Check permissions
+            if (item.permission) {
+              const userRole = (session?.user?.role as string) || '';
+              if (!hasPermission(userRole, item.permission.resource, item.permission.action)) {
+                return false;
+              }
+            }
 
             // PRO features - check feature flags
             if (item.featureFlag && !enabledFeatures.includes(item.featureFlag)) return false;
 
             return true;
           }).map((item) => {
-            // Filter children based on feature flags
+            // Filter children based on feature flags and permissions
             let filteredItem = { ...item };
             if (item.children) {
               filteredItem.children = item.children.filter(child => {
+                // Check permissions first
+                if (child.permission) {
+                  const userRole = (session?.user?.role as string) || '';
+                  if (!hasPermission(userRole, child.permission.resource, child.permission.action)) {
+                    return false;
+                  }
+                }
+
+                // Then check feature flags
                 if (child.featureFlag && !enabledFeatures.includes(child.featureFlag)) return false;
                 if (child.name === 'Refunds' && !enabledFeatures.includes('refund_management')) return false;
                 if (child.name === 'Abandoned Carts' && !enabledFeatures.includes('abandoned_cart')) return false;
