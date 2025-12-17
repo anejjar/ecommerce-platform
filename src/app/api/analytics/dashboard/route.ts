@@ -324,10 +324,18 @@ export async function GET() {
       recentReviews,
       topCustomers: topCustomers.filter(Boolean),
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Dashboard analytics error:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      code: error?.code
+    });
     return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
+      {
+        error: 'Failed to fetch analytics',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     );
   }

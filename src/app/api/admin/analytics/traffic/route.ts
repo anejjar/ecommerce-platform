@@ -204,10 +204,18 @@ export async function GET(request: NextRequest) {
       funnel,
       chartData,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Traffic analytics error:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      code: error?.code
+    });
     return NextResponse.json(
-      { error: 'Failed to fetch traffic analytics' },
+      {
+        error: 'Failed to fetch traffic analytics',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     );
   }
