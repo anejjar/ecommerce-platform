@@ -56,7 +56,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy standalone output from builder (includes minimal node_modules)
+# Copy standalone output from builder (includes minimal node_modules and generated Prisma client)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
@@ -64,9 +64,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Copy messages for i18n
 COPY --chown=nextjs:nodejs messages ./messages
 
-# Copy Prisma schema and generate client
+# Copy Prisma schema (needed for runtime migrations like 'prisma migrate deploy')
 COPY --chown=nextjs:nodejs prisma ./prisma/
-RUN npx prisma generate
 
 USER nextjs
 
