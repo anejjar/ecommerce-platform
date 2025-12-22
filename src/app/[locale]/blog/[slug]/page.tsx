@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 
+// Force dynamic rendering to avoid build-time database calls
+export const dynamic = 'force-dynamic';
+
 interface Props {
     params: Promise<{ slug: string }>;
 }

@@ -2,38 +2,62 @@ import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 
 export async function generateSEOMetadata(overrides?: Partial<Metadata>): Promise<Metadata> {
-  // Fetch SEO settings from database
-  const seoSettings = await prisma.storeSetting.findMany({
-    where: {
-      category: 'seo',
-    },
-  });
+  // Default values
+  const defaultStoreName = 'E-Commerce Platform';
+  const defaultMetaTitle = `${defaultStoreName} - Shop Quality Products Online`;
+  const defaultMetaDescription = 'Discover amazing products at great prices.';
+  const defaultMetaKeywords = 'e-commerce, online shopping, shop online';
+  const defaultOgImage = '/og-image.jpg';
 
-  const generalSettings = await prisma.storeSetting.findMany({
-    where: {
-      category: 'general',
-    },
-  });
+  let storeName = defaultStoreName;
+  let metaTitle = defaultMetaTitle;
+  let metaDescription = defaultMetaDescription;
+  let metaKeywords = defaultMetaKeywords;
+  let ogTitle = defaultMetaTitle;
+  let ogDescription = defaultMetaDescription;
+  let ogImage = defaultOgImage;
+  let twitterHandle: string | undefined;
 
-  // Convert to key-value object
-  const seo = seoSettings.reduce((acc, setting) => {
-    acc[setting.key] = setting.value;
-    return acc;
-  }, {} as Record<string, string>);
+  // Skip database call during build time when DATABASE_URL is not available
+  if (process.env.DATABASE_URL) {
+    try {
+      // Fetch SEO settings from database
+      const seoSettings = await prisma.storeSetting.findMany({
+        where: {
+          category: 'seo',
+        },
+      });
 
-  const general = generalSettings.reduce((acc, setting) => {
-    acc[setting.key] = setting.value;
-    return acc;
-  }, {} as Record<string, string>);
+      const generalSettings = await prisma.storeSetting.findMany({
+        where: {
+          category: 'general',
+        },
+      });
 
-  const storeName = general.general_store_name || 'E-Commerce Platform';
-  const metaTitle = seo.seo_meta_title || `${storeName} - Shop Quality Products Online`;
-  const metaDescription = seo.seo_meta_description || 'Discover amazing products at great prices.';
-  const metaKeywords = seo.seo_meta_keywords || 'e-commerce, online shopping, shop online';
-  const ogTitle = seo.seo_og_title || metaTitle;
-  const ogDescription = seo.seo_og_description || metaDescription;
-  const ogImage = seo.seo_og_image || '/og-image.jpg';
-  const twitterHandle = seo.seo_twitter_handle;
+      // Convert to key-value object
+      const seo = seoSettings.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      const general = generalSettings.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      storeName = general.general_store_name || defaultStoreName;
+      metaTitle = seo.seo_meta_title || `${storeName} - Shop Quality Products Online`;
+      metaDescription = seo.seo_meta_description || defaultMetaDescription;
+      metaKeywords = seo.seo_meta_keywords || defaultMetaKeywords;
+      ogTitle = seo.seo_og_title || metaTitle;
+      ogDescription = seo.seo_og_description || metaDescription;
+      ogImage = seo.seo_og_image || defaultOgImage;
+      twitterHandle = seo.seo_twitter_handle;
+    } catch (error) {
+      console.error('Error fetching SEO metadata:', error);
+      // Use defaults on error
+    }
+  }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 

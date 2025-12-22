@@ -7,6 +7,9 @@ import { generateSEOMetadata } from '@/lib/metadata';
 import { getProducts } from '@/lib/translations';
 import { getPageOverride } from '@/lib/page-overrides';
 
+// Force dynamic rendering to avoid build-time database calls
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata() {
   return await generateSEOMetadata();
 }

@@ -6,19 +6,31 @@ import { PostStatus } from '@prisma/client';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-  const products = await prisma.product.findMany({
-    where: { published: true },
-    select: { slug: true, updatedAt: true },
-  });
+  let products: Array<{ slug: string; updatedAt: Date }> = [];
+  let categories: Array<{ slug: string; updatedAt: Date }> = [];
+  let blogPosts: Array<{ slug: string; updatedAt: Date }> = [];
 
-  const categories = await prisma.category.findMany({
-    select: { slug: true, updatedAt: true },
-  });
+  // Skip database call during build time when DATABASE_URL is not available
+  if (process.env.DATABASE_URL) {
+    try {
+      products = await prisma.product.findMany({
+        where: { published: true },
+        select: { slug: true, updatedAt: true },
+      });
 
-  const blogPosts = await prisma.blogPost.findMany({
-    where: { status: PostStatus.PUBLISHED },
-    select: { slug: true, updatedAt: true },
-  });
+      categories = await prisma.category.findMany({
+        select: { slug: true, updatedAt: true },
+      });
+
+      blogPosts = await prisma.blogPost.findMany({
+        where: { status: PostStatus.PUBLISHED },
+        select: { slug: true, updatedAt: true },
+      });
+    } catch (error) {
+      console.error('Error fetching sitemap data:', error);
+      // Return static pages only on error
+    }
+  }
 
   const generateLocalizedUrls = (
     path: string,

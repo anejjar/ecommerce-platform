@@ -5,6 +5,9 @@ import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { Metadata } from 'next';
 import { PageOverrideRenderer } from '@/components/public/PageOverrideRenderer';
 
+// Force dynamic rendering to avoid build-time database calls
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
     params: Promise<{
         locale: string;

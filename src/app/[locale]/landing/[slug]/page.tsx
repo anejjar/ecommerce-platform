@@ -2,6 +2,9 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BlockRenderer } from '@/components/landing-page/BlockRenderer';
 
+// Force dynamic rendering to avoid build-time database calls
+export const dynamic = 'force-dynamic';
+
 interface LandingPageProps {
   params: Promise<{
     locale: string;

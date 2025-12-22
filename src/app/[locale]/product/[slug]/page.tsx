@@ -7,6 +7,9 @@ import { getProductBySlug, getProducts } from '@/lib/translations';
 
 import { getTranslations } from 'next-intl/server';
 
+// Force dynamic rendering to avoid build-time database calls
+export const dynamic = 'force-dynamic';
+
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
