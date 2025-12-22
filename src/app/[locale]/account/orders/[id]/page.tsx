@@ -15,6 +15,9 @@ import { getTranslations } from 'next-intl/server';
 import { formatCurrencyServer, getCurrencySymbol } from '@/lib/server-currency';
 import { formatCurrencyWithSymbol } from '@/lib/formatting';
 
+// Force dynamic rendering for user-specific order data
+export const dynamic = 'force-dynamic';
+
 const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
   PROCESSING: 'bg-blue-100 text-blue-800',

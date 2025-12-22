@@ -5,6 +5,9 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const nextConfig: NextConfig = {
+  // Enable standalone output for optimized production builds
+  output: 'standalone',
+
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if

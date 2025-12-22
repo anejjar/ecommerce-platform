@@ -7,6 +7,9 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { formatCurrencyServer } from '@/lib/server-currency';
 
+// Force dynamic rendering for order-specific confirmation data
+export const dynamic = 'force-dynamic';
+
 export default async function OrderConfirmationPage({
   params,
 }: {

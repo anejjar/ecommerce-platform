@@ -3,6 +3,9 @@ import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 import { WishlistContent } from '@/components/public/WishlistContent';
 
+// Force dynamic rendering for user-specific wishlist data
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'My Wishlist - E-Commerce Platform',
   description: 'View and manage your saved products',

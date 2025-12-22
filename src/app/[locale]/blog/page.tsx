@@ -12,6 +12,9 @@ import { Footer } from '@/components/public/Footer';
 import { PageOverrideRenderer } from '@/components/public/PageOverrideRenderer';
 import { getPageOverride } from '@/lib/page-overrides';
 
+// Force dynamic rendering for blog search and pagination
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Blog | Our Store',
     description: 'Read our latest news and articles.',

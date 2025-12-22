@@ -6,6 +6,9 @@ import { getPageOverride } from '@/lib/page-overrides';
 
 import { getTranslations } from 'next-intl/server';
 
+// Force dynamic rendering for user-specific checkout data
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata() {
   const t = await getTranslations('metadata.checkout');
 
