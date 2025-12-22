@@ -1,3 +1,0 @@
-{
-  "/api/abandoned-cart/recover/[token]/route": "app/api/abandoned-cart/recover/[token]/route.js"
-}

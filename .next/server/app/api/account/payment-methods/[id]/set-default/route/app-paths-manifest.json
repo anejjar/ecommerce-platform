@@ -1,3 +1,0 @@
-{
-  "/api/account/payment-methods/[id]/set-default/route": "app/api/account/payment-methods/[id]/set-default/route.js"
-}

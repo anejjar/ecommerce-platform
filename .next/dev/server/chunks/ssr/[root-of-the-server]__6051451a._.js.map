@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file:///C:/laragon/www/claude/ecommerce-platform/src/app/admin/%28protected%29/cms/landing-pages/%5Bid%5D/page.tsx"],"sourcesContent":["import { redirect } from 'next/navigation';\r\n\r\ninterface PageProps {\r\n    params: Promise<{\r\n        id: string;\r\n    }>;\r\n}\r\n\r\nexport default async function LandingPageDetails({ params }: PageProps) {\r\n    const { id } = await params;\r\n    redirect(`/admin/cms/landing-pages/${id}/editor`);\r\n}\r\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAQe,eAAe,mBAAmB,EAAE,MAAM,EAAa;IAClE,MAAM,EAAE,EAAE,EAAE,GAAG,MAAM;IACrB,IAAA,iMAAQ,EAAC,CAAC,yBAAyB,EAAE,GAAG,OAAO,CAAC;AACpD"}}]
-}
