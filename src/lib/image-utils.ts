@@ -1,5 +1,3 @@
-import { useState, useEffect, useCallback } from 'react';
-
 /**
  * Placeholder image data URL for product images
  * A professional SVG placeholder with icon
@@ -78,32 +76,3 @@ export function getProductImageUrl(imageUrl: string | null | undefined): string 
   return imageUrl;
 }
 
-/**
- * Hook for handling image errors with state
- * Use this for Next.js Image components when onError doesn't work reliably
- */
-export function useImageErrorHandler(initialSrc: string | null | undefined) {
-  const [imageSrc, setImageSrc] = useState<string>(
-    getProductImageUrl(initialSrc)
-  );
-  const [hasError, setHasError] = useState(false);
-  const [lastValidSrc, setLastValidSrc] = useState<string | null | undefined>(initialSrc);
-
-  // Only update when initialSrc changes AND we haven't errored on this src
-  useEffect(() => {
-    if (initialSrc !== lastValidSrc) {
-      setImageSrc(getProductImageUrl(initialSrc));
-      setHasError(false);
-      setLastValidSrc(initialSrc);
-    }
-  }, [initialSrc, lastValidSrc]);
-
-  const handleError = useCallback(() => {
-    if (!hasError) {
-      setHasError(true);
-      setImageSrc(PLACEHOLDER_PRODUCT_IMAGE);
-    }
-  }, [hasError]);
-
-  return { imageSrc, handleError, hasError };
-}

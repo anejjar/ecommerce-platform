@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from '@/navigation';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag } from 'lucide-react';
@@ -29,6 +29,23 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ config }) => {
   const t = useTranslations();
   const { format } = useCurrency();
   const cartItems = useAppSelector((state) => state.cart.items);
+  const [shippingSettings, setShippingSettings] = useState<any>(null);
+
+  // Fetch shipping settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/checkout-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setShippingSettings(data.shippingSettings);
+        }
+      } catch (error) {
+        console.error('Error fetching shipping settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const {
     showItemCount = true,
@@ -48,8 +65,24 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ config }) => {
     0
   );
 
-  const tax = subtotal * 0.1; // 10% tax
-  const shipping = subtotal > 50 ? 0 : 10; // Free shipping over $50
+  // Calculate tax based on admin settings
+  const taxEnabled = shippingSettings?.tax_enable === 'true';
+  const taxRate = parseFloat(shippingSettings?.tax_rate_default || '0') / 100;
+  const tax = taxEnabled ? subtotal * taxRate : 0;
+
+  // Calculate shipping based on admin settings
+  const freeShippingEnabled = shippingSettings?.shipping_enable_free === 'true';
+  const freeShippingThreshold = parseFloat(shippingSettings?.shipping_free_threshold || '0');
+  const flatRateEnabled = shippingSettings?.shipping_enable_flat_rate === 'true';
+  const flatRateAmount = parseFloat(shippingSettings?.shipping_flat_rate || '0');
+
+  let shipping = 0;
+  if (freeShippingEnabled && subtotal >= freeShippingThreshold) {
+    shipping = 0; // Free shipping
+  } else if (flatRateEnabled) {
+    shipping = flatRateAmount; // Flat rate shipping
+  }
+
   const total = subtotal + tax + shipping;
 
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);

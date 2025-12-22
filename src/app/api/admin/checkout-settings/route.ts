@@ -3,6 +3,38 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// Validation function for field visibility configuration
+function validateFieldConfiguration(fieldVisibility: any): void {
+  if (!fieldVisibility) return; // Allow null/undefined (will use defaults)
+
+  const minimumRequired = {
+    hasEmail: false,
+    hasName: false,
+    hasAddress: false,
+  };
+
+  for (const [field, config] of Object.entries(fieldVisibility)) {
+    const fieldConfig = config as { visible: boolean; required: boolean };
+    if (fieldConfig.visible && fieldConfig.required) {
+      if (field === 'email') minimumRequired.hasEmail = true;
+      if (['firstName', 'lastName'].includes(field))
+        minimumRequired.hasName = true;
+      if (['address', 'city'].includes(field))
+        minimumRequired.hasAddress = true;
+    }
+  }
+
+  if (
+    !minimumRequired.hasEmail ||
+    !minimumRequired.hasName ||
+    !minimumRequired.hasAddress
+  ) {
+    throw new Error(
+      'Minimum required fields: email, one name field (firstName or lastName), and one address field (address or city) must be visible and required'
+    );
+  }
+}
+
 // GET checkout settings (admin)
 export async function GET() {
     try {
@@ -39,6 +71,11 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await request.json();
+
+        // Validate field visibility configuration if provided
+        if (data.fieldVisibility) {
+            validateFieldConfiguration(data.fieldVisibility);
+        }
 
         // Get existing settings or create new
         let settings = await prisma.checkoutSettings.findFirst();
@@ -139,6 +176,34 @@ export async function POST(request: NextRequest) {
                     giftDescription: data.giftDescription,
                     referralDiscountEnabled: data.referralDiscountEnabled,
                     referralDiscountText: data.referralDiscountText,
+
+                    // Phase 6: Enhanced Checkout Features
+                    addressInputMethod: data.addressInputMethod,
+                    enableWhatsAppOrdering: data.enableWhatsAppOrdering,
+                    whatsAppBusinessNumber: data.whatsAppBusinessNumber,
+                    whatsAppMessageTemplate: data.whatsAppMessageTemplate,
+                    whatsAppButtonText: data.whatsAppButtonText,
+                    whatsAppButtonPosition: data.whatsAppButtonPosition,
+                    enableQuickGuestCheckout: data.enableQuickGuestCheckout,
+                    enableInlineValidation: data.enableInlineValidation,
+                    enableMobileOptimization: data.enableMobileOptimization,
+                    enableSavedAddressQuick: data.enableSavedAddressQuick,
+
+                    // Phase 7: Checkout Improvements
+                    enableMapPicker: data.enableMapPicker,
+                    mapPickerButtonText: data.mapPickerButtonText,
+                    mapPickerZoomLevel: data.mapPickerZoomLevel,
+                    defaultMapCenter: data.defaultMapCenter,
+                    addressAutocompleteMinChars: data.addressAutocompleteMinChars,
+                    showAddressAutocompleteIcon: data.showAddressAutocompleteIcon,
+                    fieldVisibility: data.fieldVisibility,
+                    enableProgressSave: data.enableProgressSave,
+                    progressSaveMinutes: data.progressSaveMinutes,
+                    enableSmartAutofill: data.enableSmartAutofill,
+                    enableOrderPreview: data.enableOrderPreview,
+                    previewBeforePayment: data.previewBeforePayment,
+                    mobileAutoNextField: data.mobileAutoNextField,
+                    mobileKeyboardOptimization: data.mobileKeyboardOptimization,
                 },
             });
         } else {
@@ -246,6 +311,18 @@ export async function DELETE() {
                 giftDescription: null,
                 referralDiscountEnabled: false,
                 referralDiscountText: null,
+
+                // Reset Phase 6: Enhanced Checkout Features
+                addressInputMethod: 'autocomplete',
+                enableWhatsAppOrdering: false,
+                whatsAppBusinessNumber: null,
+                whatsAppMessageTemplate: null,
+                whatsAppButtonText: 'Order via WhatsApp',
+                whatsAppButtonPosition: 'secondary',
+                enableQuickGuestCheckout: true,
+                enableInlineValidation: true,
+                enableMobileOptimization: true,
+                enableSavedAddressQuick: true,
             },
         });
 

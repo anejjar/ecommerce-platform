@@ -2,7 +2,6 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Link } from '@/navigation';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import { removeFromWishlist } from '@/lib/redux/features/wishlistSlice';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 export function WishlistContent() {
   const t = useTranslations();
@@ -132,17 +131,11 @@ export function WishlistContent() {
               {/* Product Image */}
               <Link href={`/product/${product.slug}`}>
                 <div className="relative aspect-square bg-gray-100 group">
-                  <Image
-                    src={product.images[0]?.url || PLACEHOLDER_PRODUCT_IMAGE}
+                  <SafeImage
+                    src={product.images[0]?.url}
                     alt={product.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.onerror = null;
-                      target.src = PLACEHOLDER_PRODUCT_IMAGE;
-                    }}
-                    unoptimized={product.images[0]?.url?.startsWith('data:') || false}
                   />
                   {discount && (
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">

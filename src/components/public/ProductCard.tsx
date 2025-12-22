@@ -1,7 +1,6 @@
 'use client';
 
 import { Link } from '@/navigation';
-import Image from 'next/image';
 import { Star, ShoppingCart } from 'lucide-react';
 import { WishlistButton } from '@/components/public/WishlistButton';
 import { Button } from '@/components/ui/button';
@@ -14,8 +13,7 @@ import { useFlashSale } from '@/hooks/useFlashSale';
 import { useTheme } from '@/hooks/useTheme';
 import { FlashSaleBadge } from '@/components/public/FlashSaleBadge';
 import { cn } from '@/lib/utils';
-import { useImageErrorHandler } from '@/lib/image-utils';
-import { useState } from 'react';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 interface Product {
     id: string;
@@ -39,9 +37,6 @@ export function ProductCard({ product }: ProductCardProps) {
     const { format } = useCurrency();
     const { theme } = useTheme();
     const { flashSale, product: flashSaleProduct, loading: flashSaleLoading } = useFlashSale(product.id);
-
-    // Use error handler hook for reliable image loading
-    const { imageSrc, handleError } = useImageErrorHandler(product.images[0]?.url);
 
     // Use flash sale price if available, otherwise use regular price
     const displayPrice = flashSaleProduct?.salePrice ?? Number(product.price);
@@ -93,14 +88,11 @@ export function ProductCard({ product }: ProductCardProps) {
                     aspectRatio: imageAspectRatio,
                 }}
             >
-                <Image
-                    src={imageSrc}
+                <SafeImage
+                    src={product.images[0]?.url}
                     alt={product.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    onError={handleError}
-                    unoptimized={imageSrc?.startsWith('data:') || false}
                 />
 
                 {/* Single Badge Position - Top Left */}

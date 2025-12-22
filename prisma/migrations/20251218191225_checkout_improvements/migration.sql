@@ -1,0 +1,15 @@
+-- AlterTable
+ALTER TABLE `checkout_settings` ADD COLUMN `addressAutocompleteMinChars` INTEGER NULL DEFAULT 3,
+    ADD COLUMN `defaultMapCenter` JSON NULL,
+    ADD COLUMN `enableMapPicker` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `enableOrderPreview` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `enableProgressSave` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `enableSmartAutofill` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `fieldVisibility` JSON NULL,
+    ADD COLUMN `mapPickerButtonText` VARCHAR(191) NULL DEFAULT 'Choose location on map',
+    ADD COLUMN `mapPickerZoomLevel` INTEGER NULL DEFAULT 13,
+    ADD COLUMN `mobileAutoNextField` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `mobileKeyboardOptimization` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `previewBeforePayment` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `progressSaveMinutes` INTEGER NULL DEFAULT 60,
+    ADD COLUMN `showAddressAutocompleteIcon` BOOLEAN NOT NULL DEFAULT true;

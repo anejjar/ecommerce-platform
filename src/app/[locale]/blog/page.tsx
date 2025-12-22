@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Link } from '@/navigation';
 import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -115,10 +116,17 @@ export default async function BlogPage({
                                         {post.featuredImage ? (
                                             <div className="relative aspect-video">
                                                 <Image
-                                                    src={post.featuredImage}
+                                                    src={post.featuredImage || PLACEHOLDER_PRODUCT_IMAGE}
                                                     alt={post.title}
                                                     fill
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                     className="object-cover transition-transform group-hover:scale-105"
+                                                    onError={(e) => {
+                                                        const target = e.currentTarget;
+                                                        target.onerror = null;
+                                                        target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                                                    }}
+                                                    unoptimized={post.featuredImage?.startsWith('data:') || false}
                                                 />
                                             </div>
                                         ) : (

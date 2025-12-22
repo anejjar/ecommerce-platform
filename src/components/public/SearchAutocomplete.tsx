@@ -3,10 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from '@/navigation';
 import { Link } from '@/navigation';
-import Image from 'next/image';
 import { Search, X, Clock, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { handleImageError } from '@/lib/image-utils';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 interface SearchResult {
   id: string;
@@ -210,20 +209,12 @@ export function SearchAutocomplete({
                     className="flex items-center gap-3 p-3 hover:bg-amber-50 rounded-lg transition-colors group"
                   >
                     <div className="relative w-12 h-12 bg-amber-50 rounded-lg overflow-hidden flex-shrink-0">
-                      {product.images[0] ? (
-                        <Image
-                          src={product.images[0].url}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                          onError={handleImageError}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-amber-300">
-                          <span className="text-xl">☕</span>
-                        </div>
-                      )}
+                      <SafeImage
+                        src={product.images[0]?.url}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 group-hover:text-amber-900 truncate">

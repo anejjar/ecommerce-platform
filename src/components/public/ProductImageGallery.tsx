@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { ZoomIn, ZoomOut, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useImageErrorHandler, PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
+import { useImageErrorHandler } from '@/hooks/useImageErrorHandler';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 interface ProductImage {
   id: string;
@@ -136,17 +136,15 @@ export function ProductImageGallery({
           onTouchEnd={onTouchEnd}
           onClick={() => displayImages.length > 0 && setLightboxOpen(true)}
         >
-          <Image
+          <SafeImage
             src={mainImageSrc}
             alt={currentImage?.alt || productName}
             fill
             className={`object-cover transition-transform duration-300 ${
               isZoomed ? 'scale-150' : 'scale-100'
             }`}
-            sizes="(max-width: 768px) 100vw, 50vw"
             priority
-            onError={handleMainError}
-            unoptimized={mainImageSrc?.startsWith('data:') || false}
+            onLoad={() => {}}
           />
 
           {/* Badges */}
@@ -234,8 +232,6 @@ export function ProductImageGallery({
         {displayImages.length > 1 && (
           <div className="grid grid-cols-5 gap-2 md:gap-3">
             {displayImages.map((image, index) => {
-              // Use individual error handlers for each thumbnail
-              const thumbSrc = image.url || PLACEHOLDER_PRODUCT_IMAGE;
               return (
                 <button
                   key={image.id}
@@ -250,18 +246,11 @@ export function ProductImageGallery({
                   }`}
                   aria-label={`View image ${index + 1}`}
                 >
-                  <Image
-                    src={thumbSrc}
+                  <SafeImage
+                    src={image.url}
                     alt={image.alt || `${productName} - Image ${index + 1}`}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 20vw, 10vw"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.onerror = null;
-                      target.src = PLACEHOLDER_PRODUCT_IMAGE;
-                    }}
-                    unoptimized={thumbSrc?.startsWith('data:') || false}
                   />
                   {selectedIndex === index && (
                     <div className="absolute inset-0 bg-amber-600/20" />
@@ -295,15 +284,12 @@ export function ProductImageGallery({
           </button>
 
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
-            <Image
+            <SafeImage
               src={mainImageSrc}
               alt={currentImage?.alt || productName}
               fill
               className="object-contain"
-              onError={handleMainError}
-              sizes="100vw"
               priority
-              unoptimized={mainImageSrc?.startsWith('data:') || false}
             />
 
             {/* Navigation in Lightbox */}

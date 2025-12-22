@@ -145,6 +145,7 @@ export const TestimonialsCarousel: React.FC<TestimonialsCarouselProps> = ({ conf
                       src={currentTestimonial.avatar}
                       alt={currentTestimonial.author || 'Customer'}
                       fill
+                      sizes="64px"
                       className="object-cover"
                       onError={(e) => {
                         // Hide image on error

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 interface ProductImage {
   url: string;
@@ -134,12 +134,11 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ config
         <div className="space-y-4">
           {showMainImage && (
             <div className={`relative bg-gray-100 rounded-lg overflow-hidden ${aspectRatioClasses[aspectRatio]}`}>
-              <Image
+              <SafeImage
                 src={mainImage.url}
                 alt={mainImage.alt || 'Product image'}
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
           )}
@@ -154,12 +153,11 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ config
                     selectedImageIndex === index ? 'border-blue-500' : 'border-transparent hover:border-gray-300'
                   }`}
                 >
-                  <Image
+                  <SafeImage
                     src={image.url}
                     alt={image.alt || `Thumbnail ${index + 1}`}
                     fill
                     className="object-cover"
-                    sizes="80px"
                   />
                 </button>
               ))}

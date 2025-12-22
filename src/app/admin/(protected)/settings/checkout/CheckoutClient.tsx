@@ -29,7 +29,8 @@ import {
     RotateCcw,
     Shield,
     Megaphone,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Zap
 } from 'lucide-react';
 import {
     Dialog,
@@ -43,8 +44,10 @@ import { CheckoutPreview } from '@/components/admin/CheckoutPreview';
 import { CheckoutSettings, CustomField, DEFAULT_FIELD_ORDER, FIELD_DISPLAY_NAMES } from '@/types/checkout-settings';
 import { Phase4Tab } from '@/components/admin/Phase4Tab';
 import { Phase5Tab } from '@/components/admin/Phase5Tab';
+import { Phase6Tab } from '@/components/admin/Phase6Tab';
 import { MediaPicker } from '@/components/media-manager/MediaPicker/MediaPicker';
 import { MediaItem } from '@/components/media-manager/types';
+import { FieldConfigurationManager } from '@/components/admin/checkout/FieldConfigurationManager';
 
 interface Region {
     id: string;
@@ -483,14 +486,14 @@ export default function CheckoutSettingsEnhancedPage() {
                                         <Megaphone className="h-4 w-4" />
                                         <span>Marketing</span>
                                     </TabsTrigger>
+
+                                    {/* Optimization Tab */}
+                                    <TabsTrigger value="optimization" className="flex items-center gap-2">
+                                        <Zap className="h-4 w-4" />
+                                        <span>Optimization</span>
+                                    </TabsTrigger>
                                 </>
-                            ) : (
-                                <TabsTrigger value="premium-locked" disabled className="flex items-center gap-2 opacity-50 cursor-not-allowed">
-                                    <span>🔒</span>
-                                    <span>Premium Features</span>
-                                    <Badge variant="outline" className="ml-1 text-xs">Upgrade to PRO</Badge>
-                                </TabsTrigger>
-                            )}
+                            ) : null}
                         </TabsList>
                     </div>
 
@@ -756,123 +759,21 @@ export default function CheckoutSettingsEnhancedPage() {
 
                     {/* Fields Tab */}
                     <TabsContent value="fields" className="space-y-6">
-                        {/* Field Visibility */}
+                        {/* Field Configuration (New Advanced System) */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Field Visibility</CardTitle>
-                                <CardDescription>Control which fields are shown in the checkout form</CardDescription>
+                                <CardTitle>Field Configuration</CardTitle>
+                                <CardDescription>
+                                    Configure which fields are visible and required in the checkout form.
+                                    This replaces the old field visibility toggles with a comprehensive management system.
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <FieldToggle
-                                    label="Phone Number Field"
-                                    description="Show phone number input in checkout"
-                                    checked={settings.showPhone}
-                                    onChange={(checked) => setSettings({ ...settings, showPhone: checked })}
-                                />
-
-                                {settings.showPhone && (
-                                    <div className="pl-6">
-                                        <FieldToggle
-                                            label="Require Phone Number"
-                                            description="Make phone number a required field"
-                                            checked={settings.requirePhone}
-                                            onChange={(checked) => setSettings({ ...settings, requirePhone: checked })}
-                                        />
-                                    </div>
-                                )}
-
-                                <FieldToggle
-                                    label="Company Field"
-                                    description="Show company name input in checkout"
-                                    checked={settings.showCompany}
-                                    onChange={(checked) => setSettings({ ...settings, showCompany: checked })}
-                                />
-
-                                <FieldToggle
-                                    label="Address Line 2"
-                                    description="Show second address line (apartment, suite, etc.)"
-                                    checked={settings.showAddressLine2}
-                                    onChange={(checked) => setSettings({ ...settings, showAddressLine2: checked })}
-                                />
-
-                                <FieldToggle
-                                    label="Order Notes"
-                                    description="Allow customers to add notes to their order"
-                                    checked={settings.enableOrderNotes}
-                                    onChange={(checked) => setSettings({ ...settings, enableOrderNotes: checked })}
-                                />
-
-                                {settings.enableOrderNotes && (
-                                    <div className="pl-6">
-                                        <Label htmlFor="orderNotesLabel">Order Notes Label</Label>
-                                        <Input
-                                            id="orderNotesLabel"
-                                            value={settings.orderNotesLabel || ''}
-                                            onChange={(e) => setSettings({ ...settings, orderNotesLabel: e.target.value })}
-                                            placeholder="Order notes (optional)"
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="border-t pt-4 mt-4">
-                                    <h4 className="font-semibold mb-3">Additional Fields</h4>
-                                </div>
-
-                                <FieldToggle
-                                    label="Alternative Phone Number"
-                                    description="Show field for a second phone number"
-                                    checked={settings.showAlternativePhone}
-                                    onChange={(checked) => setSettings({ ...settings, showAlternativePhone: checked })}
-                                />
-
-                                <FieldToggle
-                                    label="Delivery Instructions"
-                                    description="Allow customers to provide delivery instructions"
-                                    checked={settings.showDeliveryInstructions}
-                                    onChange={(checked) => setSettings({ ...settings, showDeliveryInstructions: checked })}
-                                />
-
-                                {settings.showDeliveryInstructions && (
-                                    <div className="pl-6">
-                                        <Label htmlFor="deliveryInstructionsLabel">Delivery Instructions Label</Label>
-                                        <Input
-                                            id="deliveryInstructionsLabel"
-                                            value={settings.deliveryInstructionsLabel || ''}
-                                            onChange={(e) =>
-                                                setSettings({ ...settings, deliveryInstructionsLabel: e.target.value })
-                                            }
-                                            placeholder="Delivery instructions"
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                )}
-
-                                <FieldToggle
-                                    label="Gift Message"
-                                    description="Allow customers to add a gift message"
-                                    checked={settings.showGiftMessage}
-                                    onChange={(checked) => setSettings({ ...settings, showGiftMessage: checked })}
-                                />
-
-                                {settings.showGiftMessage && (
-                                    <div className="pl-6">
-                                        <Label htmlFor="giftMessageLabel">Gift Message Label</Label>
-                                        <Input
-                                            id="giftMessageLabel"
-                                            value={settings.giftMessageLabel || ''}
-                                            onChange={(e) => setSettings({ ...settings, giftMessageLabel: e.target.value })}
-                                            placeholder="Gift message"
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                )}
-
-                                <FieldToggle
-                                    label="Preferred Delivery Date"
-                                    description="Show date picker for preferred delivery date"
-                                    checked={settings.showDeliveryDate}
-                                    onChange={(checked) => setSettings({ ...settings, showDeliveryDate: checked })}
+                            <CardContent>
+                                <FieldConfigurationManager
+                                    fieldVisibility={settings.fieldVisibility}
+                                    onChange={(config) =>
+                                        setSettings({ ...settings, fieldVisibility: config })
+                                    }
                                 />
                             </CardContent>
                         </Card>
@@ -1001,6 +902,11 @@ export default function CheckoutSettingsEnhancedPage() {
                     {/* Phase 5: Marketing & Conversion Tab */}
                     <TabsContent value="marketing" className="space-y-6">
                         <Phase5Tab settings={settings} setSettings={setSettings} />
+                    </TabsContent>
+
+                    {/* Phase 6: Checkout Optimization Tab */}
+                    <TabsContent value="optimization" className="space-y-6">
+                        <Phase6Tab settings={settings} setSettings={setSettings} />
                     </TabsContent>
 
                     {/* Basic Customization Tab (Original Settings) */}

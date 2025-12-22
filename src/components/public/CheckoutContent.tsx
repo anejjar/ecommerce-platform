@@ -3,27 +3,39 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
 import { Link } from '@/navigation';
 import { Lock, ShoppingBag, MapPin, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
 import { clearCart } from '@/lib/redux/features/cartSlice';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 import { useFeatureFlag } from '@/hooks/useFeatureFlag';
 import { useCurrency } from '@/hooks/useCurrency';
+import { useInlineValidation } from '@/hooks/useInlineValidation';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { RegionSelect } from './RegionSelect';
 import { CitySelect } from './CitySelect';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { CheckoutSettings, DEFAULT_FIELD_ORDER } from '@/types/checkout-settings';
+import { CheckoutFieldRenderer } from '@/components/checkout/CheckoutFieldRenderer';
+import { AddressAutocompleteEnhanced } from '@/components/checkout/AddressAutocompleteEnhanced';
+import dynamic from 'next/dynamic';
+
+// Lazy load MapLocationPicker (only loaded when opened)
+const MapLocationPicker = dynamic(
+  () => import('@/components/checkout/MapLocationPicker').then((mod) => ({ default: mod.MapLocationPicker })),
+  { ssr: false, loading: () => null }
+);
 import { CountdownTimer } from '@/components/checkout/CountdownTimer';
 import { FreeShippingBar } from '@/components/checkout/FreeShippingBar';
 import { TestimonialsCarousel } from '@/components/checkout/TestimonialsCarousel';
 import { RecentPurchasePopup } from '@/components/checkout/RecentPurchasePopup';
+import { WhatsAppOrderButton } from '@/components/checkout/WhatsAppOrderButton';
 import { CheckoutProgress } from '@/components/checkout/CheckoutProgress';
 import {
   TrustBadges,
@@ -66,6 +78,7 @@ export function CheckoutContent() {
     address2: '',
     city: '',
     state: '',
+    postalCode: '',
     country: 'Morocco',
     phone: '',
     orderNotes: '',
@@ -82,6 +95,9 @@ export function CheckoutContent() {
   // Order summary collapsible state
   const [orderSummaryCollapsed, setOrderSummaryCollapsed] = useState(false);
 
+  // Map location picker state
+  const [showMapPicker, setShowMapPicker] = useState(false);
+
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState('');
   const [discountCode, setDiscountCode] = useState('');
@@ -94,6 +110,17 @@ export function CheckoutContent() {
   } | null>(null);
   const [discountError, setDiscountError] = useState('');
   const [isCheckingDiscount, setIsCheckingDiscount] = useState(false);
+
+  // Phase 6: Guest checkout step (email-first)
+  const [guestCheckoutStep, setGuestCheckoutStep] = useState<'email' | 'full'>('email');
+
+  // Phase 6: Inline validation
+  const {
+    errors: validationErrors,
+    debouncedValidateField,
+    getError,
+    clearError,
+  } = useInlineValidation(checkoutSettings?.enableInlineValidation || false);
 
   // Phase 1: Dynamic styling based on settings
   const pageStyles = useMemo(() => {
@@ -226,6 +253,7 @@ export function CheckoutContent() {
         address2: address.address2 || '',
         city: address.city,
         state: address.state || '',
+        postalCode: address.postalCode || '',
         country: address.country,
         phone: address.phone || '',
       });
@@ -255,9 +283,10 @@ export function CheckoutContent() {
     setFormData({
       ...formData,
       address: addressData.address,
-      city: addressData.city,
-      state: addressData.state,
-      country: addressData.country,
+      city: addressData.city || '',
+      state: addressData.state || '',
+      postalCode: addressData.zip || '',
+      country: addressData.country || 'Morocco',
     });
   };
 
@@ -265,8 +294,25 @@ export function CheckoutContent() {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const tax = subtotal * 0.1;
-  const shipping = subtotal > 50 ? 0 : 10;
+
+  // Calculate tax based on admin settings
+  const taxEnabled = checkoutSettings?.shippingSettings?.tax_enable === 'true';
+  const taxRate = parseFloat(checkoutSettings?.shippingSettings?.tax_rate_default || '0') / 100;
+  const tax = taxEnabled ? subtotal * taxRate : 0;
+
+  // Calculate shipping based on admin settings
+  const freeShippingEnabled = checkoutSettings?.shippingSettings?.shipping_enable_free === 'true';
+  const freeShippingThreshold = parseFloat(checkoutSettings?.shippingSettings?.shipping_free_threshold || '0');
+  const flatRateEnabled = checkoutSettings?.shippingSettings?.shipping_enable_flat_rate === 'true';
+  const flatRateAmount = parseFloat(checkoutSettings?.shippingSettings?.shipping_flat_rate || '0');
+
+  let shipping = 0;
+  if (freeShippingEnabled && subtotal >= freeShippingThreshold) {
+    shipping = 0; // Free shipping
+  } else if (flatRateEnabled) {
+    shipping = flatRateAmount; // Flat rate shipping
+  }
+
   const totalBeforeDiscount = subtotal + tax + shipping;
   const total = appliedDiscount
     ? Math.max(0, totalBeforeDiscount - appliedDiscount.discountAmount)
@@ -276,6 +322,46 @@ export function CheckoutContent() {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  // Handler for field changes from CheckoutFieldRenderer
+  const handleFieldChange = (field: string, value: any) => {
+    setFormData({
+      ...formData,
+      [field]: value,
+    });
+  };
+
+  // Handler for location selection from map
+  const handleLocationSelect = (locationData: any) => {
+    console.log('Location selected from map:', locationData);
+
+    // Update form with all location data
+    setFormData({
+      ...formData,
+      address: locationData.address || '',
+      city: locationData.city || '',
+      state: locationData.state || '',
+      postalCode: locationData.postalCode || '',
+      country: locationData.country || 'Morocco',
+    });
+
+    // Show success notification
+    toast.success('Address selected from map successfully!', {
+      duration: 3000,
+      icon: '📍',
+    });
+
+    // Close the map picker
+    setShowMapPicker(false);
+
+    console.log('Form updated with:', {
+      address: locationData.address,
+      city: locationData.city,
+      state: locationData.state,
+      postalCode: locationData.postalCode,
+      country: locationData.country,
     });
   };
 
@@ -373,19 +459,13 @@ export function CheckoutContent() {
         {cartItems.map((item) => (
           <div key={item.id}>
             <div className="flex gap-3">
-              <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0">
-                {item.image ? (
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    📦
-                  </div>
-                )}
+              <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
+                <SafeImage
+                  src={item.image}
+                  alt={item.name}
+                  fill
+                  className="object-cover rounded"
+                />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-sm">{item.name}</p>
@@ -495,10 +575,14 @@ export function CheckoutContent() {
           <span className="text-gray-600">{t('cart.subtotal')}</span>
           <span className="font-medium">{format(subtotal)}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">{t('cart.tax')} (10%)</span>
-          <span className="font-medium">{format(tax)}</span>
-        </div>
+        {taxEnabled && (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">
+              {t('cart.tax')} ({parseFloat(checkoutSettings?.shippingSettings?.tax_rate_default || '0')}%)
+            </span>
+            <span className="font-medium">{format(tax)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">{t('cart.shipping')}</span>
           <span className="font-medium">
@@ -531,29 +615,67 @@ export function CheckoutContent() {
 
               {/* Enhanced Place Order Button */}
               <div className="space-y-3">
-                <Button
-                  type="submit"
-                  size="lg"
-                  className={`w-full text-lg font-bold py-6 shadow-lg hover:shadow-xl transition-all ${buttonClass}`}
-                  disabled={isSubmitting}
-                  style={{
-                    backgroundColor: checkoutSettings?.primaryColor || undefined,
-                    borderColor: checkoutSettings?.primaryColor || undefined,
-                  }}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="animate-spin">⏳</span>
-                      {t('checkout.placingOrder')}
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <Lock className="w-5 h-5" />
-                      {t('checkout.placeOrder')} - {format(total)}
-                    </span>
-                  )}
-                </Button>
-                
+                {/* Show standard button or hide if WhatsApp is primary */}
+                {!checkoutCustomizationEnabled ||
+                 !checkoutSettings?.enableWhatsAppOrdering ||
+                 checkoutSettings?.whatsAppButtonPosition !== 'primary' ? (
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className={`w-full text-lg font-bold py-6 shadow-lg hover:shadow-xl transition-all ${buttonClass}`}
+                    disabled={isSubmitting}
+                    style={{
+                      backgroundColor: checkoutSettings?.primaryColor || undefined,
+                      borderColor: checkoutSettings?.primaryColor || undefined,
+                    }}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="animate-spin">⏳</span>
+                        {t('checkout.placingOrder')}
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <Lock className="w-5 h-5" />
+                        {t('checkout.placeOrder')} - {format(total)}
+                      </span>
+                    )}
+                  </Button>
+                ) : null}
+
+                {/* WhatsApp Order Button */}
+                {checkoutCustomizationEnabled &&
+                 checkoutSettings?.enableWhatsAppOrdering &&
+                 checkoutSettings?.whatsAppBusinessNumber && (
+                  <>
+                    {checkoutSettings.whatsAppButtonPosition === 'both' && (
+                      <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-gray-300" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white px-2 text-muted-foreground">
+                            {t('checkout.orOrderVia')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <WhatsAppOrderButton
+                      cartItems={cartItems}
+                      formData={formData}
+                      total={total}
+                      position={
+                        checkoutSettings.whatsAppButtonPosition === 'primary'
+                          ? 'primary'
+                          : 'secondary'
+                      }
+                      settings={checkoutSettings}
+                      disabled={isSubmitting}
+                    />
+                  </>
+                )}
+
                 {/* Secure Checkout Badge */}
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                   <Lock className="w-4 h-4 text-green-600" />
@@ -872,81 +994,222 @@ export function CheckoutContent() {
           {/* Checkout Form */}
           <div className={checkoutCustomizationEnabled && checkoutSettings?.orderSummaryPosition === 'right' ? 'lg:col-span-2' : checkoutCustomizationEnabled && (checkoutSettings?.orderSummaryPosition === 'top' || checkoutSettings?.orderSummaryPosition === 'collapsible') ? 'lg:col-span-1' : 'lg:col-span-2'}>
             {/* Contact Information */}
-            <div 
-              className="bg-white rounded-lg shadow-sm p-6 mb-6"
-              style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
-                borderLeft: `4px solid ${checkoutSettings.secondaryColor}`
-              } : {}}
-            >
-              <h2 className="text-xl font-bold mb-4">{t('checkout.contactInfo')}</h2>
+            {/* Quick Guest Checkout - Email-only first step */}
+            {!session && checkoutSettings?.enableQuickGuestCheckout && guestCheckoutStep === 'email' ? (
+              <div
+                className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg shadow-sm p-6 mb-6"
+                style={checkoutCustomizationEnabled && checkoutSettings?.primaryColor ? {
+                  borderColor: checkoutSettings.primaryColor,
+                } : {}}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-bold">{t('checkout.quickStart')}</h2>
+                </div>
+                <p className="text-sm text-gray-700 mb-1 font-medium">
+                  {t('checkout.quickStartDescription')}
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {t('checkout.quickStartBenefit')}
+                </p>
 
-              {!session && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                  <p className="text-blue-800">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="email-quick">{t('checkout.email')}</Label>
+                    <Input
+                      id="email-quick"
+                      name="email"
+                      type="email"
+                      inputMode={checkoutSettings?.enableMobileOptimization ? "email" : undefined}
+                      autoComplete="email"
+                      value={formData.email}
+                      onChange={(e) => {
+                        handleChange(e);
+                        if (checkoutSettings?.enableInlineValidation) {
+                          debouncedValidateField('email', e.target.value, true);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (checkoutSettings?.enableInlineValidation) {
+                          debouncedValidateField('email', e.target.value, true);
+                        }
+                      }}
+                      placeholder="your.email@example.com"
+                      required
+                      className={`${buttonClass} text-lg ${getError('email') ? 'border-red-500' : ''}`}
+                    />
+                    {getError('email') && (
+                      <p className="text-sm text-red-600 mt-1">{getError('email')}</p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (formData.email && !getError('email')) {
+                        setGuestCheckoutStep('full');
+                      } else {
+                        toast.error('Please enter a valid email address');
+                      }
+                    }}
+                    className="w-full text-lg py-6"
+                    style={checkoutCustomizationEnabled && checkoutSettings?.primaryColor ? {
+                      backgroundColor: checkoutSettings.primaryColor,
+                    } : {}}
+                  >
+                    {t('checkout.continueToShipping')}
+                  </Button>
+
+                  <div className="text-center text-sm text-muted-foreground">
                     {t('auth.alreadyHaveAccount')}{' '}
-                    <Link href="/auth/signin?callbackUrl=/checkout" className="font-semibold underline">
+                    <Link href="/auth/signin?callbackUrl=/checkout" className="font-semibold underline text-blue-600">
                       {t('auth.signIn')}
                     </Link>
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">{getFieldLabel('email', t('checkout.email'))}</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder={getFieldPlaceholder('email')}
-                    required
-                    readOnly={!!session?.user?.email}
-                    className={`${buttonClass} focus:ring-2 focus:ring-primary focus:border-primary transition-all`}
-                  />
-                </div>
-
-                {!session && createAccount && (
-                  <div>
-                    <Label htmlFor="password">{t('checkout.password')}</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required={createAccount}
-                      minLength={6}
-                    />
                   </div>
-                )}
+                </div>
+              </div>
+            ) : (
+              <div
+                className="bg-white rounded-lg shadow-sm p-6 mb-6"
+                style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+                  borderLeft: `4px solid ${checkoutSettings.secondaryColor}`
+                } : {}}
+              >
+                <h2 className="text-xl font-bold mb-4">{t('checkout.contactInfo')}</h2>
 
                 {!session && (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="createAccount"
-                      checked={createAccount}
-                      onChange={(e) => setCreateAccount(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded"
-                      style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
-                        accentColor: checkoutSettings.secondaryColor,
-                      } : {}}
-                    />
-                    <Label htmlFor="createAccount" className="font-normal cursor-pointer">
-                      {t('checkout.createAccount')}
-                    </Label>
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                    <p className="text-blue-800">
+                      {t('auth.alreadyHaveAccount')}{' '}
+                      <Link href="/auth/signin?callbackUrl=/checkout" className="font-semibold underline">
+                        {t('auth.signIn')}
+                      </Link>
+                    </p>
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Saved Addresses (for logged-in users) */}
-            {session && savedAddresses.length > 0 && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="email">{getFieldLabel('email', t('checkout.email'))}</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      inputMode={checkoutSettings?.enableMobileOptimization ? "email" : undefined}
+                      autoComplete="email"
+                      value={formData.email}
+                      onChange={(e) => {
+                        handleChange(e);
+                        if (checkoutSettings?.enableInlineValidation) {
+                          debouncedValidateField('email', e.target.value, true);
+                        }
+                      }}
+                      placeholder={getFieldPlaceholder('email')}
+                      required
+                      readOnly={!!session?.user?.email}
+                      className={`${buttonClass} focus:ring-2 focus:ring-primary focus:border-primary transition-all ${getError('email') ? 'border-red-500' : ''}`}
+                    />
+                    {getError('email') && (
+                      <p className="text-sm text-red-600 mt-1">{getError('email')}</p>
+                    )}
+                  </div>
+
+                  {!session && createAccount && (
+                    <div>
+                      <Label htmlFor="password">{t('checkout.password')}</Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required={createAccount}
+                        minLength={6}
+                      />
+                    </div>
+                  )}
+
+                  {!session && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="createAccount"
+                        checked={createAccount}
+                        onChange={(e) => setCreateAccount(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                        style={checkoutCustomizationEnabled && checkoutSettings?.secondaryColor ? {
+                          accentColor: checkoutSettings.secondaryColor,
+                        } : {}}
+                      />
+                      <Label htmlFor="createAccount" className="font-normal cursor-pointer">
+                        {t('checkout.createAccount')}
+                      </Label>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Saved Addresses (for logged-in users) - Enhanced UI */}
+            {session && savedAddresses.length > 0 && checkoutSettings?.enableSavedAddressQuick ? (
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-lg shadow-sm p-6 mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="h-5 w-5 text-green-600" />
+                  <h2 className="text-xl font-bold">{t('checkout.quickCheckout')}</h2>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {t('checkout.selectSavedAddress')}
+                </p>
+
+                <div className="grid gap-3">
+                  {savedAddresses.map((address) => (
+                    <Button
+                      key={address.id}
+                      type="button"
+                      variant={selectedAddressId === address.id && !useNewAddress ? 'default' : 'outline'}
+                      className="w-full justify-start text-left h-auto py-4 px-4"
+                      onClick={() => handleSelectSavedAddress(address.id)}
+                      style={selectedAddressId === address.id && !useNewAddress && checkoutCustomizationEnabled && checkoutSettings?.primaryColor ? {
+                        backgroundColor: checkoutSettings.primaryColor,
+                      } : {}}
+                    >
+                      <div className="flex items-start gap-3 w-full">
+                        <MapPin className="h-5 w-5 mt-1 flex-shrink-0" />
+                        <div className="flex-1 text-left">
+                          <div className="font-bold flex items-center gap-2">
+                            {address.firstName} {address.lastName}
+                            {address.isDefault && (
+                              <Badge variant="secondary" className="text-xs">
+                                {t('checkout.default')}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm opacity-80 mt-1">
+                            {address.address1}
+                            {address.address2 && `, ${address.address2}`}
+                          </div>
+                          <div className="text-sm opacity-80">
+                            {address.city}, {address.country}
+                          </div>
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleUseNewAddress}
+                  className="w-full mt-3"
+                >
+                  {t('checkout.useNewAddress')}
+                </Button>
+              </div>
+            ) : session && savedAddresses.length > 0 ? (
               <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold">Saved Addresses</h2>
+                  <h2 className="text-xl font-bold">{t('checkout.savedAddresses')}</h2>
                   {savedAddresses.find(addr => addr.isDefault) && !useNewAddress && (
                     <Button
                       type="button"
@@ -1034,7 +1297,7 @@ export function CheckoutContent() {
                   </div>
                 </RadioGroup>
               </div>
-            )}
+            ) : null}
 
             {/* Shipping Address */}
             <div 
@@ -1047,7 +1310,35 @@ export function CheckoutContent() {
                 <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">2</span>
                 {t('checkout.shippingAddress')}
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+
+              {/* Dynamic Field Rendering with Field Visibility Configuration */}
+              <CheckoutFieldRenderer
+                fieldConfig={checkoutSettings?.fieldVisibility}
+                formData={formData}
+                onChange={handleFieldChange}
+                errors={{}}
+                checkoutSettings={checkoutSettings}
+                getError={getError}
+                getFieldLabel={(field) => getFieldLabel(field, t(`checkout.${field}`))}
+                getFieldPlaceholder={getFieldPlaceholder}
+                buttonClass={buttonClass}
+                onMapPickerClick={() => setShowMapPicker(true)}
+                showMapButton={checkoutSettings?.enableMapPicker && checkoutSettings?.addressInputMethod === 'autocomplete'}
+              />
+
+              {/* Map Location Picker Modal */}
+              {checkoutSettings?.enableMapPicker && (
+                <MapLocationPicker
+                  isOpen={showMapPicker}
+                  onClose={() => setShowMapPicker(false)}
+                  onLocationSelect={handleLocationSelect}
+                  defaultCenter={checkoutSettings?.defaultMapCenter}
+                  zoomLevel={checkoutSettings?.mapPickerZoomLevel}
+                />
+              )}
+
+              {/* TEMPORARILY HIDDEN - Old hardcoded fields below */}
+              <div className="grid grid-cols-2 gap-4" style={{ display: 'none' }}>
                 <div>
                   <Label htmlFor="firstName">{getFieldLabel('firstName', t('checkout.firstName'))}</Label>
                   <Input
@@ -1088,9 +1379,9 @@ export function CheckoutContent() {
                   </div>
                 )}
 
-                {/* Address Field - Conditional based on feature flag */}
+                {/* Address Field - Conditional based on feature flag and address input method */}
                 <div className="col-span-2">
-                  {checkoutCustomizationEnabled ? (
+                  {checkoutCustomizationEnabled && checkoutSettings?.addressInputMethod === 'autocomplete' ? (
                     <AddressAutocomplete
                       value={formData.address}
                       onChange={(value) => setFormData({ ...formData, address: value })}
@@ -1113,8 +1404,8 @@ export function CheckoutContent() {
                   )}
                 </div>
 
-                {/* Region Selection - Only shown when autocomplete is disabled */}
-                {!checkoutCustomizationEnabled && (
+                {/* Region Selection - Shown when using dropdown method or feature disabled */}
+                {(!checkoutCustomizationEnabled || (checkoutCustomizationEnabled && checkoutSettings?.addressInputMethod === 'dropdown')) && (
                   <div>
                     <RegionSelect
                       value={selectedRegionId}
@@ -1129,9 +1420,9 @@ export function CheckoutContent() {
                   </div>
                 )}
 
-                {/* City Field - Conditional based on feature flag */}
+                {/* City Field - Conditional based on address input method */}
                 <div>
-                  {checkoutCustomizationEnabled ? (
+                  {checkoutCustomizationEnabled && checkoutSettings?.addressInputMethod === 'autocomplete' ? (
                     <>
                       <Label htmlFor="city">{t('checkout.city')}</Label>
                       <Input
@@ -1153,8 +1444,8 @@ export function CheckoutContent() {
                   )}
                 </div>
 
-                {/* State field - Only shown when autocomplete is enabled */}
-                {checkoutCustomizationEnabled && (
+                {/* State field - Only shown when using autocomplete method */}
+                {checkoutCustomizationEnabled && checkoutSettings?.addressInputMethod === 'autocomplete' && (
                   <div>
                     <Label htmlFor="state">{t('checkout.state')}</Label>
                     <Input
@@ -1162,6 +1453,21 @@ export function CheckoutContent() {
                       name="state"
                       value={formData.state}
                       onChange={handleChange}
+                    />
+                  </div>
+                )}
+
+                {/* Postal Code field - Only shown when using autocomplete method */}
+                {checkoutCustomizationEnabled && checkoutSettings?.addressInputMethod === 'autocomplete' && (
+                  <div>
+                    <Label htmlFor="postalCode">{t('checkout.postalCode')}</Label>
+                    <Input
+                      id="postalCode"
+                      name="postalCode"
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      placeholder="00000"
+                      inputMode={checkoutSettings?.enableMobileOptimization ? "numeric" : undefined}
                     />
                   </div>
                 )}
@@ -1188,12 +1494,22 @@ export function CheckoutContent() {
                       id="phone"
                       name="phone"
                       type="tel"
+                      inputMode={checkoutSettings?.enableMobileOptimization ? "tel" : undefined}
+                      autoComplete="tel"
                       value={formData.phone}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e);
+                        if (checkoutSettings?.enableInlineValidation) {
+                          debouncedValidateField('phone', e.target.value, checkoutSettings?.requirePhone);
+                        }
+                      }}
                       placeholder={getFieldPlaceholder('phone')}
-                      className={buttonClass}
+                      className={`${buttonClass} ${getError('phone') ? 'border-red-500' : ''}`}
                       required={checkoutSettings?.requirePhone}
                     />
+                    {getError('phone') && (
+                      <p className="text-sm text-red-600 mt-1">{getError('phone')}</p>
+                    )}
                   </div>
                 )}
 
@@ -1278,12 +1594,14 @@ export function CheckoutContent() {
                     />
                   </div>
                 )}
+              </div>
+              {/* END TEMPORARILY HIDDEN - Old hardcoded fields */}
 
-                {/* Phase 2: Custom Fields */}
-                {checkoutSettings?.customFields && checkoutSettings.customFields.length > 0 && (
-                  <>
-                    {checkoutSettings.customFields.map((field) => (
-                      <div key={field.id} className={field.type === 'textarea' || field.type === 'select' ? 'col-span-2' : ''}>
+              {/* Phase 2: Custom Fields */}
+              {checkoutSettings?.customFields && checkoutSettings.customFields.length > 0 && (
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  {checkoutSettings.customFields.map((field) => (
+                    <div key={field.id} className={field.type === 'textarea' || field.type === 'select' ? 'col-span-2' : ''}>
                         <Label htmlFor={field.id}>
                           {field.label}
                           {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -1351,9 +1669,8 @@ export function CheckoutContent() {
                         )}
                       </div>
                     ))}
-                  </>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Payment Info Note */}

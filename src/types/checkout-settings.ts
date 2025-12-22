@@ -101,6 +101,46 @@ export interface CheckoutSettings {
   referralDiscountEnabled: boolean;
   referralDiscountText: string | null;
 
+  // PHASE 6: Enhanced Checkout Features
+  // Address Input Method
+  addressInputMethod: 'autocomplete' | 'dropdown';
+
+  // WhatsApp Ordering
+  enableWhatsAppOrdering: boolean;
+  whatsAppBusinessNumber: string | null;
+  whatsAppMessageTemplate: string | null;
+  whatsAppButtonText: string | null;
+  whatsAppButtonPosition: 'primary' | 'secondary' | 'both';
+
+  // Conversion Optimizations
+  enableQuickGuestCheckout: boolean;
+  enableInlineValidation: boolean;
+  enableMobileOptimization: boolean;
+  enableSavedAddressQuick: boolean;
+
+  // PHASE 7: Checkout Improvements
+  // Map Location Picker
+  enableMapPicker: boolean;
+  mapPickerButtonText: string | null;
+  mapPickerZoomLevel: number | null;
+  defaultMapCenter: { lat: number; lng: number } | null;
+
+  // Enhanced Address Autocomplete
+  addressAutocompleteMinChars: number | null;
+  showAddressAutocompleteIcon: boolean;
+
+  // Flexible Field Configuration
+  fieldVisibility: FieldVisibilityConfig | null;
+
+  // Additional Improvements
+  enableProgressSave: boolean;
+  progressSaveMinutes: number | null;
+  enableSmartAutofill: boolean;
+  enableOrderPreview: boolean;
+  previewBeforePayment: boolean;
+  mobileAutoNextField: boolean;
+  mobileKeyboardOptimization: boolean;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -218,3 +258,47 @@ export interface PromotionalBanner {
   link?: string;
   linkText?: string;
 }
+
+// PHASE 7: New Types for Checkout Improvements
+
+export interface FieldVisibilityConfig {
+  [fieldName: string]: {
+    visible: boolean;
+    required: boolean;
+  };
+}
+
+export interface LocationData {
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  coordinates: { lat: number; lng: number };
+}
+
+export interface AddressData {
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+
+export const DEFAULT_FIELD_VISIBILITY: FieldVisibilityConfig = {
+  email: { visible: true, required: true },
+  firstName: { visible: true, required: true },
+  lastName: { visible: true, required: true },
+  company: { visible: false, required: false },
+  phone: { visible: true, required: false },
+  alternativePhone: { visible: false, required: false },
+  address: { visible: true, required: true },
+  address2: { visible: true, required: false },
+  city: { visible: true, required: true },
+  state: { visible: true, required: false },
+  postalCode: { visible: true, required: false },
+  deliveryDate: { visible: false, required: false },
+  deliveryInstructions: { visible: false, required: false },
+  giftMessage: { visible: false, required: false },
+  orderNotes: { visible: true, required: false },
+};

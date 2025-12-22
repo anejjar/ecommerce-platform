@@ -35,6 +35,13 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum OrderSource {
+  WEBSITE
+  WHATSAPP
+  POS
+  ADMIN
+}
+
 enum PosOrderType {
   DINE_IN
   TAKE_AWAY
@@ -317,6 +324,10 @@ model Order {
   discountCode   DiscountCode? @relation(fields: [discountCodeId], references: [id])
   discountAmount Decimal       @default(0) @db.Decimal(10, 2)
 
+  // Order source tracking
+  orderSource       OrderSource @default(WEBSITE)
+  whatsAppOrderData Json? // WhatsApp order metadata
+
   // Enhanced tracking
   trackingNumber    String?
   carrier           String? // "UPS", "FedEx", "USPS", "DHL", etc.
@@ -350,6 +361,7 @@ model Order {
   attributionCampaign String?
 
   @@index([attributionSource, attributionMedium])
+  @@index([orderSource])
 }
 
 model OrderItem {
@@ -902,6 +914,46 @@ model CheckoutSettings {
   giftDescription         String?  @db.Text
   referralDiscountEnabled Boolean  @default(false)
   referralDiscountText    String?
+
+  // ===== PHASE 6: ENHANCED CHECKOUT FEATURES =====
+  // Address Input Method
+  addressInputMethod String @default("autocomplete") // 'autocomplete', 'dropdown'
+
+  // WhatsApp Ordering
+  enableWhatsAppOrdering  Boolean @default(false)
+  whatsAppBusinessNumber  String?
+  whatsAppMessageTemplate String? @db.Text
+  whatsAppButtonText      String? @default("Order via WhatsApp")
+  whatsAppButtonPosition  String? @default("secondary") // 'primary', 'secondary', 'both'
+
+  // Conversion Optimizations
+  enableQuickGuestCheckout Boolean @default(true)
+  enableInlineValidation   Boolean @default(true)
+  enableMobileOptimization Boolean @default(true)
+  enableSavedAddressQuick  Boolean @default(true)
+
+  // ===== PHASE 7: CHECKOUT IMPROVEMENTS =====
+  // Map Location Picker
+  enableMapPicker     Boolean @default(false)
+  mapPickerButtonText String? @default("Choose location on map")
+  mapPickerZoomLevel  Int?    @default(13)
+  defaultMapCenter    Json? // {lat: number, lng: number}
+
+  // Enhanced Address Autocomplete
+  addressAutocompleteMinChars Int?    @default(3)
+  showAddressAutocompleteIcon Boolean @default(true)
+
+  // Flexible Field Configuration
+  fieldVisibility Json? // {fieldName: {visible: boolean, required: boolean}}
+
+  // Additional Improvements
+  enableProgressSave          Boolean @default(true)
+  progressSaveMinutes         Int?    @default(60)
+  enableSmartAutofill         Boolean @default(true)
+  enableOrderPreview          Boolean @default(true)
+  previewBeforePayment        Boolean @default(true)
+  mobileAutoNextField         Boolean @default(true)
+  mobileKeyboardOptimization  Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

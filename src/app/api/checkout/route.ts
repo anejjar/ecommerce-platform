@@ -290,8 +290,35 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const tax = subtotal * 0.1; // 10% tax
-    const shipping = subtotal > 50 ? 0 : 10; // Free shipping over $50
+    // Fetch shipping and tax settings from database
+    const shippingSettings = await prisma.storeSetting.findMany({
+      where: { category: 'shipping' },
+    });
+
+    // Convert to key-value object
+    const settings = shippingSettings.reduce((acc, setting) => {
+      acc[setting.key] = setting.value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Calculate tax based on admin settings
+    const taxEnabled = settings.tax_enable === 'true';
+    const taxRate = parseFloat(settings.tax_rate_default || '0') / 100;
+    const tax = taxEnabled ? subtotal * taxRate : 0;
+
+    // Calculate shipping based on admin settings
+    const freeShippingEnabled = settings.shipping_enable_free === 'true';
+    const freeShippingThreshold = parseFloat(settings.shipping_free_threshold || '0');
+    const flatRateEnabled = settings.shipping_enable_flat_rate === 'true';
+    const flatRateAmount = parseFloat(settings.shipping_flat_rate || '0');
+
+    let shipping = 0;
+    if (freeShippingEnabled && subtotal >= freeShippingThreshold) {
+      shipping = 0; // Free shipping
+    } else if (flatRateEnabled) {
+      shipping = flatRateAmount; // Flat rate shipping
+    }
+
     let total = subtotal + tax + shipping;
 
     // Handle Discount Code

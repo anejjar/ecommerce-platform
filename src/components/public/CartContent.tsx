@@ -1,7 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Link } from '@/navigation';
-import Image from 'next/image';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks';
@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
-import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 export function CartContent() {
   const t = useTranslations();
@@ -19,14 +19,47 @@ export function CartContent() {
   const cartItems = useAppSelector((state) => state.cart.items);
   const { format } = useCurrency();
   const { theme } = useTheme();
+  const [shippingSettings, setShippingSettings] = useState<any>(null);
+
+  // Fetch shipping settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/checkout-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setShippingSettings(data.shippingSettings);
+        }
+      } catch (error) {
+        console.error('Error fetching shipping settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  const tax = subtotal * 0.1; // 10% tax
-  const shipping = subtotal > 50 ? 0 : 10; // Free shipping over $50
+  // Calculate tax based on admin settings
+  const taxEnabled = shippingSettings?.tax_enable === 'true';
+  const taxRate = parseFloat(shippingSettings?.tax_rate_default || '0') / 100;
+  const tax = taxEnabled ? subtotal * taxRate : 0;
+
+  // Calculate shipping based on admin settings
+  const freeShippingEnabled = shippingSettings?.shipping_enable_free === 'true';
+  const freeShippingThreshold = parseFloat(shippingSettings?.shipping_free_threshold || '0');
+  const flatRateEnabled = shippingSettings?.shipping_enable_flat_rate === 'true';
+  const flatRateAmount = parseFloat(shippingSettings?.shipping_flat_rate || '0');
+
+  let shipping = 0;
+  if (freeShippingEnabled && subtotal >= freeShippingThreshold) {
+    shipping = 0; // Free shipping
+  } else if (flatRateEnabled) {
+    shipping = flatRateAmount; // Flat rate shipping
+  }
+
   const total = subtotal + tax + shipping;
 
   const primaryColor = theme?.colors?.primary ?? '#111827';
@@ -85,18 +118,11 @@ export function CartContent() {
                   href={`/product/${item.productId || '#'}`}
                   className="relative w-24 h-24 md:w-28 md:h-28 bg-muted rounded-lg overflow-hidden flex-shrink-0 group"
                 >
-                  <Image
-                    src={item.image || PLACEHOLDER_PRODUCT_IMAGE}
+                  <SafeImage
+                    src={item.image}
                     alt={item.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform"
-                    sizes="112px"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.onerror = null;
-                      target.src = PLACEHOLDER_PRODUCT_IMAGE;
-                    }}
-                    unoptimized={item.image?.startsWith('data:') || false}
                   />
                 </Link>
 
@@ -175,10 +201,14 @@ export function CartContent() {
                 <span className="text-muted-foreground">{t('cart.subtotal')}</span>
                 <span className="font-medium">{format(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t('cart.tax')} (10%)</span>
-                <span className="font-medium">{format(tax)}</span>
-              </div>
+              {taxEnabled && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {t('cart.tax')} ({parseFloat(shippingSettings?.tax_rate_default || '0')}%)
+                  </span>
+                  <span className="font-medium">{format(tax)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('cart.shipping')}</span>
                 <span className="font-medium">

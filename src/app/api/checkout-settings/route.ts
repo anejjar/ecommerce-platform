@@ -14,7 +14,24 @@ export async function GET() {
             });
         }
 
-        return NextResponse.json(settings);
+        // Fetch shipping and tax settings from StoreSetting table
+        const shippingSettings = await prisma.storeSetting.findMany({
+            where: { category: 'shipping' },
+        });
+
+        // Convert shipping settings to key-value object
+        const shippingSettingsObject = shippingSettings.reduce((acc, setting) => {
+            acc[setting.key] = setting.value;
+            return acc;
+        }, {} as Record<string, string>);
+
+        // Merge checkout settings with shipping settings
+        const mergedSettings = {
+            ...settings,
+            shippingSettings: shippingSettingsObject,
+        };
+
+        return NextResponse.json(mergedSettings);
     } catch (error) {
         console.error('Error fetching checkout settings:', error);
         return NextResponse.json(

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { prisma } from '@/lib/prisma';
+import { PLACEHOLDER_PRODUCT_IMAGE } from '@/lib/image-utils';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,11 +85,18 @@ export default async function BlogPostPage({ params }: Props) {
                         {post.featuredImage && (
                             <div className="relative aspect-video rounded-xl overflow-hidden shadow-lg">
                                 <Image
-                                    src={post.featuredImage}
+                                    src={post.featuredImage || PLACEHOLDER_PRODUCT_IMAGE}
                                     alt={post.title}
                                     fill
+                                    sizes="(max-width: 768px) 100vw, 800px"
                                     className="object-cover"
                                     priority
+                                    onError={(e) => {
+                                        const target = e.currentTarget;
+                                        target.onerror = null;
+                                        target.src = PLACEHOLDER_PRODUCT_IMAGE;
+                                    }}
+                                    unoptimized={post.featuredImage?.startsWith('data:') || false}
                                 />
                             </div>
                         )}

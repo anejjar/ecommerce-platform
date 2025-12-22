@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { Link } from '@/navigation';
-import Image from 'next/image';
 import { useRouter } from '@/navigation';
 import { Star, ShoppingCart, Minus, Plus, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from '@/navigation';
 import Image from 'next/image';
 import { Calendar, User } from 'lucide-react';
+import { PLACEHOLDER_PRODUCT_IMAGE, handleImageError } from '@/lib/image-utils';
 
 interface BlogPost {
   id: string;
@@ -153,11 +154,13 @@ export const BlogGrid: React.FC<BlogGridProps> = ({ config }) => {
                 {post.featuredImage && (
                   <div className="relative aspect-video overflow-hidden">
                     <Image
-                      src={post.featuredImage}
+                      src={post.featuredImage || PLACEHOLDER_PRODUCT_IMAGE}
                       alt={post.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      onError={handleImageError}
+                      unoptimized={post.featuredImage?.startsWith('data:') || false}
                     />
                   </div>
                 )}
