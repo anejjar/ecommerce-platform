@@ -21,7 +21,8 @@
       "Bash(export PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"it''s fine to loose the database, i dont have any issue reseting the database in prod\")",
       "Bash(mysql:*)",
       "Bash(node check-checkout-settings.js:*)",
-      "Bash(node check-db-settings.js:*)"
+      "Bash(node check-db-settings.js:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

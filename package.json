@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
+    "verify:build": "node verify-build-config.js",
     "db:push": "prisma db push",
     "db:deploy": "prisma migrate deploy && prisma generate && tsx prisma/seed-essentials.ts",
     "db:seed:features": "tsx prisma/seed-features.ts",

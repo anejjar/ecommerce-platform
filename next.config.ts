@@ -8,6 +8,24 @@ const nextConfig: NextConfig = {
   // Enable standalone output for optimized production builds
   output: 'standalone',
 
+  // Explicitly disable Turbopack for production - use stable Webpack instead
+  // Turbopack is experimental and slower for production builds (14min vs 3-5min with Webpack)
+  experimental: {
+    // @ts-ignore - Ensure Turbopack is disabled
+    turbo: undefined,
+  },
+
+  // Webpack optimizations for faster builds
+  webpack: (config, { isServer }) => {
+    // Optimize build performance
+    config.optimization = {
+      ...config.optimization,
+      moduleIds: 'deterministic',
+    };
+
+    return config;
+  },
+
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
