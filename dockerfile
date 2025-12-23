@@ -49,6 +49,10 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
+# Install runtime dependencies for migrations and seeding
+# netcat for database health checks, openssl for Prisma
+RUN apk add --no-cache netcat-openbsd openssl
+
 # Set production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -64,8 +68,18 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Copy messages for i18n
 COPY --chown=nextjs:nodejs messages ./messages
 
-# Copy Prisma schema (needed for runtime migrations like 'prisma migrate deploy')
+# Copy Prisma files (schema, migrations, and seed scripts)
 COPY --chown=nextjs:nodejs prisma ./prisma/
+
+# Copy node_modules from builder (includes tsx and ts-node for seed scripts)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy package.json for scripts reference
+COPY --chown=nextjs:nodejs package.json ./
+
+# Copy entrypoint script
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 USER nextjs
 
@@ -74,5 +88,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Use standalone server.js instead of npm start (faster startup)
-CMD ["node", "server.js"]
+# Use entrypoint script to handle migrations and seeding
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
