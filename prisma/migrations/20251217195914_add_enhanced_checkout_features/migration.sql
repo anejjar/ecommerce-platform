@@ -11,7 +11,7 @@ ALTER TABLE `checkout_settings` ADD COLUMN `addressInputMethod` VARCHAR(191) NOT
     ADD COLUMN `whatsAppMessageTemplate` TEXT NULL;
 
 -- AlterTable
-ALTER TABLE `order` ADD COLUMN `orderSource` ENUM('WEBSITE', 'WHATSAPP', 'POS', 'ADMIN') NOT NULL DEFAULT 'WEBSITE',
+ALTER TABLE `Order` ADD COLUMN `orderSource` ENUM('WEBSITE', 'WHATSAPP', 'POS', 'ADMIN') NOT NULL DEFAULT 'WEBSITE',
     ADD COLUMN `whatsAppOrderData` JSON NULL;
 
 -- CreateIndex
