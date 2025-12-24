@@ -22,7 +22,8 @@
       "Bash(mysql:*)",
       "Bash(node check-checkout-settings.js:*)",
       "Bash(node check-db-settings.js:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

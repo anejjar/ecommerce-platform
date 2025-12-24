@@ -75,6 +75,19 @@ seed_production() {
   fi
 }
 
+# Seed test data (optional)
+seed_test() {
+  if [ "$SEED_TEST_DATA" = "true" ]; then
+    echo "🌱 Seeding test data..."
+
+    if npx tsx prisma/seed-test.ts; then
+      echo "✅ Test data seeded successfully"
+    else
+      echo "⚠️  Seeding test data failed, continuing..."
+    fi
+  fi
+}
+
 # Main initialization sequence
 main() {
   # Check if DATABASE_URL is set
@@ -101,6 +114,7 @@ main() {
   if [ "$SKIP_SEEDING" != "true" ]; then
     seed_essentials
     seed_production
+    seed_test
   else
     echo "⏭️  Skipping seeding (SKIP_SEEDING=true)"
   fi
