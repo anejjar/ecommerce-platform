@@ -78,8 +78,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --chown=nextjs:nodejs package.json ./
 
 # Copy entrypoint script
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+# COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
+# RUN chmod +x docker-entrypoint.sh
 
 USER nextjs
 
