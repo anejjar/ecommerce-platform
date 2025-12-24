@@ -89,4 +89,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Use entrypoint script to handle migrations and seeding
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+# ENTRYPOINT ["/app/docker-entrypoint.sh"]
