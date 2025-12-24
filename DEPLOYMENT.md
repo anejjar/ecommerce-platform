@@ -149,7 +149,32 @@ After first deployment:
 
 ## 🔧 Troubleshooting
 
-### Container Crashes on Startup
+### 🔴 Container Restart Loop (Creates and Exits Every Second)
+
+**If you see containers being created/exited repeatedly:**
+
+This means the container is crashing immediately on startup.
+
+**Quick diagnosis:**
+```bash
+ssh deployer@YOUR_SERVER_IP
+
+# View logs of crashed container
+docker logs $(docker ps -aq -f name=ecommerce-app | head -1)
+```
+
+**See full troubleshooting guide:** [TROUBLESHOOTING-RESTART-LOOP.md](./TROUBLESHOOTING-RESTART-LOOP.md)
+
+**Most common causes:**
+1. **Missing DATABASE_URL** - Check environment variables
+2. **Database not running** - Verify `docker ps | grep ecommerce-db`
+3. **Migration fails** - Check database is MySQL and accessible
+4. **Missing server.js** - Verify `output: 'standalone'` in next.config
+5. **Missing NEXTAUTH_SECRET** - Generate with `openssl rand -base64 32`
+
+---
+
+### Container Crashes on Startup (Other Issues)
 
 **Check logs:**
 ```bash

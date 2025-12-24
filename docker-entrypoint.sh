@@ -1,7 +1,13 @@
 #!/bin/sh
 set -e
 
+echo "============================================"
 echo "🚀 Starting application initialization..."
+echo "============================================"
+echo "Node version: $(node --version)"
+echo "Working directory: $(pwd)"
+echo "User: $(whoami)"
+echo "============================================"
 
 # Function to wait for database
 wait_for_db() {
@@ -105,6 +111,19 @@ main() {
 
 # Run initialization
 main
+
+# Verify server.js exists
+if [ ! -f "server.js" ]; then
+  echo "❌ ERROR: server.js not found!"
+  echo "📁 Files in current directory:"
+  ls -la
+  echo ""
+  echo "📁 Looking for server.js in common locations:"
+  find /app -name "server.js" -type f 2>/dev/null || echo "No server.js found anywhere"
+  exit 1
+fi
+
+echo "✅ Found server.js, starting Next.js server..."
 
 # Start the Next.js server
 exec node server.js

@@ -77,9 +77,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 # Copy package.json for scripts reference
 COPY --chown=nextjs:nodejs package.json ./
 
-# Copy entrypoint script
-# COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-# RUN chmod +x docker-entrypoint.sh
+# Copy entrypoint script and make it executable
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh && chown nextjs:nodejs docker-entrypoint.sh
 
 USER nextjs
 
@@ -89,4 +89,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Use entrypoint script to handle migrations and seeding
-# ENTRYPOINT ["/app/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
