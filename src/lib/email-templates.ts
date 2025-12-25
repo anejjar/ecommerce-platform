@@ -28,76 +28,89 @@ interface Order {
 
 export function orderConfirmationEmail(order: Order, customerName: string) {
   return `
-    <h2>Order Confirmation</h2>
+    <div class="highlight-box">
+      <h2 style="margin: 0 0 10px 0;">Order Confirmation</h2>
+      <p class="highlight-box-large" style="margin: 0;">#${order.orderNumber}</p>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>Thank you for your order! We've received your order and will process it shortly.</p>
 
     <div class="order-details">
-      <h3>Order #${order.orderNumber}</h3>
+      <h3>Order Items</h3>
 
       ${order.items.map(item => `
         <div class="order-item">
-          <div>
-            <strong>${item.product.name}</strong><br>
-            <span style="color: #6b7280;">Quantity: ${item.quantity}</span>
+          <div class="order-item-name">
+            ${item.product.name}
+            <div class="order-item-details">Quantity: ${item.quantity} × $${item.price} each</div>
           </div>
-          <div style="text-align: right;">
-            <strong>$${item.total}</strong><br>
-            <span style="color: #6b7280; font-size: 14px;">$${item.price} each</span>
-          </div>
+          <div class="order-item-price">$${item.total}</div>
         </div>
       `).join('')}
 
-      <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <div class="order-totals">
+        <div class="order-total-row">
           <span>Subtotal:</span>
           <span>$${order.subtotal}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div class="order-total-row">
           <span>Tax:</span>
           <span>$${order.tax}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div class="order-total-row">
           <span>Shipping:</span>
           <span>$${order.shipping}</span>
         </div>
-        <div class="total" style="display: flex; justify-content: space-between;">
+        ${order.discountAmount && parseFloat(order.discountAmount) > 0 ? `
+        <div class="order-total-row" style="color: #10b981;">
+          <span>Discount:</span>
+          <span>-$${order.discountAmount}</span>
+        </div>
+        ` : ''}
+        <div class="order-total-row total">
           <span>Total:</span>
-          <span>$${order.total}</span>
+          <span class="order-total-amount">$${order.total}</span>
         </div>
       </div>
     </div>
 
     ${order.shippingAddress ? `
-      <div style="margin-top: 20px;">
+      <div class="email-card">
         <h3>Shipping Address</h3>
-        <p style="margin: 5px 0;">
+        <p style="margin: 10px 0 0 0; line-height: 1.8;">
           ${order.shippingAddress.firstName} ${order.shippingAddress.lastName}<br>
           ${order.shippingAddress.address1}${order.shippingAddress.address2 ? '<br>' + order.shippingAddress.address2 : ''}<br>
-          ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}<br>
+          ${order.shippingAddress.city}, ${order.shippingAddress.state || ''} ${order.shippingAddress.postalCode}<br>
           ${order.shippingAddress.country}
         </p>
       </div>
     ` : ''}
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${order.orderNumber}" class="button">
-      View Order Details
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${order.orderNumber}" class="email-button">
+        View Order Details
+      </a>
+    </div>
 
-    <p>We'll send you another email when your order ships.</p>
+    <p class="text-muted">We'll send you another email when your order ships.</p>
   `;
 }
 
 export function orderShippedEmail(order: Order, customerName: string, trackingNumber?: string) {
   return `
-    <h2>Your Order Has Shipped! 📦</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      <h2 style="margin: 0 0 10px 0;">Your Order Has Shipped! 📦</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${order.orderNumber}</p>
+    </div>
+
     <p>Hi ${customerName},</p>
-    <p>Great news! Your order #${order.orderNumber} has been shipped and is on its way to you.</p>
+    <p>Great news! Your order has been shipped and is on its way to you.</p>
 
     ${trackingNumber ? `
-      <div style="background-color: #dbeafe; border: 1px solid #3b82f6; border-radius: 6px; padding: 15px; margin: 20px 0;">
-        <strong>Tracking Number:</strong><br>
-        <span style="font-family: monospace; font-size: 16px;">${trackingNumber}</span>
+      <div class="tracking-number">
+        <div class="tracking-number-label">Tracking Number</div>
+        <div class="tracking-number-value">${trackingNumber}</div>
       </div>
     ` : ''}
 
@@ -105,108 +118,122 @@ export function orderShippedEmail(order: Order, customerName: string, trackingNu
       <h3>Order Summary</h3>
       ${order.items.map(item => `
         <div class="order-item">
-          <div>
-            <strong>${item.product.name}</strong><br>
-            <span style="color: #6b7280;">Quantity: ${item.quantity}</span>
+          <div class="order-item-name">
+            ${item.product.name}
+            <div class="order-item-details">Quantity: ${item.quantity}</div>
           </div>
-          <div style="text-align: right;">
-            <strong>$${item.total}</strong>
-          </div>
+          <div class="order-item-price">$${item.total}</div>
         </div>
       `).join('')}
 
-      <div class="total" style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid #3b82f6;">
-        <span>Total:</span>
-        <span>$${order.total}</span>
+      <div class="order-totals">
+        <div class="order-total-row total">
+          <span>Total:</span>
+          <span class="order-total-amount">$${order.total}</span>
+        </div>
       </div>
     </div>
 
     ${order.shippingAddress ? `
-      <div style="margin-top: 20px;">
+      <div class="email-card">
         <h3>Shipping To:</h3>
-        <p style="margin: 5px 0;">
+        <p style="margin: 10px 0 0 0; line-height: 1.8;">
           ${order.shippingAddress.firstName} ${order.shippingAddress.lastName}<br>
           ${order.shippingAddress.address1}${order.shippingAddress.address2 ? '<br>' + order.shippingAddress.address2 : ''}<br>
-          ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}<br>
+          ${order.shippingAddress.city}, ${order.shippingAddress.state || ''} ${order.shippingAddress.postalCode}<br>
           ${order.shippingAddress.country}
         </p>
       </div>
     ` : ''}
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${order.orderNumber}" class="button">
-      Track Your Order
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${order.orderNumber}" class="email-button email-button-success">
+        Track Your Order
+      </a>
+    </div>
   `;
 }
 
 export function orderDeliveredEmail(order: Order, customerName: string) {
   return `
-    <h2>Your Order Has Been Delivered! 🎉</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      <h2 style="margin: 0 0 10px 0;">Your Order Has Been Delivered! 🎉</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${order.orderNumber}</p>
+    </div>
+
     <p>Hi ${customerName},</p>
-    <p>Your order #${order.orderNumber} has been delivered. We hope you love your purchase!</p>
+    <p>Your order has been delivered. We hope you love your purchase!</p>
 
     <div class="order-details">
       <h3>Order Summary</h3>
       ${order.items.map(item => `
         <div class="order-item">
-          <div>
-            <strong>${item.product.name}</strong><br>
-            <span style="color: #6b7280;">Quantity: ${item.quantity}</span>
+          <div class="order-item-name">
+            ${item.product.name}
+            <div class="order-item-details">Quantity: ${item.quantity}</div>
           </div>
-          <div style="text-align: right;">
-            <strong>$${item.total}</strong>
-          </div>
+          <div class="order-item-price">$${item.total}</div>
         </div>
       `).join('')}
     </div>
 
-    <p style="margin-top: 20px;">How was your experience? We'd love to hear your feedback!</p>
+    <div class="email-card-primary">
+      <p style="margin: 0; font-weight: 600;">How was your experience? We'd love to hear your feedback!</p>
+    </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${order.orderNumber}" class="button">
-      Leave a Review
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${order.orderNumber}" class="email-button">
+        Leave a Review
+      </a>
+    </div>
   `;
 }
 
 export function lowStockAlertEmail(products: Array<{ name: string; sku: string | null; stock: number; threshold: number }>) {
   return `
-    <h2>Low Stock Alert! ⚠️</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+      <h2 style="margin: 0;">Low Stock Alert! ⚠️</h2>
+    </div>
+
     <p>The following products are running low on stock:</p>
 
     <div class="order-details">
       ${products.map(product => `
         <div class="order-item">
-          <div>
-            <strong>${product.name}</strong><br>
-            ${product.sku ? `<span style="color: #6b7280;">SKU: ${product.sku}</span>` : ''}
+          <div class="order-item-name">
+            ${product.name}
+            ${product.sku ? `<div class="order-item-details">SKU: ${product.sku}</div>` : ''}
           </div>
-          <div style="text-align: right;">
-            <span style="color: ${product.stock === 0 ? '#dc2626' : '#f59e0b'}; font-weight: bold;">
-              ${product.stock} units
-            </span><br>
-            <span style="color: #6b7280; font-size: 14px;">Threshold: ${product.threshold}</span>
+          <div class="order-item-price" style="color: ${product.stock === 0 ? '#ef4444' : '#f59e0b'};">
+            ${product.stock} units
+            <div class="order-item-details">Threshold: ${product.threshold}</div>
           </div>
         </div>
       `).join('')}
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/settings/stock-alerts" class="button">
-      View Stock Alerts
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/settings/stock-alerts" class="email-button email-button-warning">
+        View Stock Alerts
+      </a>
+    </div>
 
-    <p>Please restock these items to avoid running out of inventory.</p>
+    <p class="text-muted">Please restock these items to avoid running out of inventory.</p>
   `;
 }
 
 export function welcomeEmail(customerName: string) {
   return `
-    <h2>Welcome to Our Store! 🎊</h2>
+    <div class="highlight-box">
+      <h2 style="margin: 0;">Welcome to Our Store! 🎊</h2>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>Thank you for creating an account with us! We're excited to have you as part of our community.</p>
 
-    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin: 20px 0;">
+    <div class="email-card-primary">
       <h3 style="margin-top: 0;">Here's what you can do with your account:</h3>
-      <ul style="margin: 10px 0; padding-left: 20px;">
+      <ul style="margin: 10px 0;">
         <li>Track your orders in real-time</li>
         <li>Save your shipping addresses</li>
         <li>View your order history</li>
@@ -215,22 +242,27 @@ export function welcomeEmail(customerName: string) {
       </ul>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="button">
-      Start Shopping
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="email-button">
+        Start Shopping
+      </a>
+    </div>
 
-    <p>If you have any questions, our support team is always here to help!</p>
+    <p class="text-muted">If you have any questions, our support team is always here to help!</p>
   `;
 }
 
 export function newsletterWelcomeEmail(name?: string) {
   return `
-    <h2>Welcome to Our Newsletter! 📧</h2>
+    <div class="highlight-box">
+      <h2 style="margin: 0;">Welcome to Our Newsletter! 📧</h2>
+    </div>
+
     <p>Hi ${name || 'there'},</p>
     <p>Thank you for subscribing to our newsletter! You'll now receive:</p>
 
-    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin: 20px 0;">
-      <ul style="margin: 10px 0; padding-left: 20px;">
+    <div class="email-card-primary">
+      <ul style="margin: 10px 0;">
         <li>Exclusive deals and discount codes</li>
         <li>New product announcements</li>
         <li>Tips and recommendations</li>
@@ -239,11 +271,13 @@ export function newsletterWelcomeEmail(name?: string) {
       </ul>
     </div>
 
-    <p>You can unsubscribe at any time by clicking the link at the bottom of our emails.</p>
+    <p class="text-muted text-small">You can unsubscribe at any time by clicking the link at the bottom of our emails.</p>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="button">
-      Browse Our Products
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="email-button">
+        Browse Our Products
+      </a>
+    </div>
   `;
 }
 
@@ -254,11 +288,12 @@ export function newsletterCampaignEmail(
   return `
     ${content}
 
+    <div class="spacer-large"></div>
     <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
 
-    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+    <p class="text-muted text-small text-center">
       You're receiving this email because you subscribed to our newsletter.<br>
-      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color: #6b7280;">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/newsletter/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color: #3b82f6;">
         Unsubscribe
       </a>
     </p>
@@ -269,72 +304,76 @@ export function newsletterCampaignEmail(
 
 export function adminNewOrderEmail(order: Order, customerEmail: string) {
   return `
-    <h2>New Order Received! 🛍️</h2>
+    <div class="highlight-box">
+      <h2 style="margin: 0 0 10px 0;">New Order Received! 🛍️</h2>
+      <p class="highlight-box-large" style="margin: 0;">#${order.orderNumber}</p>
+    </div>
+
     <p>A new order has been placed on your store.</p>
 
+    <div class="email-card-primary">
+      <p style="margin: 0 0 10px 0;"><strong>Customer Email:</strong> ${customerEmail}</p>
+      <p style="margin: 0;"><strong>Order Status:</strong> <span style="color: #f59e0b; font-weight: bold;">${order.status}</span></p>
+    </div>
+
     <div class="order-details">
-      <h3>Order #${order.orderNumber}</h3>
-      <div style="margin-bottom: 15px; padding: 10px; background-color: #f9fafb; border-radius: 6px;">
-        <strong>Customer Email:</strong> ${customerEmail}<br>
-        <strong>Order Status:</strong> <span style="color: #f59e0b; font-weight: bold;">${order.status}</span>
-      </div>
+      <h3>Order Items</h3>
 
       ${order.items.map(item => `
         <div class="order-item">
-          <div>
-            <strong>${item.product.name}</strong><br>
-            <span style="color: #6b7280;">Quantity: ${item.quantity}</span>
+          <div class="order-item-name">
+            ${item.product.name}
+            <div class="order-item-details">Quantity: ${item.quantity} × $${item.price} each</div>
           </div>
-          <div style="text-align: right;">
-            <strong>$${item.total}</strong><br>
-            <span style="color: #6b7280; font-size: 14px;">$${item.price} each</span>
-          </div>
+          <div class="order-item-price">$${item.total}</div>
         </div>
       `).join('')}
 
-      <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <div class="order-totals">
+        <div class="order-total-row">
           <span>Subtotal:</span>
           <span>$${order.subtotal}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div class="order-total-row">
           <span>Tax:</span>
           <span>$${order.tax}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div class="order-total-row">
           <span>Shipping:</span>
           <span>$${order.shipping}</span>
         </div>
         ${order.discountAmount && parseFloat(order.discountAmount) > 0 ? `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #059669;">
+        <div class="order-total-row" style="color: #10b981;">
           <span>Discount:</span>
           <span>-$${order.discountAmount}</span>
         </div>
         ` : ''}
-        <div class="total" style="display: flex; justify-content: space-between;">
+        <div class="order-total-row total">
           <span>Total:</span>
-          <span>$${order.total}</span>
+          <span class="order-total-amount">$${order.total}</span>
         </div>
       </div>
     </div>
 
     ${order.shippingAddress ? `
-      <div style="margin-top: 20px;">
+      <div class="email-card">
         <h3>Shipping Address</h3>
-        <p style="margin: 5px 0;">
+        <p style="margin: 10px 0 0 0; line-height: 1.8;">
           ${order.shippingAddress.firstName} ${order.shippingAddress.lastName}<br>
           ${order.shippingAddress.address1}${order.shippingAddress.address2 ? '<br>' + order.shippingAddress.address2 : ''}<br>
-          ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}<br>
+          ${order.shippingAddress.city}, ${order.shippingAddress.state || ''} ${order.shippingAddress.postalCode}<br>
           ${order.shippingAddress.country}
         </p>
       </div>
     ` : ''}
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/orders/${order.orderNumber}" class="button">
-      View Order in Admin
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/orders/${order.orderNumber}" class="email-button">
+        View Order in Admin
+      </a>
+    </div>
 
-    <p>Please process this order as soon as possible.</p>
+    <p class="text-muted">Please process this order as soon as possible.</p>
   `;
 }
 
@@ -351,53 +390,58 @@ export function adminNewReviewEmail(
   reviewId: string
 ) {
   return `
-    <h2>New Product Review Submitted! ⭐</h2>
+    <div class="highlight-box">
+      <h2 style="margin: 0;">New Product Review Submitted! ⭐</h2>
+    </div>
+
     <p>A customer has submitted a new review on your store.</p>
 
-    <div class="order-details">
-      <h3>${productName}</h3>
+    <div class="email-card">
+      <h3 style="margin-top: 0;">${productName}</h3>
 
       <div style="margin: 15px 0;">
         <div style="color: #f59e0b; font-size: 24px; margin-bottom: 5px;">
           ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
         </div>
-        <span style="color: #6b7280; font-size: 14px;">
+        <span class="text-muted text-small">
           ${review.rating} out of 5 stars
-          ${review.verified ? '<span style="color: #059669; margin-left: 10px;">✓ Verified Purchase</span>' : ''}
+          ${review.verified ? '<span style="color: #10b981; margin-left: 10px;">✓ Verified Purchase</span>' : ''}
         </span>
       </div>
+    </div>
 
-      <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
-        <div style="margin-bottom: 10px;">
-          <strong>Reviewer:</strong> ${customerName}<br>
-          <strong>Submitted:</strong> ${new Date(review.createdAt).toLocaleDateString('en-US', {
+    <div class="email-card-primary">
+      <div style="margin-bottom: 15px;">
+        <p style="margin: 0 0 5px 0;"><strong>Reviewer:</strong> ${customerName}</p>
+        <p style="margin: 0;" class="text-muted text-small"><strong>Submitted:</strong> ${new Date(review.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
-  })}
-        </div>
-
-        ${review.title ? `
-          <div style="margin-bottom: 10px;">
-            <strong style="font-size: 16px;">${review.title}</strong>
-          </div>
-        ` : ''}
-
-        ${review.comment ? `
-          <div style="color: #374151; line-height: 1.6;">
-            ${review.comment}
-          </div>
-        ` : ''}
+  })}</p>
       </div>
+
+      ${review.title ? `
+        <div style="margin-bottom: 15px;">
+          <h4 style="margin: 0; color: #1f2937;">${review.title}</h4>
+        </div>
+      ` : ''}
+
+      ${review.comment ? `
+        <div style="color: #1f2937; line-height: 1.6;">
+          ${review.comment}
+        </div>
+      ` : ''}
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/reviews" class="button">
-      Moderate Review
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/reviews" class="email-button">
+        Moderate Review
+      </a>
+    </div>
 
-    <p>Please review and approve or reject this review in the admin panel.</p>
+    <p class="text-muted">Please review and approve or reject this review in the admin panel.</p>
   `;
 }
 
@@ -408,11 +452,15 @@ export function customerOrderNoteEmail(
   addedAt: Date
 ) {
   return `
-    <h2>New Note on Your Order 📝</h2>
-    <p>A note has been added to your order #${orderNumber}.</p>
+    <div class="highlight-box">
+      <h2 style="margin: 0 0 10px 0;">New Note on Your Order 📝</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${orderNumber}</p>
+    </div>
 
-    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <div style="margin-bottom: 10px; font-size: 12px; color: #1e40af;">
+    <p>A note has been added to your order.</p>
+
+    <div class="email-card-primary">
+      <div style="margin-bottom: 15px;" class="text-small">
         <strong>${addedBy}</strong> • ${new Date(addedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -421,16 +469,18 @@ export function customerOrderNoteEmail(
     minute: '2-digit'
   })}
       </div>
-      <div style="color: #1e3a8a; line-height: 1.6;">
+      <div style="color: #1f2937; line-height: 1.6;">
         ${note}
       </div>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${orderNumber}" class="button">
-      View Order Details
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${orderNumber}" class="email-button">
+        View Order Details
+      </a>
+    </div>
 
-    <p>If you have any questions about this note, please contact our support team.</p>
+    <p class="text-muted">If you have any questions about this note, please contact our support team.</p>
   `;
 }
 
@@ -443,22 +493,28 @@ export function refundRequestedEmailCustomer(
   reason: string
 ) {
   return `
-    <h2>Refund Request Received 🔄</h2>
-    <p>We've received your refund request for order #${orderNumber}.</p>
+    <div class="highlight-box">
+      <h2 style="margin: 0 0 10px 0;">Refund Request Received 🔄</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${orderNumber}</p>
+    </div>
 
-    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <strong>RMA Number:</strong> ${rmaNumber}<br>
-      <strong>Refund Amount:</strong> $${refundAmount}<br>
-      <strong>Reason:</strong> ${reason}
+    <p>We've received your refund request and will review it shortly.</p>
+
+    <div class="email-card-primary">
+      <p style="margin: 0 0 10px 0;"><strong>RMA Number:</strong> ${rmaNumber}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Refund Amount:</strong> $${refundAmount}</p>
+      <p style="margin: 0;"><strong>Reason:</strong> ${reason}</p>
     </div>
 
     <p>Our team will review your request and get back to you within 1-2 business days.</p>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${orderNumber}" class="button">
-      View Order
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/orders/${orderNumber}" class="email-button">
+        View Order
+      </a>
+    </div>
 
-    <p>You can track the status of your refund request in your account.</p>
+    <p class="text-muted">You can track the status of your refund request in your account.</p>
   `;
 }
 
@@ -468,23 +524,29 @@ export function refundApprovedEmailCustomer(
   refundAmount: string
 ) {
   return `
-    <h2>Refund Approved! ✅</h2>
-    <p>Great news! Your refund request has been approved.</p>
-
-    <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <strong>Order Number:</strong> ${orderNumber}<br>
-      <strong>RMA Number:</strong> ${rmaNumber}<br>
-      <strong>Refund Amount:</strong> $${refundAmount}
+    <div class="highlight-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      <h2 style="margin: 0 0 10px 0;">Refund Approved! ✅</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${orderNumber}</p>
     </div>
 
-    <h3>Next Steps:</h3>
-    <ul style="line-height: 1.8;">
-      <li>Your refund will be processed within 5-7 business days</li>
-      <li>The amount will be credited to your original payment method</li>
-      <li>You may need to return the item(s) using the provided RMA number</li>
-    </ul>
+    <p>Great news! Your refund request has been approved.</p>
 
-    <p>Thank you for your patience!</p>
+    <div class="email-card-success">
+      <p style="margin: 0 0 10px 0;"><strong>Order Number:</strong> ${orderNumber}</p>
+      <p style="margin: 0 0 10px 0;"><strong>RMA Number:</strong> ${rmaNumber}</p>
+      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #059669;"><strong>Refund Amount:</strong> $${refundAmount}</p>
+    </div>
+
+    <div class="email-card">
+      <h3 style="margin-top: 0;">Next Steps:</h3>
+      <ul style="margin: 10px 0; line-height: 1.8;">
+        <li>Your refund will be processed within 5-7 business days</li>
+        <li>The amount will be credited to your original payment method</li>
+        <li>You may need to return the item(s) using the provided RMA number</li>
+      </ul>
+    </div>
+
+    <p class="text-muted">Thank you for your patience!</p>
   `;
 }
 
@@ -494,26 +556,32 @@ export function refundRejectedEmailCustomer(
   adminNotes: string
 ) {
   return `
-    <h2>Refund Request Update ❌</h2>
-    <p>We've reviewed your refund request for order #${orderNumber}.</p>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+      <h2 style="margin: 0 0 10px 0;">Refund Request Update ❌</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${orderNumber}</p>
+    </div>
 
-    <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <strong>RMA Number:</strong> ${rmaNumber}<br>
-      <strong>Status:</strong> Not Approved
+    <p>We've reviewed your refund request.</p>
+
+    <div class="email-card-error">
+      <p style="margin: 0 0 10px 0;"><strong>RMA Number:</strong> ${rmaNumber}</p>
+      <p style="margin: 0;"><strong>Status:</strong> Not Approved</p>
     </div>
 
     ${adminNotes ? `
-      <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
-        <strong>Reason:</strong><br>
-        <p style="margin-top: 10px;">${adminNotes}</p>
+      <div class="email-card">
+        <strong>Reason:</strong>
+        <p style="margin: 10px 0 0 0;">${adminNotes}</p>
       </div>
     ` : ''}
 
     <p>If you have questions about this decision, please contact our support team.</p>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/contact" class="button">
-      Contact Support
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/contact" class="email-button email-button-danger">
+        Contact Support
+      </a>
+    </div>
   `;
 }
 
@@ -523,18 +591,22 @@ export function refundCompletedEmailCustomer(
   refundAmount: string
 ) {
   return `
-    <h2>Refund Completed! 💰</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      <h2 style="margin: 0 0 10px 0;">Refund Completed! 💰</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${orderNumber}</p>
+    </div>
+
     <p>Your refund has been successfully processed.</p>
 
-    <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <strong>Order Number:</strong> ${orderNumber}<br>
-      <strong>RMA Number:</strong> ${rmaNumber}<br>
-      <strong>Refunded Amount:</strong> $${refundAmount}
+    <div class="email-card-success">
+      <p style="margin: 0 0 10px 0;"><strong>Order Number:</strong> ${orderNumber}</p>
+      <p style="margin: 0 0 10px 0;"><strong>RMA Number:</strong> ${rmaNumber}</p>
+      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #059669;"><strong>Refunded Amount:</strong> $${refundAmount}</p>
     </div>
 
     <p>The refund has been credited to your original payment method. Depending on your bank, it may take 5-10 business days to appear in your account.</p>
 
-    <p>Thank you for shopping with us!</p>
+    <p class="text-muted">Thank you for shopping with us!</p>
   `;
 }
 
@@ -548,37 +620,41 @@ export function adminNewRefundRequestEmail(
   reasonDetails: string | null
 ) {
   return `
-    <h2>New Refund Request 🔔</h2>
-    <p>A customer has submitted a refund request.</p>
-
-    <div class="order-details">
-      <h3>Refund Details</h3>
-
-      <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
-        <strong>Order Number:</strong> ${orderNumber}<br>
-        <strong>RMA Number:</strong> ${rmaNumber}<br>
-        <strong>Refund Amount:</strong> $${refundAmount}<br>
-        <strong>Reason:</strong> ${reason}
-      </div>
-
-      <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
-        <strong>Customer:</strong> ${customerName}<br>
-        <strong>Email:</strong> ${customerEmail}
-      </div>
-
-      ${reasonDetails ? `
-        <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 15px 0; border-radius: 4px;">
-          <strong>Customer Notes:</strong><br>
-          <p style="margin-top: 10px;">${reasonDetails}</p>
-        </div>
-      ` : ''}
+    <div class="highlight-box">
+      <h2 style="margin: 0 0 10px 0;">New Refund Request 🔔</h2>
+      <p style="margin: 0; font-size: 18px;">Order #${orderNumber}</p>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/refunds" class="button">
-      Review Refund Request
-    </a>
+    <p>A customer has submitted a refund request.</p>
 
-    <p>Please review and process this request as soon as possible.</p>
+    <div class="email-card-primary">
+      <h3 style="margin-top: 0;">Refund Details</h3>
+      <p style="margin: 0 0 10px 0;"><strong>Order Number:</strong> ${orderNumber}</p>
+      <p style="margin: 0 0 10px 0;"><strong>RMA Number:</strong> ${rmaNumber}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Refund Amount:</strong> $${refundAmount}</p>
+      <p style="margin: 0;"><strong>Reason:</strong> ${reason}</p>
+    </div>
+
+    <div class="email-card">
+      <h3 style="margin-top: 0;">Customer Information</h3>
+      <p style="margin: 0 0 10px 0;"><strong>Customer:</strong> ${customerName}</p>
+      <p style="margin: 0;"><strong>Email:</strong> ${customerEmail}</p>
+    </div>
+
+    ${reasonDetails ? `
+      <div class="email-card-warning">
+        <strong>Customer Notes:</strong>
+        <p style="margin: 10px 0 0 0;">${reasonDetails}</p>
+      </div>
+    ` : ''}
+
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/admin/refunds" class="email-button">
+        Review Refund Request
+      </a>
+    </div>
+
+    <p class="text-muted">Please review and process this request as soon as possible.</p>
   `;
 }
 
@@ -588,13 +664,16 @@ export function adminNewRefundRequestEmail(
 
 export function loyaltyWelcomeEmail(customerName: string, referralCode: string, currencySymbol: string = '$') {
   return `
-    <h2>Welcome to Our Loyalty Rewards Program! 🎉</h2>
+    <div class="highlight-box">
+      <h2 style="margin: 0;">Welcome to Our Loyalty Rewards Program! 🎉</h2>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>You've been automatically enrolled in our loyalty rewards program! Start earning points on every purchase and unlock exclusive benefits.</p>
 
-    <div style="background-color: #f0fdf4; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <div class="email-card-success">
       <h3 style="margin-top: 0; color: #059669;">🎁 Your Benefits:</h3>
-      <ul style="line-height: 1.8;">
+      <ul style="margin: 10px 0; line-height: 1.8;">
         <li><strong>Earn 1 point per ${currencySymbol}1 spent</strong> (before tier multipliers)</li>
         <li><strong>100 points = ${currencySymbol}1 discount</strong></li>
         <li><strong>Progress through tiers</strong> to unlock better rewards</li>
@@ -603,19 +682,19 @@ export function loyaltyWelcomeEmail(customerName: string, referralCode: string, 
       </ul>
     </div>
 
-    <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <strong>Your Referral Code:</strong>
-      <div style="font-size: 24px; font-weight: bold; color: #d97706; margin: 10px 0; font-family: monospace;">
-        ${referralCode}
-      </div>
-      <p style="margin: 0; font-size: 14px; color: #92400e;">Share this code with friends and earn 500 points when they make their first purchase!</p>
+    <div class="discount-code">
+      <div class="discount-code-label">Your Referral Code</div>
+      <div class="discount-code-value">${referralCode}</div>
+      <p style="margin: 10px 0 0 0; color: #92400e; font-size: 14px;">Share this code with friends and earn 500 points when they make their first purchase!</p>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
-      View Your Loyalty Dashboard
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="email-button">
+        View Your Loyalty Dashboard
+      </a>
+    </div>
 
-    <p>Happy shopping and earning rewards!</p>
+    <p class="text-muted">Happy shopping and earning rewards!</p>
   `;
 }
 
@@ -628,39 +707,38 @@ export function pointsEarnedEmail(
   currencySymbol: string = '$'
 ) {
   return `
-    <h2>You Earned ${pointsEarned.toLocaleString()} Points! 🎯</h2>
+    <div class="highlight-box">
+      <h2 style="margin: 0 0 10px 0;">You Earned Points! 🎯</h2>
+      <p class="highlight-box-large" style="margin: 0;">+${pointsEarned.toLocaleString()} Points</p>
+      <p style="margin: 10px 0 0 0; font-size: 16px;">Order #${orderNumber}</p>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>Great news! You've earned loyalty points from your recent purchase.</p>
 
-    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 4px;">
-      <div style="font-size: 18px; margin-bottom: 10px;">
-        <strong>Order #${orderNumber}</strong>
+    ${tierMultiplier > 1 ? `
+      <div class="email-card-warning">
+        <p style="margin: 0; font-weight: 600;">⭐ ${tierMultiplier}x tier multiplier applied!</p>
       </div>
-      <div style="font-size: 32px; font-weight: bold; color: #1e40af; margin: 15px 0;">
-        +${pointsEarned.toLocaleString()} Points
-      </div>
-      ${tierMultiplier > 1 ? `
-        <div style="background-color: #fef3c7; border-radius: 4px; padding: 10px; margin-top: 10px;">
-          <span style="color: #d97706;">⭐ ${tierMultiplier}x tier multiplier applied!</span>
-        </div>
-      ` : ''}
-    </div>
+    ` : ''}
 
-    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
-      <strong>Your New Balance:</strong>
-      <div style="font-size: 24px; font-weight: bold; color: #059669; margin-top: 5px;">
+    <div class="email-card-success">
+      <p style="margin: 0 0 10px 0;"><strong>Your New Balance:</strong></p>
+      <div style="font-size: 28px; font-weight: bold; color: #059669; margin: 10px 0;">
         ${newBalance.toLocaleString()} Points
       </div>
-      <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">
+      <p style="margin: 5px 0 0 0;" class="text-muted text-small">
         = ${currencySymbol}${Math.floor(newBalance / 100)} in rewards available
       </p>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
-      Redeem Your Points
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="email-button">
+        Redeem Your Points
+      </a>
+    </div>
 
-    <p>Keep shopping to earn even more rewards!</p>
+    <p class="text-muted">Keep shopping to earn even more rewards!</p>
   `;
 }
 
@@ -673,35 +751,37 @@ export function tierUpgradeEmail(
   earlyAccessHours: number
 ) {
   return `
-    <h2>Congratulations! You've Been Upgraded! 🎉</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+      <h2 style="margin: 0 0 10px 0;">Congratulations! You've Been Upgraded! 🎉</h2>
+      <div style="font-size: 48px; margin: 15px 0;">${newTierIcon}</div>
+      <h3 style="margin: 10px 0; font-size: 28px;">
+        ${newTierName} Member
+      </h3>
+      <p style="margin: 0; font-size: 16px; opacity: 0.95;">You've unlocked premium benefits!</p>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>Amazing news! Your loyalty has paid off and you've reached a new tier level.</p>
 
-    <div style="background-color: #fef3c7; border: 3px solid #f59e0b; border-radius: 12px; padding: 30px; margin: 20px 0; text-align: center;">
-      <div style="font-size: 48px; margin-bottom: 10px;">${newTierIcon}</div>
-      <h3 style="margin: 10px 0; color: #d97706; font-size: 28px;">
-        ${newTierName} Member
-      </h3>
-      <p style="color: #92400e; margin-top: 5px;">You've unlocked premium benefits!</p>
-    </div>
-
-    <div style="background-color: #f0fdf4; border: 1px solid #10b981; border-radius: 6px; padding: 20px; margin: 20px 0;">
+    <div class="email-card-success">
       <h3 style="margin-top: 0; color: #059669;">🎁 Your New Benefits:</h3>
-      <ul style="line-height: 2;">
+      <ul style="margin: 10px 0; line-height: 1.8;">
         ${benefits.map(benefit => `<li>${benefit}</li>`).join('')}
         ${earlyAccessEnabled ? `
-          <li style="background-color: #dbeafe; padding: 8px; border-radius: 4px; margin: 5px 0;">
+          <li style="background-color: #eff6ff; padding: 10px; border-radius: 4px; margin: 8px 0;">
             <strong style="color: #1e40af;">✨ VIP Early Access:</strong> ${earlyAccessHours}-hour exclusive access to flash sales and new products
           </li>
         ` : ''}
       </ul>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
-      View Your Tier Benefits
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="email-button">
+        View Your Tier Benefits
+      </a>
+    </div>
 
-    <p>Thank you for being a valued customer! Enjoy your upgraded benefits.</p>
+    <p class="text-muted">Thank you for being a valued customer! Enjoy your upgraded benefits.</p>
   `;
 }
 
@@ -713,42 +793,38 @@ export function pointsExpiringEmail(
   currencySymbol: string = '$'
 ) {
   return `
-    <h2>Your Points Are Expiring Soon! ⏰</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+      <h2 style="margin: 0 0 10px 0;">Your Points Are Expiring Soon! ⏰</h2>
+      <p class="highlight-box-large" style="margin: 0;">${expiringPoints.toLocaleString()} Points</p>
+      <p style="margin: 10px 0 0 0; font-size: 16px;">Expiring on ${expirationDate}</p>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>This is a friendly reminder that some of your loyalty points are about to expire.</p>
 
-    <div style="background-color: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 20px; margin: 20px 0;">
-      <div style="text-align: center;">
-        <div style="font-size: 36px; font-weight: bold; color: #dc2626; margin-bottom: 10px;">
-          ${expiringPoints.toLocaleString()} Points
-        </div>
-        <div style="color: #991b1b; font-size: 16px;">
-          Expiring on ${expirationDate}
-        </div>
-      </div>
-    </div>
-
-    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin: 15px 0;">
-      <strong>Current Balance:</strong>
-      <div style="font-size: 20px; color: #059669; margin-top: 5px;">
+    <div class="email-card">
+      <p style="margin: 0 0 10px 0;"><strong>Current Balance:</strong></p>
+      <div style="font-size: 24px; font-weight: bold; color: #059669; margin-top: 5px;">
         ${currentBalance.toLocaleString()} Points
       </div>
     </div>
 
-    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <strong>💡 Don't Lose Your Points!</strong>
-      <p style="margin: 10px 0 0 0;">Redeem them now for:</p>
+    <div class="email-card-primary">
+      <p style="margin: 0 0 10px 0; font-weight: 600;">💡 Don't Lose Your Points!</p>
+      <p style="margin: 10px 0;">Redeem them now for:</p>
       <ul style="margin: 10px 0;">
         <li>Discount codes (100 points = ${currencySymbol}1)</li>
         <li>Free shipping (500 points)</li>
       </ul>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="button">
-      Redeem Points Now
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/account/loyalty" class="email-button email-button-danger">
+        Redeem Points Now
+      </a>
+    </div>
 
-    <p>Act fast before your points expire!</p>
+    <p class="text-muted">Act fast before your points expire!</p>
   `;
 }
 
@@ -761,41 +837,45 @@ export function redemptionConfirmationEmail(
   currencySymbol: string = '$'
 ) {
   return `
-    <h2>Points Redeemed Successfully! 🎁</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      <h2 style="margin: 0 0 10px 0;">Points Redeemed Successfully! 🎁</h2>
+      <p style="margin: 0; font-size: 16px;">You spent ${pointsSpent.toLocaleString()} points</p>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>You've successfully redeemed your loyalty points for a reward!</p>
 
-    <div style="background-color: #d1fae5; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
-      <div style="font-size: 18px; color: #065f46; margin-bottom: 10px;">
-        You spent <strong>${pointsSpent.toLocaleString()} points</strong>
-      </div>
-      ${discountCode ? `
-        <div style="background-color: white; border: 2px dashed #10b981; border-radius: 6px; padding: 20px; margin: 15px 0;">
-          <div style="color: #065f46; margin-bottom: 10px;">Your Discount Code:</div>
-          <div style="font-size: 28px; font-weight: bold; color: #059669; font-family: monospace; letter-spacing: 2px;">
-            ${discountCode}
-          </div>
-          ${discountValue ? `
-            <div style="color: #10b981; margin-top: 10px; font-size: 18px;">
-              Value: ${currencySymbol}${discountValue}
-            </div>
-          ` : ''}
-        </div>
-        <p style="color: #065f46; margin: 10px 0; font-size: 14px;">
+    ${discountCode ? `
+      <div class="discount-code">
+        <div class="discount-code-label">Your Discount Code</div>
+        <div class="discount-code-value">${discountCode}</div>
+        ${discountValue ? `
+          <p style="margin: 10px 0 0 0; color: #92400e; font-size: 18px; font-weight: 600;">
+            Value: ${currencySymbol}${discountValue}
+          </p>
+        ` : ''}
+        <p style="margin: 15px 0 0 0; color: #92400e; font-size: 14px;">
           Use this code at checkout. Valid for 90 days.
         </p>
-      ` : `
-        <div style="font-size: 24px; font-weight: bold; color: #059669; margin: 10px 0;">
-          ${redemptionType === 'FREE_SHIPPING' ? '📦 Free Shipping Unlocked!' : '✅ Reward Unlocked!'}
+      </div>
+    ` : `
+      <div class="email-card-success" style="text-align: center;">
+        <div style="font-size: 32px; margin: 15px 0;">
+          ${redemptionType === 'FREE_SHIPPING' ? '📦' : '✅'}
         </div>
-      `}
+        <h3 style="margin: 10px 0; color: #059669; font-size: 24px;">
+          ${redemptionType === 'FREE_SHIPPING' ? 'Free Shipping Unlocked!' : 'Reward Unlocked!'}
+        </h3>
+      </div>
+    `}
+
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="email-button email-button-success">
+        Start Shopping
+      </a>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="button">
-      Start Shopping
-    </a>
-
-    <p>Thank you for being a loyal customer!</p>
+    <p class="text-muted">Thank you for being a loyal customer!</p>
   `;
 }
 
@@ -808,38 +888,37 @@ export function earlyAccessNotificationEmail(
   earlyAccessHours: number
 ) {
   return `
-    <h2>🌟 VIP Early Access Alert!</h2>
+    <div class="highlight-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+      <h2 style="margin: 0 0 10px 0;">🌟 VIP Early Access Alert!</h2>
+      <p style="margin: 0; font-size: 20px; font-weight: 600;">⚡ ${saleName}</p>
+    </div>
+
     <p>Hi ${customerName},</p>
     <p>As a <strong>${tierName}</strong> member, you have exclusive early access to our upcoming flash sale!</p>
 
-    <div style="background-color: #fef3c7; border: 3px solid #f59e0b; border-radius: 12px; padding: 25px; margin: 20px 0;">
-      <div style="text-align: center;">
-        <div style="font-size: 24px; font-weight: bold; color: #d97706; margin-bottom: 10px;">
-          ⚡ ${saleName}
-        </div>
-        <div style="background-color: white; border-radius: 6px; padding: 15px; margin: 15px 0;">
-          <div style="color: #92400e; margin-bottom: 5px;">Your VIP Access Starts:</div>
-          <div style="font-size: 20px; font-weight: bold; color: #d97706;">
-            ${earlyAccessStartDate}
-          </div>
-        </div>
-        <div style="color: #92400e; font-size: 14px;">
-          Public sale starts: ${publicStartDate}
-        </div>
+    <div class="email-card-warning" style="text-align: center;">
+      <p style="margin: 0 0 10px 0; font-weight: 600; color: #92400e;">Your VIP Access Starts:</p>
+      <div style="font-size: 24px; font-weight: bold; color: #d97706; margin: 10px 0;">
+        ${earlyAccessStartDate}
       </div>
+      <p style="margin: 15px 0 0 0; color: #92400e; font-size: 14px;">
+        Public sale starts: ${publicStartDate}
+      </p>
     </div>
 
-    <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-      <strong>✨ Why You Got Early Access:</strong>
-      <p style="margin: 10px 0 0 0;">
+    <div class="email-card-primary">
+      <p style="margin: 0 0 10px 0; font-weight: 600;">✨ Why You Got Early Access:</p>
+      <p style="margin: 0;">
         ${tierName} members get ${earlyAccessHours} hours of exclusive access before everyone else. Shop first and grab the best deals!
       </p>
     </div>
 
-    <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="button">
-      Shop VIP Early Access
-    </a>
+    <div class="email-button-center">
+      <a href="${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/shop" class="email-button email-button-warning">
+        Shop VIP Early Access
+      </a>
+    </div>
 
-    <p>Don't miss this exclusive opportunity reserved just for you!</p>
+    <p class="text-muted">Don't miss this exclusive opportunity reserved just for you!</p>
   `;
 }
